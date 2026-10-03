@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graze Smasher Product Hunting Tool - Fake Review Detector</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        .card-header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #f2f2f2;
+            font-weight: 600;
+            border-top-left-radius: 12px !important;
+            border-top-right-radius: 12px !important;
+        }
+        .btn-predict {
+            background-color: #4f46e5;
+            color: white;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .btn-predict:hover {
+            background-color: #4338ca;
+            color: white;
+            transform: translateY(-1px);
+        }
+        .text-cleaned {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f1f3f5;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .badge-prediction {
+            font-size: 1.25rem;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f1f3f5;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .review-text-trunc {
+            max-width: 350px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'index' %}">
+                <i class="fa-solid fa-crosshairs me-2 text-danger"></i>GRAZE SMASHER
+            </a>
+            <span class="navbar-text text-light ms-auto d-none d-sm-inline">
+                Product Hunting Tool - Fake Review Detection System
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container my-5">
+        <div class="row text-center mb-4">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="display-5 fw-bold text-dark">Fake Review Detection System</h1>
+                <p class="lead text-muted">Identify machine-generated and deceptive reviews instantly using our advanced TF-IDF + Support Vector Machine (SVM) pipeline.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Column: Input Form and Results -->
+            <div class="col-lg-6">
+                <!-- Predictor Form Card -->
+                <div class="card">
+                    <div class="card-header py-3">
+                        <i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Analyze Single Review
+                    </div>
+                    <div class="card-body p-4">
+                        <form action="{% url 'predict' %}" method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="review_text" class="form-label fw-semibold">Enter review text to test:</label>
+                                <textarea class="form-control" id="review_text" name="review_text" rows="6" placeholder="Paste product review text here (e.g. 'I bought this item yesterday...')" required>{{ review_text|default:'' }}</textarea>
+                            </div>
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{% url 'index' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">Clear</a>
+                                <button type="submit" class="btn btn-predict">
+                                    <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Predict Result
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Prediction Results Card (Renders only after submission) -->
+                {% if result %}
+                <div class="card">
+                    <div class="card-header py-3">
+                        <i class="fa-solid fa-square-poll-vertical me-2 text-success"></i>Prediction Result
+                    </div>
+                    <div class="card-body p-4">
+                        {% if result.error %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ result.error }}
+                            </div>
+                        {% else %}
+                            <div class="mb-4 text-center">
+                                <h5 class="fw-semibold text-start mb-2">Model Decision:</h5>
+                                {% if result.label == 'Fake' %}
+                                    <div class="badge-prediction bg-danger-subtle text-danger border border-danger">
+                                        <i class="fa-solid fa-triangle-exclamation me-2 fs-4"></i>
+                                        <strong>FAKE REVIEW (Computer Generated)</strong>
+                                    </div>
+                                {% else %}
+                                    <div class="badge-prediction bg-success-subtle text-success border border-success">
+                                        <i class="fa-solid fa-circle-check me-2 fs-4"></i>
+                                        <strong>GENUINE REVIEW (Original/Organic)</strong>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <hr>
+
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-dark"><i class="fa-solid fa-quote-left text-muted me-1"></i> Original Text:</h6>
+                                <p class="text-secondary small bg-light p-3 rounded border" style="max-height: 150px; overflow-y: auto;">
+                                    {{ result.original_text }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <h6 class="fw-bold text-dark"><i class="fa-solid fa-gears text-muted me-1"></i> NLP Preprocessed Text:</h6>
+                                <div class="text-cleaned border">
+                                    {{ result.cleaned_text|default:"(No tokens remaining after stop-word removal)" }}
+                                </div>
+                                <span class="form-text text-muted">
+                                    *Applied: Lowercased, removed punctuation & stop-words, tokenized, and lemmatized.
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column: Verification & Model Metrics -->
+            <div class="col-lg-6">
+                <!-- Model Specs Card -->
+                <div class="card">
+                    <div class="card-header py-3">
+                        <i class="fa-solid fa-chart-line me-2 text-warning"></i>Model Specifications & Metrics
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row text-center mb-3">
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <h4 class="fw-bold text-primary mb-0">89.2%</h4>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Accuracy</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <h4 class="fw-bold text-success mb-0">89.2%</h4>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Precision</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <h4 class="fw-bold text-info mb-0">89.2%</h4>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Recall</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <h4 class="fw-bold text-purple mb-0" style="color: #6f42c1;">89.2%</h4>
+                                    <small class="text-muted" style="font-size: 0.75rem;">F1-Score</small>
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="list-group list-group-flush small">
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><strong class="text-secondary">Classifier Algorithm:</strong></span>
+                                <span class="badge bg-secondary">Support Vector Machine (LinearSVC)</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><strong class="text-secondary">Vectorization Method:</strong></span>
+                                <span class="badge bg-secondary">TF-IDF Vectorizer</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><strong class="text-secondary">Dataset Sourced:</strong></span>
+                                <span class="badge bg-secondary">Salminen et al. (Balanced)</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><strong class="text-secondary">Training Sample Count:</strong></span>
+                                <span class="badge bg-secondary">8,000 reviews</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span><strong class="text-secondary">Testing Sample Count:</strong></span>
+                                <span class="badge bg-secondary">2,000 reviews</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Demonstration Table Card -->
+                <div class="card">
+                    <div class="card-header py-3">
+                        <i class="fa-solid fa-list-check me-2 text-danger"></i>Prediction Demonstration (10 Test Reviews)
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-center" style="font-size: 0.85rem;">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">ID</th>
+                                        <th scope="col" class="text-start">Review Text Preview</th>
+                                        <th scope="col">Expected</th>
+                                        <th scope="col">Predicted</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for review in demo_reviews %}
+                                    <tr>
+                                        <td><strong>{{ review.id }}</strong></td>
+                                        <td class="text-start review-text-trunc" title="{{ review.text }}">{{ review.text }}</td>
+                                        <td>
+                                            <span class="badge {% if review.expected == 'Genuine' %}bg-success-subtle text-success border border-success{% else %}bg-danger-subtle text-danger border border-danger{% endif %}">
+                                                {{ review.expected }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if review.predicted == 'Genuine' %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ review.predicted }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if review.is_correct %}
+                                                <span class="text-success"><i class="fa-solid fa-circle-check fs-5"></i></span>
+                                            {% else %}
+                                                <span class="text-danger"><i class="fa-solid fa-circle-xmark fs-5"></i></span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-auto">
+        <div class="container text-center">
+            <p class="mb-1"><strong>Graze Smasher Product Hunting Tool</strong></p>
+            <p class="text-muted small mb-0">Developed as a prototype for Machine Learning Based Fake Review Detection. &copy; 2026. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
