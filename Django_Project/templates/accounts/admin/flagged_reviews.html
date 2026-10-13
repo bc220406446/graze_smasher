@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Flagged Content Moderation - Graze Smasher Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header & Breadcrumbs -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_control_panel' %}" class="text-decoration-none">Admin Panel</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Flagged Content Moderation</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-shield-virus text-danger me-2"></i>Flagged Content Moderation Queue
+            </h2>
+            <p class="text-muted small mb-0">Inspect reviews flagged as Fake, Suspicious, or IP velocity violations. Confirm or override labels.</p>
+        </div>
+        <div class="mt-3 mt-md-0 d-flex gap-2">
+            <a href="{% url 'admin_control_panel' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Control Panel
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Strip -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-3 d-flex flex-wrap gap-2 align-items-center">
+            <span class="text-muted small fw-semibold me-2"><i class="fa-solid fa-filter me-1"></i>Filter Queue:</span>
+            <a href="{% url 'admin_flagged_content' %}" class="btn btn-sm {% if not label_filter and not ip_only %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+                All Flagged ({{ total_flagged }})
+            </a>
+            <a href="?label=fake" class="btn btn-sm {% if label_filter == 'Fake' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                <i class="fa-solid fa-ban me-1"></i> Computer-Generated / Fake
+            </a>
+            <a href="?label=suspicious" class="btn btn-sm {% if label_filter == 'Suspicious' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Suspicious
+            </a>
+            <a href="?ip_burst=1" class="btn btn-sm {% if ip_only == '1' %}btn-dark{% else %}btn-outline-dark{% endif %}">
+                <i class="fa-solid fa-bolt me-1"></i> IP Velocity Violations
+            </a>
+        </div>
+    </div>
+
+    <!-- Flagged Reviews Cards -->
+    <div class="row g-3">
+        {% for r in reviews %}
+        <div class="col-12">
+            <div class="card shadow-sm border p-3 bg-white">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-2 pb-2 border-bottom">
+                    <div>
+                        <span class="badge bg-secondary me-1">Review #{{ r.id }}</span>
+                        <strong class="text-dark">
+                            <a href="{% url 'product_detail' r.product.pk %}" class="text-dark text-decoration-none">
+                                {{ r.product.name }}
+                            </a>
+                        </strong>
+                        <span class="text-muted small ms-2">&bull; {{ r.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+
+                    <!-- Current ML Status -->
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge {% if r.label == 'Genuine' %}badge-genuine{% elif r.label == 'Suspicious' %}badge-suspicious{% else %}badge-fake{% endif %} fs-6 px-2 py-1">
+                            {{ r.label }} ({{ r.final_score }}%)
+                        </span>
+                        {% if r.ip_flag %}
+                            <span class="badge bg-danger" title="IP Velocity limit exceeded">
+                                <i class="fa-solid fa-bolt"></i> IP Burst
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Review Content -->
+                <p class="text-secondary small mb-3 lh-base">
+                    "{{ r.text }}"
+                </p>
+
+                <!-- ML Breakdown Details & Override Form -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center pt-2 border-top gap-3">
+                    <div class="text-muted small" style="font-size: 0.75rem;">
+                        <span class="me-2"><strong>Rating:</strong> ⭐ {{ r.rating }}</span>
+                        <span class="me-2"><strong>SVM Fake Prob:</strong> {{ r.svm_score }}</span>
+                        <span class="me-2"><strong>J-48 Fake Prob:</strong> {{ r.j48_score }}</span>
+                        <span class="me-2"><strong>Sentiment:</strong> {{ r.sentiment }}</span>
+                        {% if r.ip_address %}
+                            <span><strong>IP:</strong> <code>{{ r.ip_address }}</code></span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Administrator Override Form -->
+                    <form method="POST" action="{% url 'admin_override_review_label' r.id %}" class="d-flex gap-2 align-items-center">
+                        {% csrf_token %}
+                        <span class="text-muted small fw-semibold" style="font-size: 0.75rem;">Admin Override:</span>
+                        <select name="new_label" class="form-select form-select-sm" style="width: auto; font-size: 0.75rem;">
+                            <option value="Genuine" {% if r.label == 'Genuine' %}selected{% endif %}>Mark Genuine</option>
+                            <option value="Suspicious" {% if r.label == 'Suspicious' %}selected{% endif %}>Mark Suspicious</option>
+                            <option value="Fake" {% if r.label == 'Fake' %}selected{% endif %}>Mark Fake</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-dark" style="font-size: 0.75rem;">
+                            <i class="fa-solid fa-check me-1"></i> Apply
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="fa-solid fa-circle-check text-success fs-1 mb-2 d-block"></i>
+            <h5 class="fw-bold">No Flagged Reviews</h5>
+            <p class="small text-muted mb-0">The moderation queue is currently clear.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
+

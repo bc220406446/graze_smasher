@@ -1,0 +1,38 @@
+# ==============================================================================
+# Graze Smasher Product Hunting Tool - Dependencies
+# CS619 Final-Year Project
+# Python 3.10+ / 3.11+ / 3.12+ / 3.14+
+# ==============================================================================
+
+# Core Web Framework & REST API
+Django>=5.0
+djangorestframework>=3.14.0
+asgiref>=3.8.0
+sqlparse>=0.5.0
+
+# Machine Learning & Natural Language Processing
+scikit-learn>=1.4.0
+nltk>=3.8.1
+textblob>=0.18.0
+joblib>=1.3.0
+
+# Data Science & Numerical Computing
+numpy>=1.26.0
+pandas>=2.2.0
+scipy>=1.12.0
+
+# Visualization & Reporting
+matplotlib>=3.8.0
+seaborn>=0.13.0
+Pillow>=10.2.0
+
+# Jupyter Notebook & Interactive Evaluation
+notebook>=7.1.0
+ipykernel>=6.29.0
+nbconvert>=7.16.0
+nbformat>=5.10.0
+
+# HTTP & Utilities
+requests>=2.31.0
+python-dateutil>=2.9.0
+tqdm>=4.66.0

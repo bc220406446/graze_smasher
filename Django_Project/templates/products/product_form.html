@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Product - Graze Smasher{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header py-3 bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="fa-solid fa-plus-circle text-primary me-2"></i>Add Product to Monitored Catalog
+                    </h5>
+                    <p class="text-muted small mb-0 mt-1">Register a new product to start collecting and analyzing customer reviews</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+                                {{ form.category }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="{{ form.platform.id_for_label }}">{{ form.platform.label }}</label>
+                                {{ form.platform }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="{{ form.source_url.id_for_label }}">{{ form.source_url.label }}</label>
+                            {{ form.source_url }}
+                            <div class="form-text small">Original listing URL on Amazon, eBay, or Walmart.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="{{ form.image_url.id_for_label }}">{{ form.image_url.label }}</label>
+                            {{ form.image_url }}
+                            <div class="form-text small">Direct HTTPS URL of the product image.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                                <i class="fa-solid fa-check me-1"></i> Create Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

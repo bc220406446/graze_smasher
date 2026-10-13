@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile - Graze Smasher{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header py-3 bg-white border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-id-badge text-primary me-2"></i>User Profile</h5>
+                    <span class="badge {% if profile.role == 'admin' %}bg-danger{% elif profile.role == 'reviewer' %}bg-primary{% else %}bg-secondary{% endif %} px-3 py-2">
+                        Role: {{ profile.get_role_display }}
+                    </span>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Username</label>
+                                <input type="text" class="form-control bg-light" value="{{ request.user.username }}" disabled>
+                                <small class="text-muted">Username cannot be changed</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="{{ form.email.id_for_label }}">Email Address</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="{{ form.first_name.id_for_label }}">First Name</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="{{ form.last_name.id_for_label }}">Last Name</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold" for="{{ form.bio.id_for_label }}">Bio / About Me</label>
+                            {{ form.bio }}
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- User Activity Summary -->
+            <div class="card shadow-sm">
+                <div class="card-header py-3 bg-white border-bottom">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-chart-pie text-info me-2"></i>Activity & Watchlist Summary</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded border">
+                                <h3 class="fw-bold text-primary mb-0">{{ request.user.saved_products.count }}</h3>
+                                <small class="text-muted">Saved Products</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded border">
+                                <h3 class="fw-bold text-success mb-0">{{ request.user.reviews.count }}</h3>
+                                <small class="text-muted">Reviews Authored</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded border">
+                                <h3 class="fw-bold text-info mb-0">{{ request.user.date_joined|date:"M Y" }}</h3>
+                                <small class="text-muted">Member Since</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

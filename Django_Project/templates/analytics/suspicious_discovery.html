@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Suspicious Products Radar - Graze Smasher{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+            <span class="badge bg-danger-subtle text-danger mb-1">Deception Radar & Anomaly Monitor</span>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-shield-virus text-danger me-2"></i>Suspicious & Manipulated Products Discovery
+            </h2>
+            <p class="text-muted small mb-0">
+                Identify products affected by astroturfing, computer-generated bot reviews, and inflated customer ratings.
+            </p>
+        </div>
+        <div class="mt-3 mt-md-0 d-flex gap-2">
+            <a href="{% url 'analytics_overview' %}" class="btn btn-outline-primary btn-sm">
+                <i class="fa-solid fa-chart-line me-1"></i> System Analytics
+            </a>
+            <a href="{% url 'product_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-boxes-stacked me-1"></i> All Products
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Filter Tabs -->
+    <ul class="nav nav-pills mb-4 gap-2">
+        <li class="nav-item">
+            <a class="nav-link {% if tab == 'manipulated' or not tab %}active bg-danger text-white{% else %}bg-light text-dark border{% endif %} fw-semibold" href="?tab=manipulated">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> High Deception Risk ({{ total_flagged }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if tab == 'alerts' %}active bg-dark text-white{% else %}bg-light text-dark border{% endif %} fw-semibold" href="?tab=alerts">
+                <i class="fa-solid fa-bell me-1"></i> Active Anomaly Alerts
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if tab == 'trusted' %}active bg-success text-white{% else %}bg-light text-dark border{% endif %} fw-semibold" href="?tab=trusted">
+                <i class="fa-solid fa-circle-check me-1"></i> Verified Authentic Benchmark
+            </a>
+        </li>
+    </ul>
+
+    <!-- Product Discovery Cards -->
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border {% if product.overall_authenticity_score < 40 %}border-danger{% elif product.overall_authenticity_score < 70 %}border-warning{% else %}border-success{% endif %}">
+                <!-- Card Header -->
+                <div class="card-header py-2 bg-white d-flex justify-content-between align-items-center">
+                    <span class="badge bg-dark" style="font-size: 0.70rem;">{{ product.platform }}</span>
+                    {% if product.overall_authenticity_score < 40 %}
+                        <span class="badge badge-fake"><i class="fa-solid fa-ban me-1"></i>HIGH DECEPTION RISK</span>
+                    {% elif product.overall_authenticity_score < 70 %}
+                        <span class="badge badge-suspicious"><i class="fa-solid fa-triangle-exclamation me-1"></i>SUSPICIOUS PATTERNS</span>
+                    {% else %}
+                        <span class="badge badge-genuine"><i class="fa-solid fa-circle-check me-1"></i>VERIFIED TRUSTED</span>
+                    {% endif %}
+                </div>
+
+                <!-- Product Thumbnail & Title -->
+                <div class="p-3 text-center border-bottom bg-light position-relative" style="height: 160px; overflow: hidden;">
+                    <img src="{{ product.display_image }}" class="h-100 w-auto rounded" style="object-fit: contain;" alt="{{ product.name }}">
+                </div>
+
+                <div class="card-body p-3 d-flex flex-column">
+                    <h6 class="fw-bold text-dark mb-2">
+                        <a href="{% url 'product_detail' product.pk %}" class="text-dark text-decoration-none">
+                            {{ product.name }}
+                        </a>
+                    </h6>
+
+                    <!-- Rating Discrepancy Callout -->
+                    <div class="p-2 mb-3 rounded bg-light border">
+                        <div class="d-flex justify-content-between align-items-center small mb-1">
+                            <span class="text-muted">Reported Star Rating:</span>
+                            <strong class="text-warning">⭐ {{ product.average_rating }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small mb-1">
+                            <span class="text-muted">Community Trust Rating:</span>
+                            <strong class="text-success">🛡️ {{ product.community_trust_rating }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small">
+                            <span class="text-muted">Authenticity Score:</span>
+                            <strong class="{% if product.overall_authenticity_score >= 70 %}text-success{% elif product.overall_authenticity_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ product.overall_authenticity_score }}%
+                            </strong>
+                        </div>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="progress mb-2" style="height: 6px;">
+                        <div class="progress-bar {% if product.overall_authenticity_score >= 70 %}bg-success{% elif product.overall_authenticity_score >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                             role="progressbar" style="width: {{ product.overall_authenticity_score }}%;">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center text-muted small mt-auto pt-2 border-top">
+                        <span>Total: {{ product.review_count }} reviews</span>
+                        <span class="text-danger fw-semibold">{{ product.fake_reviews_count }} Fake ({{ product.fake_reviews_count|default:0 }} CG)</span>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white border-top-0 p-3 pt-0">
+                    <a href="{% url 'product_detail' product.pk %}" class="btn btn-outline-dark btn-sm w-100 fw-semibold">
+                        Inspect Review Timeline <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="card p-5 bg-light border-0 shadow-sm">
+                <i class="fa-solid fa-shield-halved text-success fs-1 mb-2"></i>
+                <h5 class="fw-bold">No Products Matching Criteria</h5>
+                <p class="text-muted small">No products are currently flagged in this category.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
+

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}User & Role Management - Graze Smasher Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header & Breadcrumbs -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_control_panel' %}" class="text-decoration-none">Admin Panel</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Users Management</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-users text-primary me-2"></i>User & Role Management
+            </h2>
+            <p class="text-muted small mb-0">Assign RBAC roles (General User, Reviewer, Admin) and inspect account status.</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="{% url 'admin_control_panel' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Control Panel
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-3">
+            <form method="GET" class="row g-2 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="q" value="{{ search }}" class="form-control" placeholder="Search by username or email...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="role" class="form-select form-select-sm">
+                        <option value="">All Roles</option>
+                        {% for r_code, r_label in role_choices %}
+                            <option value="{{ r_code }}" {% if role_filter == r_code %}selected{% endif %}>{{ r_label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-1">
+                    <button type="submit" class="btn btn-dark btn-sm flex-grow-1">Filter</button>
+                    {% if search or role_filter %}
+                        <a href="{% url 'admin_users' %}" class="btn btn-outline-secondary btn-sm" title="Clear">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0 align-middle text-center small">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start ps-3">Username / Email</th>
+                            <th>Current Role</th>
+                            <th>Date Joined</th>
+                            <th>Reviews Authored</th>
+                            <th>Status</th>
+                            <th>Change Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users_list %}
+                        <tr>
+                            <td class="text-start ps-3">
+                                <strong class="text-dark">{{ u.username }}</strong>
+                                {% if u.is_superuser %}
+                                    <span class="badge bg-danger ms-1" style="font-size: 0.65rem;">Superuser</span>
+                                {% endif %}
+                                <div class="text-muted" style="font-size: 0.75rem;">{{ u.email|default:"No email" }}</div>
+                            </td>
+                            <td>
+                                {% if u.profile.role == 'admin' %}
+                                    <span class="badge bg-danger px-2 py-1"><i class="fa-solid fa-shield-halved me-1"></i>Admin</span>
+                                {% elif u.profile.role == 'reviewer' %}
+                                    <span class="badge bg-primary px-2 py-1"><i class="fa-solid fa-feather-pointed me-1"></i>Reviewer</span>
+                                {% else %}
+                                    <span class="badge bg-secondary px-2 py-1"><i class="fa-solid fa-user me-1"></i>General User</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.date_joined|date:"M d, Y" }}</td>
+                            <td><strong>{{ u.reviews.count }}</strong></td>
+                            <td>
+                                {% if u.is_active %}
+                                    <span class="text-success"><i class="fa-solid fa-circle-check"></i> Active</span>
+                                {% else %}
+                                    <span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{% url 'admin_update_user_role' u.id %}" class="d-inline-flex gap-1 align-items-center">
+                                    {% csrf_token %}
+                                    <select name="role" class="form-select form-select-sm" style="width: auto; font-size: 0.75rem;">
+                                        <option value="general" {% if u.profile.role == 'general' %}selected{% endif %}>General</option>
+                                        <option value="reviewer" {% if u.profile.role == 'reviewer' %}selected{% endif %}>Reviewer</option>
+                                        <option value="admin" {% if u.profile.role == 'admin' %}selected{% endif %}>Admin</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem;">
+                                        Save
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No users found matching search criteria.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
