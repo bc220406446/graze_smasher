@@ -1,178 +1,165 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 
 {% block title %}Detection Pipeline Settings - Graze Smasher Admin{% endblock %}
 
-{% block content %}
-<div class="container py-4">
+{% block dashboard_content %}
+<div class="d-flex flex-column gap-4">
 
-    <!-- Header & Breadcrumbs -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb small mb-1">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_control_panel' %}" class="text-decoration-none">Admin Panel</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Detection Settings</li>
-                </ol>
-            </nav>
-            <h2 class="fw-bold text-dark mb-1">
+            <h4 class="fw-bold text-dark mb-1">
                 <i class="fa-solid fa-sliders text-success me-2"></i>Runtime Detection Pipeline Settings
-            </h2>
-            <p class="text-muted small mb-0">Fine-tune ensemble weights, authenticity classification cutoffs, and IP velocity thresholds in real time.</p>
+            </h4>
+            <p class="text-muted small mb-0">Fine-tune ensemble fusion weights, authenticity classification cutoffs, and IP velocity thresholds in real time.</p>
         </div>
-        <div class="mt-3 mt-md-0 d-flex gap-2">
-            <a href="{% url 'admin_control_panel' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fa-solid fa-arrow-left me-1"></i> Control Panel
-            </a>
-        </div>
+        <a href="{% url 'admin_control_panel' %}" class="btn btn-outline-secondary btn-sm">
+            &larr; Back to Overview
+        </a>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header py-3 bg-white border-bottom">
-                    <h6 class="mb-0 fw-bold text-dark">
-                        <i class="fa-solid fa-gears text-primary me-2"></i>Configure Machine Learning Parameters
-                    </h6>
-                </div>
-                <div class="card-body p-4">
-                    <form method="POST" novalidate>
-                        {% csrf_token %}
+    <div class="card shadow-sm border">
+        <div class="card-header py-3 bg-white border-bottom">
+            <h6 class="mb-0 fw-bold text-dark">
+                <i class="fa-solid fa-gears text-primary me-2"></i>Configure Machine Learning Parameters
+            </h6>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" novalidate>
+                {% csrf_token %}
 
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger py-2 small mb-4">
-                                {% for error in form.non_field_errors %}
-                                    <div><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ error }}</div>
-                                {% endfor %}
-                            </div>
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 small mb-4">
+                        {% for error in form.non_field_errors %}
+                            <div><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Section 1: Ensemble Weights -->
+                <h6 class="fw-bold text-primary mb-3">1. Ensemble Fusion Weights (Must Sum to 1.0)</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold" for="{{ form.weight_svm.id_for_label }}">
+                            SVM Weight (Textual)
+                        </label>
+                        {{ form.weight_svm }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Default: 0.50 (50%)</div>
+                        {% if form.weight_svm.errors %}
+                            <div class="text-danger small">{{ form.weight_svm.errors.0 }}</div>
                         {% endif %}
+                    </div>
 
-                        <!-- Section 1: Ensemble Weights -->
-                        <h6 class="fw-bold text-primary mb-3">1. Ensemble Fusion Weights (Must Sum to 1.0)</h6>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-4">
-                                <label class="form-label small fw-semibold" for="{{ form.weight_svm.id_for_label }}">
-                                    SVM Weight (Textual)
-                                </label>
-                                {{ form.weight_svm }}
-                                <div class="form-text small" style="font-size: 0.70rem;">Default: 0.50 (50%)</div>
-                                {% if form.weight_svm.errors %}
-                                    <div class="text-danger small">{{ form.weight_svm.errors.0 }}</div>
-                                {% endif %}
-                            </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold" for="{{ form.weight_j48.id_for_label }}">
+                            J-48 Weight (Behavioral)
+                        </label>
+                        {{ form.weight_j48 }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Default: 0.30 (30%)</div>
+                        {% if form.weight_j48.errors %}
+                            <div class="text-danger small">{{ form.weight_j48.errors.0 }}</div>
+                        {% endif %}
+                    </div>
 
-                            <div class="col-md-4">
-                                <label class="form-label small fw-semibold" for="{{ form.weight_j48.id_for_label }}">
-                                    J-48 Weight (Behavioral)
-                                </label>
-                                {{ form.weight_j48 }}
-                                <div class="form-text small" style="font-size: 0.70rem;">Default: 0.30 (30%)</div>
-                                {% if form.weight_j48.errors %}
-                                    <div class="text-danger small">{{ form.weight_j48.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label small fw-semibold" for="{{ form.weight_risk.id_for_label }}">
-                                    Heuristic Risk Weight
-                                </label>
-                                {{ form.weight_risk }}
-                                <div class="form-text small" style="font-size: 0.70rem;">Default: 0.20 (20%)</div>
-                                {% if form.weight_risk.errors %}
-                                    <div class="text-danger small">{{ form.weight_risk.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Section 2: Classification Cutoffs -->
-                        <h6 class="fw-bold text-primary mb-3">2. Classification Thresholds (Score: 0 to 100)</h6>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-semibold" for="{{ form.genuine_threshold.id_for_label }}">
-                                    Genuine Cutoff Score (%)
-                                </label>
-                                {{ form.genuine_threshold }}
-                                <div class="form-text small" style="font-size: 0.70rem;">Scores &ge; this value are Genuine (Default: 70.0)</div>
-                                {% if form.genuine_threshold.errors %}
-                                    <div class="text-danger small">{{ form.genuine_threshold.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label small fw-semibold" for="{{ form.suspicious_threshold.id_for_label }}">
-                                    Suspicious Cutoff Score (%)
-                                </label>
-                                {{ form.suspicious_threshold }}
-                                <div class="form-text small" style="font-size: 0.70rem;">Scores between this and Genuine are Suspicious (Default: 40.0)</div>
-                                {% if form.suspicious_threshold.errors %}
-                                    <div class="text-danger small">{{ form.suspicious_threshold.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Section 3: IP Velocity Rules -->
-                        <h6 class="fw-bold text-primary mb-3">3. IP Velocity Heuristics</h6>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-semibold" for="{{ form.ip_max_reviews.id_for_label }}">
-                                    Max Submissions per IP
-                                </label>
-                                {{ form.ip_max_reviews }}
-                                <div class="form-text small" style="font-size: 0.70rem;">Max allowed reviews from same IP (Default: 5)</div>
-                                {% if form.ip_max_reviews.errors %}
-                                    <div class="text-danger small">{{ form.ip_max_reviews.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label small fw-semibold" for="{{ form.ip_window_minutes.id_for_label }}">
-                                    Time Window (Minutes)
-                                </label>
-                                {{ form.ip_window_minutes }}
-                                <div class="form-text small" style="font-size: 0.70rem;">Sliding window in minutes (Default: 60)</div>
-                                {% if form.ip_window_minutes.errors %}
-                                    <div class="text-danger small">{{ form.ip_window_minutes.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Section 4: Automated Alerts -->
-                        <h6 class="fw-bold text-primary mb-3">4. Anomaly Alert Triggers</h6>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-semibold" for="{{ form.alert_fake_ratio_threshold.id_for_label }}">
-                                    Fake Review Ratio Alert Threshold
-                                </label>
-                                {{ form.alert_fake_ratio_threshold }}
-                                <div class="form-text small" style="font-size: 0.70rem;">Fraction of fake reviews triggering an alert (Default: 0.40 = 40%)</div>
-                                {% if form.alert_fake_ratio_threshold.errors %}
-                                    <div class="text-danger small">{{ form.alert_fake_ratio_threshold.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label small fw-semibold" for="{{ form.alert_fake_spike_threshold.id_for_label }}">
-                                    Fake Review Surge Spike Threshold
-                                </label>
-                                {{ form.alert_fake_spike_threshold }}
-                                <div class="form-text small" style="font-size: 0.70rem;">Increase in fake ratio vs prior window (Default: 0.25 = 25%)</div>
-                                {% if form.alert_fake_spike_threshold.errors %}
-                                    <div class="text-danger small">{{ form.alert_fake_spike_threshold.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-end gap-2 border-top pt-3">
-                            <a href="{% url 'admin_control_panel' %}" class="btn btn-outline-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary px-4 fw-semibold">
-                                <i class="fa-solid fa-floppy-disk me-1"></i> Save Runtime Settings
-                            </button>
-                        </div>
-                    </form>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold" for="{{ form.weight_risk.id_for_label }}">
+                            Heuristic Risk Weight
+                        </label>
+                        {{ form.weight_risk }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Default: 0.20 (20%)</div>
+                        {% if form.weight_risk.errors %}
+                            <div class="text-danger small">{{ form.weight_risk.errors.0 }}</div>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
+
+                <!-- Section 2: Classification Cutoffs -->
+                <h6 class="fw-bold text-primary mb-3">2. Classification Thresholds (Score: 0 to 100)</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold" for="{{ form.genuine_threshold.id_for_label }}">
+                            Genuine Cutoff Score (%)
+                        </label>
+                        {{ form.genuine_threshold }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Scores &ge; this value are Genuine (Default: 70.0)</div>
+                        {% if form.genuine_threshold.errors %}
+                            <div class="text-danger small">{{ form.genuine_threshold.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold" for="{{ form.suspicious_threshold.id_for_label }}">
+                            Suspicious Cutoff Score (%)
+                        </label>
+                        {{ form.suspicious_threshold }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Scores between this and Genuine are Suspicious (Default: 40.0)</div>
+                        {% if form.suspicious_threshold.errors %}
+                            <div class="text-danger small">{{ form.suspicious_threshold.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Section 3: IP Velocity Rules -->
+                <h6 class="fw-bold text-primary mb-3">3. IP Velocity Heuristics</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold" for="{{ form.ip_max_reviews.id_for_label }}">
+                            Max Submissions per IP
+                        </label>
+                        {{ form.ip_max_reviews }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Max allowed reviews from same IP (Default: 5)</div>
+                        {% if form.ip_max_reviews.errors %}
+                            <div class="text-danger small">{{ form.ip_max_reviews.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold" for="{{ form.ip_window_minutes.id_for_label }}">
+                            Time Window (Minutes)
+                        </label>
+                        {{ form.ip_window_minutes }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Sliding window in minutes (Default: 60)</div>
+                        {% if form.ip_window_minutes.errors %}
+                            <div class="text-danger small">{{ form.ip_window_minutes.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Section 4: Automated Alerts -->
+                <h6 class="fw-bold text-primary mb-3">4. Anomaly Alert Triggers</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold" for="{{ form.alert_fake_ratio_threshold.id_for_label }}">
+                            Fake Review Ratio Alert Threshold
+                        </label>
+                        {{ form.alert_fake_ratio_threshold }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Fraction of fake reviews triggering an alert (Default: 0.40 = 40%)</div>
+                        {% if form.alert_fake_ratio_threshold.errors %}
+                            <div class="text-danger small">{{ form.alert_fake_ratio_threshold.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold" for="{{ form.alert_fake_spike_threshold.id_for_label }}">
+                            Fake Review Surge Spike Threshold
+                        </label>
+                        {{ form.alert_fake_spike_threshold }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Increase in fake ratio vs prior window (Default: 0.25 = 25%)</div>
+                        {% if form.alert_fake_spike_threshold.errors %}
+                            <div class="text-danger small">{{ form.alert_fake_spike_threshold.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'admin_control_panel' %}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Save Runtime Settings
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
 </div>
 {% endblock %}
-

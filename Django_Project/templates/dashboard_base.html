@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    {% include 'includes/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 py-4">
+    <div class="row g-4">
+        
+        <!-- Desktop Sidebar Column -->
+        <aside class="col-lg-3 col-xl-2 d-none d-lg-block">
+            {% include 'includes/sidebar.html' %}
+        </aside>
+
+        <!-- Mobile Offcanvas Drawer -->
+        <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title fw-bold" id="mobileSidebarLabel">
+                    <i class="fa-solid fa-crosshairs text-danger me-2"></i>Navigation Menu
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-3">
+                {% include 'includes/sidebar.html' %}
+            </div>
+        </div>
+
+        <!-- Main Dashboard Workspace -->
+        <main class="col-lg-9 col-xl-10">
+            {% block dashboard_content %}{% endblock %}
+        </main>
+
+    </div>
+</div>
+{% endblock %}
+

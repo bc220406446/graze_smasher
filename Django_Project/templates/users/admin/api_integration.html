@@ -1,0 +1,108 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}API Integration Guide - Graze Smasher Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column gap-4">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-code text-success me-2"></i>E-Commerce REST API Integration
+            </h4>
+            <p class="text-muted small mb-0">Documentation and sample payloads for third-party platforms feeding reviews into the ML detection pipeline.</p>
+        </div>
+        <a href="{% url 'admin_control_panel' %}" class="btn btn-outline-secondary btn-sm">
+            &larr; Back to Overview
+        </a>
+    </div>
+
+    <!-- API Overview Card -->
+    <div class="card shadow-sm border">
+        <div class="card-header bg-white py-3">
+            <h6 class="fw-bold text-dark mb-0">
+                <i class="fa-solid fa-bolt text-warning me-2"></i>Endpoint 1: Real-Time Review Detection
+            </h6>
+        </div>
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge bg-success fs-6 px-3 py-2">POST</span>
+                <code class="fs-6 text-dark bg-light px-3 py-2 rounded border">/api/analyze-review/</code>
+            </div>
+            <p class="text-muted small mb-3">
+                Feed single reviews from external e-commerce platforms (Shopify, WooCommerce, custom web stores) to compute real-time authenticity scores using LinearSVC, J-48 C4.5, and NLP sentiment polarity.
+            </p>
+
+            <h6 class="fw-bold text-dark small text-uppercase mb-2">Request JSON Payload:</h6>
+            <pre class="bg-dark text-light p-3 rounded-3 small mb-3"><code>{
+    "text": "Extremely satisfied with this laptop! Battery life lasts 20 hours easily and keyboard is responsive.",
+    "rating": 5,
+    "ip": "203.0.113.195"
+}</code></pre>
+
+            <h6 class="fw-bold text-dark small text-uppercase mb-2">Response JSON:</h6>
+            <pre class="bg-dark text-light p-3 rounded-3 small mb-0"><code>{
+    "svm_score": 92.4,
+    "j48_score": 88.0,
+    "sentiment_polarity": 0.45,
+    "ip_flag": false,
+    "final_score": 90.2,
+    "label": "Genuine",
+    "status": "success"
+}</code></pre>
+        </div>
+    </div>
+
+    <!-- Code Integration Examples -->
+    <div class="row g-4">
+        
+        <!-- Python Requests Example -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border">
+                <div class="card-header bg-white">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-brands fa-python text-primary me-2"></i>Python Client Implementation</h6>
+                </div>
+                <div class="card-body p-3">
+                    <pre class="bg-dark text-light p-3 rounded-3 small mb-0" style="font-size: 0.8rem;"><code>import requests
+
+API_URL = "http://127.0.0.1:8000/api/analyze-review/"
+
+payload = {
+    "text": "Worst purchase ever broke immediately!",
+    "rating": 1,
+    "ip": "192.168.1.100"
+}
+
+response = requests.post(API_URL, json=payload)
+data = response.json()
+
+print(f"Classification: {data['label']}")
+print(f"Authenticity Score: {data['final_score']}%")</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- cURL Example -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100 border">
+                <div class="card-header bg-white">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-terminal text-secondary me-2"></i>cURL Shell Command</h6>
+                </div>
+                <div class="card-body p-3">
+                    <pre class="bg-dark text-light p-3 rounded-3 small mb-0" style="font-size: 0.8rem;"><code>curl -X POST http://127.0.0.1:8000/api/analyze-review/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Great wireless mouse, zero lag.",
+    "rating": 5,
+    "ip": "192.168.1.50"
+  }'</code></pre>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+

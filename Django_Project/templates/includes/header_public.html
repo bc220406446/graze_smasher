@@ -1,0 +1,57 @@
+<!-- Public Navigation Header (Clean, Centred Menu & Action Button) -->
+<header class="gs-navbar sticky-top bg-white border-bottom shadow-xs position-relative">
+    <div class="container-fluid px-lg-4 d-flex justify-content-between align-items-center">
+        
+        <!-- Left: Icon Name Brand -->
+        <div class="d-flex align-items-center">
+            <a class="gs-brand" href="{% url 'home' %}">
+                <i class="fa-solid fa-crosshairs me-2 text-primary"></i>
+                <span>GRAZE</span>&nbsp;SMASHER
+            </a>
+        </div>
+
+        <!-- Center: Centre-Aligned Navigation Menu (Desktop) -->
+        <nav class="d-none d-lg-flex align-items-center justify-content-center gap-2 position-absolute start-50 translate-middle-x">
+            <a class="nav-link {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'home_alt' %}active{% endif %}" href="{% url 'home' %}">
+                Home
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}" href="{% url 'product_list' %}">
+                Explore
+            </a>
+            <a class="nav-link {% if 'detector' in request.path %}active{% endif %}" href="{% url 'index' %}">
+                ML Sandbox
+            </a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'privacy_policy' %}active{% endif %}" href="{% url 'privacy_policy' %}">
+                Privacy Policy
+            </a>
+        </nav>
+
+        <!-- Right: Action Button (Get Started when guest, View Dashboard when authenticated) -->
+        <div class="d-flex align-items-center gap-2">
+            <!-- Mobile Dropdown Navigation Menu for small screens -->
+            <div class="dropdown d-lg-none">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-bars me-1"></i> Menu
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li><a class="dropdown-item" href="{% url 'home' %}"><i class="fa-solid fa-house me-2 text-muted"></i> Home</a></li>
+                    <li><a class="dropdown-item" href="{% url 'product_list' %}"><i class="fa-solid fa-compass me-2 text-muted"></i> Explore</a></li>
+                    <li><a class="dropdown-item" href="{% url 'index' %}"><i class="fa-solid fa-wand-magic-sparkles me-2 text-warning"></i> ML Sandbox</a></li>
+                    <li><a class="dropdown-item" href="{% url 'privacy_policy' %}"><i class="fa-solid fa-scale-balanced me-2 text-muted"></i> Privacy Policy</a></li>
+                </ul>
+            </div>
+
+            {% if user.is_authenticated %}
+                <a href="{% if user.profile.role == 'admin' or user.is_superuser %}{% url 'admin_control_panel' %}{% elif user.profile.role == 'reviewer' %}{% url 'reviewer_dashboard' %}{% else %}{% url 'user_dashboard' %}{% endif %}" class="btn btn-primary btn-sm px-3 fw-semibold shadow-sm">
+                    View Dashboard
+                </a>
+            {% else %}
+                <a class="btn btn-primary btn-sm px-3 fw-semibold shadow-sm" href="{% url 'register' %}">
+                    Get Started
+                </a>
+            {% endif %}
+        </div>
+
+    </div>
+</header>
+

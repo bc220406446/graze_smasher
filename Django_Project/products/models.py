@@ -36,6 +36,7 @@ class Product(models.Model):
     image_url = models.URLField(blank=True, null=True, help_text="Direct image URL for demo/external products")
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     is_external = models.BooleanField(default=False, help_text="True if imported via third-party platform API")
+    is_hidden = models.BooleanField(default=False, help_text="True if hidden by admin due to moderation flags")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -102,4 +103,51 @@ class SavedProduct(models.Model):
 
     def __str__(self):
         return f"{self.user.username} saved {self.product.name}"
+
+
+class ProductFlag(models.Model):
+    """
+    Stores user reports flagging inappropriate, abusive, or fraudulent products.
+    Reviewed by administrators in the Flagged Content Moderation Queue.
+    """
+    CATEGORY_ADULT = 'adult'
+    CATEGORY_ABUSIVE = 'abusive'
+    CATEGORY_SCAM = 'scam'
+    CATEGORY_MISLEADING = 'misleading'
+    CATEGORY_OTHER = 'other'
+
+    CATEGORY_CHOICES = [
+        (CATEGORY_ADULT, 'Adult or Explicit Content'),
+        (CATEGORY_ABUSIVE, 'Abusive or Hate Speech'),
+        (CATEGORY_SCAM, 'Counterfeit / Fraudulent Scam'),
+        (CATEGORY_MISLEADING, 'Grossly Misleading Information'),
+        (CATEGORY_OTHER, 'Other Inappropriate Content'),
+    ]
+
+    STATUS_PENDING = 'pending'
+    STATUS_REVIEWED = 'reviewed'
+    STATUS_DISMISSED = 'dismissed'
+    STATUS_RESOLVED = 'resolved'
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending Review'),
+        (STATUS_REVIEWED, 'Under Review'),
+        (STATUS_DISMISSED, 'Dismissed'),
+        (STATUS_RESOLVED, 'Action Taken / Resolved'),
+    ]
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='flags')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='product_flags')
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default=CATEGORY_OTHER)
+    details = models.TextField(blank=True, default='')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    admin_notes = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Flag on {self.product.name} ({self.get_category_display()}) by {self.user.username}"
 

@@ -1,0 +1,156 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Personal Analytics & Insights - Graze Smasher{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column gap-4">
+
+    <!-- Header -->
+    <div>
+        <h4 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-chart-line text-info me-2"></i>Personal Analytics & Authenticity Insights
+        </h4>
+        <p class="text-muted small mb-0">Detailed statistical breakdown of your saved watchlist, review classifications, and security exposure.</p>
+    </div>
+
+    <!-- Summary KPI Stats -->
+    <div class="row g-3">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card p-3 shadow-sm h-100 border-start border-4 border-primary">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Saved Watchlist</small>
+                <h3 class="fw-bold text-dark mb-0 mt-1">{{ saved_count }}</h3>
+                <small class="text-muted">Tracked items</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card p-3 shadow-sm h-100 border-start border-4 border-success">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Verified Genuine Items</small>
+                <h3 class="fw-bold text-success mb-0 mt-1">{{ saved_genuine }}</h3>
+                <small class="text-muted">Authenticity &ge; 70%</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card p-3 shadow-sm h-100 border-start border-4 border-warning">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Borderline / Suspicious</small>
+                <h3 class="fw-bold text-warning mb-0 mt-1">{{ saved_suspicious }}</h3>
+                <small class="text-muted">Score 40% - 69%</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card p-3 shadow-sm h-100 border-start border-4 border-danger">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">High-Risk / Manipulated</small>
+                <h3 class="fw-bold text-danger mb-0 mt-1">{{ saved_fake }}</h3>
+                <small class="text-muted">Score &lt; 40%</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4">
+        
+        <!-- Saved Products Authenticity Exposure -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-chart-pie text-primary me-2"></i>Watchlist Authenticity Distribution
+                    </h6>
+                    <small class="text-muted">Proportion of genuine vs manipulated products in your saved collection</small>
+                </div>
+                <div class="card-body d-flex flex-column justify-content-center p-3">
+                    {% if saved_count > 0 %}
+                        <div style="position: relative; height: 260px;">
+                            <canvas id="savedDistributionChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted small">
+                            <i class="fa-solid fa-chart-pie fs-1 text-secondary mb-2"></i>
+                            <p>No saved products to visualize yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Contribution Summary -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-user-check text-success me-2"></i>Community Contributions
+                    </h6>
+                    <small class="text-muted">Products and reviews contributed by your account</small>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <div>
+                            <span class="fw-bold text-dark d-block">Products Added to Catalog</span>
+                            <small class="text-muted">Catalog items registered by you for community tracking</small>
+                        </div>
+                        <span class="badge bg-primary fs-6 px-3 py-2">{{ created_count }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <div>
+                            <span class="fw-bold text-dark d-block">Reviews Submitted</span>
+                            <small class="text-muted">Customer evaluations processed by the ML engine</small>
+                        </div>
+                        <span class="badge bg-secondary fs-6 px-3 py-2">{{ reviews_count }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold text-dark d-block">ML Predicted Genuine Ratio</span>
+                            <small class="text-muted">Evaluations verified as authentic</small>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-3 py-2">
+                            {{ genuine_reviews }} / {{ reviews_count }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if saved_count > 0 %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('savedDistributionChart').getContext('2d');
+    const labels = {{ chart_labels|safe }};
+    const data = {{ chart_data|safe }};
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    'rgba(16, 185, 129, 0.85)',
+                    'rgba(245, 158, 11, 0.85)',
+                    'rgba(239, 68, 68, 0.85)'
+                ],
+                borderColor: ['#10b981', '#f59e0b', '#ef4444'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
+

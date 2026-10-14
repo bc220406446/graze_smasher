@@ -1,69 +1,242 @@
 {% extends 'base.html' %}
 
-{% block title %}Add Product - Graze Smasher{% endblock %}
+{% block title %}Add Product & Reviews - Graze Smasher{% endblock %}
 
 {% block content %}
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-7">
-            <div class="card shadow-sm">
-                <div class="card-header py-3 bg-white border-bottom">
-                    <h5 class="mb-0 fw-bold text-dark">
-                        <i class="fa-solid fa-plus-circle text-primary me-2"></i>Add Product to Monitored Catalog
-                    </h5>
-                    <p class="text-muted small mb-0 mt-1">Register a new product to start collecting and analyzing customer reviews</p>
+        <div class="col-lg-9 col-xl-8">
+
+            <!-- Breadcrumb Navigation -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a href="{% url 'product_list' %}" class="text-decoration-none">Catalog</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'user_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Add Product</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm border mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-plus-circle text-primary me-2"></i>Add Product to Monitored Catalog
+                        </h4>
+                        <p class="text-muted small mb-0 mt-1">Register e-commerce items and submit reviews for instant ML authenticity evaluation</p>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                        <i class="fa-solid fa-microchip me-1"></i>ML Ready
+                    </span>
                 </div>
+
                 <div class="card-body p-4">
-                    <form method="POST" enctype="multipart/form-data">
+                    
+                    <!-- Compliance Notice Callout -->
+                    <div class="alert alert-light border border-info-subtle d-flex gap-3 align-items-start mb-4 shadow-sm" style="background-color: #f0f9ff;">
+                        <i class="fa-solid fa-circle-info text-info fs-5 mt-1"></i>
+                        <div class="small text-muted">
+                            <strong class="text-dark d-block mb-1">Important Integration Note:</strong>
+                            Entering an e-commerce product URL registers the item's metadata and tracking reference. 
+                            In accordance with data privacy and anti-scraping policies, external reviews are not automatically scraped. 
+                            You can manually add reviews one by one below to process them through our dual-stage <strong>LinearSVC + J-48 Decision Tree</strong> classifier.
+                        </div>
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data" id="addProductForm">
                         {% csrf_token %}
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-                            {{ form.name }}
-                            {% if form.name.errors %}
-                                <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
-                            {% endif %}
-                        </div>
+                        <!-- Section 1: Product Specifications -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                                <i class="fa-solid fa-tag text-secondary me-2"></i>1. Product Details
+                            </h6>
 
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
-                                {{ form.category }}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="{{ form.name.id_for_label }}">
+                                    Product Name <span class="text-danger">*</span>
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                                {% endif %}
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="{{ form.platform.id_for_label }}">{{ form.platform.label }}</label>
-                                {{ form.platform }}
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="{{ form.category.id_for_label }}">Category</label>
+                                    {{ form.category }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="{{ form.platform.id_for_label }}">Platform</label>
+                                    {{ form.platform }}
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="{{ form.source_url.id_for_label }}">Product Listing URL</label>
+                                    {{ form.source_url }}
+                                    <div class="form-text small">e.g., https://amazon.com/dp/B08N5WRWNW</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" for="{{ form.image_url.id_for_label }}">Direct Image URL</label>
+                                    {{ form.image_url }}
+                                    <div class="form-text small">Hosted image URL for immediate preview</div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="{{ form.description.id_for_label }}">Description / Highlights</label>
+                                {{ form.description }}
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" for="{{ form.source_url.id_for_label }}">{{ form.source_url.label }}</label>
-                            {{ form.source_url }}
-                            <div class="form-text small">Original listing URL on Amazon, eBay, or Walmart.</div>
+                        <!-- Section 2: Manual Reviews Entry (One by One) -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0">
+                                        <i class="fa-solid fa-comments text-secondary me-2"></i>2. Manual Reviews Entry (Optional Initial Batch)
+                                    </h6>
+                                    <small class="text-muted">Enter customer reviews to immediately calculate the product's initial authenticity score.</small>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addReviewRowBtn">
+                                    <i class="fa-solid fa-plus me-1"></i> Add Another Review
+                                </button>
+                            </div>
+
+                            <div id="reviewsContainer" class="d-flex flex-column gap-3">
+                                <!-- Initial Review Row 1 -->
+                                <div class="card p-3 border review-entry-card bg-light">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-secondary-subtle text-secondary fw-semibold review-number-badge">Review #1</span>
+                                        <button type="button" class="btn btn-sm btn-link text-danger p-0 remove-review-btn" style="display: none;">
+                                            <i class="fa-solid fa-trash me-1"></i> Remove
+                                        </button>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-semibold mb-1">Review Content</label>
+                                        <textarea name="review_text[]" class="form-control" rows="2" placeholder="Paste or type customer review text here..."></textarea>
+                                    </div>
+
+                                    <div class="row g-2">
+                                        <div class="col-sm-6">
+                                            <label class="form-label small fw-semibold mb-1">Star Rating</label>
+                                            <select name="review_rating[]" class="form-select form-select-sm">
+                                                <option value="5" selected>5 Stars - Outstanding</option>
+                                                <option value="4">4 Stars - Very Good</option>
+                                                <option value="3">3 Stars - Average</option>
+                                                <option value="2">2 Stars - Poor</option>
+                                                <option value="1">1 Star - Terrible</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="form-label small fw-semibold mb-1">Reviewer Origin IP (Velocity Heuristic)</label>
+                                            <input type="text" name="review_ip[]" class="form-control form-select-sm" value="{{ client_ip }}" placeholder="e.g., 192.168.1.1">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" for="{{ form.image_url.id_for_label }}">{{ form.image_url.label }}</label>
-                            {{ form.image_url }}
-                            <div class="form-text small">Direct HTTPS URL of the product image.</div>
+                        <!-- Progress Loading Indicator (Hidden until submit) -->
+                        <div id="analysisProgress" class="alert alert-primary border-primary d-none py-3 mb-3 text-center">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            <span class="fw-semibold">Processing ML Analysis Pipeline...</span>
+                            <div class="small text-muted mt-1">Executing TF-IDF vectorization, LinearSVC classification, J-48 decision tree, and TextBlob sentiment analysis.</div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
-                            {{ form.description }}
-                        </div>
-
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary px-4 fw-semibold">
-                                <i class="fa-solid fa-check me-1"></i> Create Product
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold" id="submitProductBtn">
+                                <i class="fa-solid fa-check me-1"></i> Create Product & Run Analysis
                             </button>
                         </div>
+
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('reviewsContainer');
+    const addBtn = document.getElementById('addReviewRowBtn');
+    const form = document.getElementById('addProductForm');
+    const progress = document.getElementById('analysisProgress');
+    const submitBtn = document.getElementById('submitProductBtn');
+    const clientIp = "{{ client_ip|default:'127.0.0.1' }}";
+
+    function updateReviewIndices() {
+        const cards = container.querySelectorAll('.review-entry-card');
+        cards.forEach((card, idx) => {
+            const badge = card.querySelector('.review-number-badge');
+            if (badge) badge.textContent = `Review #${idx + 1}`;
+            const removeBtn = card.querySelector('.remove-review-btn');
+            if (removeBtn) {
+                removeBtn.style.display = cards.length > 1 ? 'inline-block' : 'none';
+            }
+        });
+    }
+
+    addBtn.addEventListener('click', function() {
+        const count = container.querySelectorAll('.review-entry-card').length + 1;
+        const newCard = document.createElement('div');
+        newCard.className = 'card p-3 border review-entry-card bg-light mb-2';
+        newCard.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-secondary-subtle text-secondary fw-semibold review-number-badge">Review #${count}</span>
+                <button type="button" class="btn btn-sm btn-link text-danger p-0 remove-review-btn">
+                    <i class="fa-solid fa-trash me-1"></i> Remove
+                </button>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small fw-semibold mb-1">Review Content</label>
+                <textarea name="review_text[]" class="form-control" rows="2" placeholder="Paste or type customer review text here..."></textarea>
+            </div>
+            <div class="row g-2">
+                <div class="col-sm-6">
+                    <label class="form-label small fw-semibold mb-1">Star Rating</label>
+                    <select name="review_rating[]" class="form-select form-select-sm">
+                        <option value="5" selected>5 Stars - Outstanding</option>
+                        <option value="4">4 Stars - Very Good</option>
+                        <option value="3">3 Stars - Average</option>
+                        <option value="2">2 Stars - Poor</option>
+                        <option value="1">1 Star - Terrible</option>
+                    </select>
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label small fw-semibold mb-1">Reviewer Origin IP</label>
+                    <input type="text" name="review_ip[]" class="form-control form-select-sm" value="${clientIp}">
+                </div>
+            </div>
+        `;
+        container.appendChild(newCard);
+        updateReviewIndices();
+    });
+
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-review-btn')) {
+            const card = e.target.closest('.review-entry-card');
+            card.remove();
+            updateReviewIndices();
+        }
+    });
+
+    form.addEventListener('submit', function() {
+        progress.classList.remove('d-none');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Analyzing...';
+    });
+});
+</script>
+{% endblock %}

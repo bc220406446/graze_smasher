@@ -102,7 +102,7 @@ def index(request):
         "demo_reviews": demo_data,
         "client_ip": get_client_ip(request)
     }
-    return render(request, 'detector/index.html', context)
+    return render(request, 'public/ml_sandbox.html', context)
 
 def predict(request):
     if request.method == 'POST':
@@ -144,6 +144,6 @@ def predict(request):
             "rating": rating_val,
             "client_ip": ip_addr
         }
-        return render(request, 'detector/index.html', context)
+        return render(request, 'public/ml_sandbox.html', context)
         
     return index(request)

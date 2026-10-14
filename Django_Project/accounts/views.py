@@ -7,9 +7,12 @@ from .forms import UserRegistrationForm, UserProfileUpdateForm
 from .models import UserProfile
 
 
+from .decorators import get_role_dashboard_name
+
+
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect('product_list')
+        return redirect(get_role_dashboard_name(request.user))
         
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -28,12 +31,12 @@ def register_view(request):
     else:
         form = UserRegistrationForm()
         
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(request, 'auth/register.html', {'form': form})
 
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('product_list')
+        return redirect(get_role_dashboard_name(request.user))
         
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -44,14 +47,16 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f"Welcome back, {user.username}!")
-                next_url = request.GET.get('next', 'product_list')
-                return redirect(next_url)
+                next_url = request.GET.get('next')
+                if next_url and next_url not in ['/', '/accounts/login/', '/accounts/register/']:
+                    return redirect(next_url)
+                return redirect(get_role_dashboard_name(user))
         else:
             messages.error(request, "Invalid username or password. Please try again.")
     else:
         form = AuthenticationForm()
         
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, 'auth/login.html', {'form': form})
 
 
 def logout_view(request):
@@ -83,7 +88,7 @@ def profile_view(request):
         }
         form = UserProfileUpdateForm(instance=profile, initial=initial)
         
-    return render(request, 'accounts/profile.html', {
+    return render(request, 'users/general/profile.html', {
         'form': form,
         'profile': profile
     })

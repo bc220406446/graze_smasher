@@ -1,0 +1,281 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Reviewer Dashboard - Graze Smasher{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column gap-4">
+
+    <!-- Welcome & Reviewer Header -->
+    <div class="card p-4 workspace-banner banner-reviewer">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="badge bg-primary px-3 py-1 mb-2">
+                    <i class="fa-solid fa-feather-pointed me-1"></i>Reviewer Workspace
+                </span>
+                <h3 class="fw-bold text-dark mb-1">
+                    Welcome, {{ request.user.username }}!
+                </h3>
+                <p class="text-muted small mb-0">
+                    Submit and evaluate product reviews using the dual-model ML detection pipeline (LinearSVC + J-48 C4.5).
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'product_list' %}" class="btn btn-primary px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-compass"></i> Explore Products to Review
+                </a>
+                <a href="{% url 'reviewer_my_reviews' %}" class="btn btn-outline-secondary px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> My Review History
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviewer Metrics Strip -->
+    <div class="row g-3">
+        <!-- Total Reviews Submitted -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card p-3 shadow-sm h-100 border-start border-4 border-primary">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Reviews Submitted</small>
+                <h3 class="fw-bold text-dark mb-0 mt-1">{{ total_submitted }}</h3>
+                <div class="mt-2 pt-2 border-top">
+                    <span class="small text-muted">Across {{ products_reviewed_count }} unique products</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Predicted Genuine -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card p-3 shadow-sm h-100 border-start border-4 border-success">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Predicted Genuine</small>
+                <h3 class="fw-bold text-success mb-0 mt-1">{{ genuine_count }}</h3>
+                <div class="mt-2 pt-2 border-top">
+                    <span class="small text-success fw-semibold"><i class="fa-solid fa-check me-1"></i>Authentic Content</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Predicted Suspicious -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card p-3 shadow-sm h-100 border-start border-4 border-warning">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Predicted Suspicious</small>
+                <h3 class="fw-bold text-warning mb-0 mt-1">{{ suspicious_count }}</h3>
+                <div class="mt-2 pt-2 border-top">
+                    <span class="small text-warning fw-semibold"><i class="fa-solid fa-triangle-exclamation me-1"></i>Borderline Anomaly</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Predicted Fake -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card p-3 shadow-sm h-100 border-start border-4 border-danger">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Predicted Fake</small>
+                <h3 class="fw-bold text-danger mb-0 mt-1">{{ fake_count }}</h3>
+                <div class="mt-2 pt-2 border-top">
+                    <span class="small text-danger fw-semibold"><i class="fa-solid fa-ban me-1"></i>Deceptive Content</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row: Evaluation Distribution & Rating Distribution -->
+    <div class="row g-4">
+        <!-- Classification Breakdown Chart -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-chart-pie text-primary me-2"></i>ML Classification Breakdown
+                    </h6>
+                    <small class="text-muted">Proportion of your submitted reviews categorized by the AI model</small>
+                </div>
+                <div class="card-body d-flex flex-column justify-content-center p-3">
+                    {% if total_submitted > 0 %}
+                        <div style="position: relative; height: 250px;">
+                            <canvas id="reviewerDistChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted small">
+                            <i class="fa-solid fa-chart-pie fs-1 text-secondary mb-2"></i>
+                            <p>Submit reviews to generate ML classification breakdown.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Star Rating Distribution -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-star text-warning me-2"></i>Star Rating Spread
+                    </h6>
+                    <small class="text-muted">Frequency of 1-5 star ratings in your submissions</small>
+                </div>
+                <div class="card-body d-flex flex-column justify-content-center p-3">
+                    {% if total_submitted > 0 %}
+                        <div style="position: relative; height: 250px;">
+                            <canvas id="ratingsSpreadChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted small">
+                            <i class="fa-solid fa-chart-column fs-1 text-secondary mb-2"></i>
+                            <p>Submit reviews to view rating distribution.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recently Submitted Reviews Table -->
+    <div class="card shadow-sm border">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Recent Review Submissions & ML Results
+                </h6>
+                <small class="text-muted">Recent reviews evaluated with real-time multi-tier scores</small>
+            </div>
+            <a href="{% url 'reviewer_my_reviews' %}" class="btn btn-sm btn-outline-primary">
+                View Full History ({{ total_submitted }})
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_reviews %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th style="width: 25%;">Product</th>
+                                <th style="width: 35%;">Review Content</th>
+                                <th>Rating</th>
+                                <th>ML Classification</th>
+                                <th>SVM Score</th>
+                                <th>Final Score</th>
+                                <th class="text-end">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in recent_reviews %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'product_detail' r.product.pk %}" class="fw-bold text-dark small text-decoration-none d-block text-truncate" style="max-width: 180px;">
+                                            {{ r.product.name }}
+                                        </a>
+                                        <small class="text-muted" style="font-size: 0.72rem;">{{ r.created_at|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="small text-muted d-block text-truncate" style="max-width: 300px;" title="{{ r.text }}">
+                                            {{ r.text }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-warning small fw-bold">
+                                            {{ r.rating }} <i class="fa-solid fa-star"></i>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if r.label == 'Genuine' %}
+                                            <span class="badge-genuine small"><i class="fa-solid fa-check me-1"></i>Genuine</span>
+                                        {% elif r.label == 'Suspicious' %}
+                                            <span class="badge-suspicious small"><i class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious</span>
+                                        {% else %}
+                                            <span class="badge-fake small"><i class="fa-solid fa-ban me-1"></i>Fake</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border small">{{ r.svm_score }}%</span>
+                                    </td>
+                                    <td>
+                                        <span class="score-pill {% if r.final_score >= 70 %}score-pill-high{% elif r.final_score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %}">
+                                            {{ r.final_score }}%
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'product_detail' r.product.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2">
+                                            <i class="fa-solid fa-arrow-right"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 px-3">
+                    <i class="fa-solid fa-pen-to-square text-muted fs-1 mb-3"></i>
+                    <h5 class="fw-bold text-dark">No Reviews Submitted Yet</h5>
+                    <p class="text-muted small mb-3">Browse products in the catalog and add your reviews to run them through our ML detection pipeline.</p>
+                    <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm px-4">
+                        <i class="fa-solid fa-compass me-1"></i> Explore Products Catalog
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if total_submitted > 0 %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Classification distribution
+    const distCtx = document.getElementById('reviewerDistChart').getContext('2d');
+    new Chart(distCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                data: {{ chart_data|safe }},
+                backgroundColor: [
+                    'rgba(16, 185, 129, 0.85)',
+                    'rgba(245, 158, 11, 0.85)',
+                    'rgba(239, 68, 68, 0.85)'
+                ],
+                borderColor: ['#10b981', '#f59e0b', '#ef4444'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // 2. Star rating spread
+    const ratingCtx = document.getElementById('ratingsSpreadChart').getContext('2d');
+    new Chart(ratingCtx, {
+        type: 'bar',
+        data: {
+            labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+            datasets: [{
+                label: 'Reviews',
+                data: {{ ratings_data|safe }},
+                backgroundColor: 'rgba(79, 70, 229, 0.75)',
+                borderColor: '#4f46e5',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
+

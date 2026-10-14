@@ -1,0 +1,198 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Product Catalog Management - Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column gap-4">
+
+    <!-- Header & Action -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-boxes-stacked text-primary me-2"></i>Product Catalog Management
+            </h4>
+            <p class="text-muted small mb-0">Inspect all registered products, moderate inappropriate listings, and manage visibility status.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'product_create' %}" class="btn btn-primary btn-sm px-3 fw-semibold">
+                <i class="fa-solid fa-plus-circle me-1"></i> Add Product
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters & Search Bar -->
+    <form method="GET" class="card p-3 shadow-sm border bg-light">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Search by product name or description..." value="{{ q }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="platform" class="form-select form-select-sm">
+                    <option value="">All Platforms</option>
+                    {% for p_code, p_name in platforms %}
+                        <option value="{{ p_code }}" {% if platform == p_code %}selected{% endif %}>{{ p_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Visibility</option>
+                    <option value="visible" {% if status == 'visible' %}selected{% endif %}>Public / Visible</option>
+                    <option value="hidden" {% if status == 'hidden' %}selected{% endif %}>Hidden / Moderated</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold">Filter</button>
+                {% if q or platform or status %}
+                    <a href="{% url 'admin_products' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    <!-- Products Table -->
+    <div class="card shadow-sm border">
+        <div class="card-body p-0">
+            {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th style="width: 35%;">Product</th>
+                                <th>Platform</th>
+                                <th>Reviews</th>
+                                <th>Authenticity</th>
+                                <th>Moderation Status</th>
+                                <th class="text-end" style="width: 20%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in page_obj %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img src="{{ p.display_image }}" alt="{{ p.name }}" class="rounded border" style="width: 44px; height: 44px; object-fit: cover;">
+                                            <div>
+                                                <a href="{% url 'product_detail' p.pk %}" class="fw-bold text-dark small text-decoration-none d-block">
+                                                    {{ p.name }}
+                                                </a>
+                                                <small class="text-muted" style="font-size: 0.72rem;">Added {{ p.created_at|date:"M d, Y" }} &bull; By {{ p.created_by.username|default:"System" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border small">{{ p.platform }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="small fw-semibold text-dark">{{ p.total_revs }}</span>
+                                    </td>
+                                    <td>
+                                        {% with score=p.overall_authenticity_score %}
+                                            <span class="score-pill {% if score >= 70 %}score-pill-high{% elif score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %}">
+                                                {{ score }}%
+                                            </span>
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% if p.is_hidden %}
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle small">
+                                                <i class="fa-solid fa-eye-slash me-1"></i>Hidden (Moderated)
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                                                <i class="fa-solid fa-eye me-1"></i>Visible in Catalog
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end align-items-center gap-1">
+                                            <a href="{% url 'admin_product_edit' p.id %}" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Edit Product">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </a>
+
+                                            <!-- Toggle Visibility Form -->
+                                            <form method="POST" action="{% url 'admin_toggle_hide_product' p.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm {% if p.is_hidden %}btn-outline-success{% else %}btn-outline-warning{% endif %} py-1 px-2" title="{% if p.is_hidden %}Restore to Catalog{% else %}Hide Product{% endif %}">
+                                                    <i class="fa-solid {% if p.is_hidden %}fa-eye{% else %}fa-eye-slash{% endif %}"></i>
+                                                </button>
+                                            </form>
+
+                                            <!-- Delete Button with Confirmation Modal Trigger -->
+                                            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" data-bs-toggle="modal" data-bs-target="#deleteModal{{ p.id }}" title="Delete Product">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Delete Confirmation Modal -->
+                                        <div class="modal fade" id="deleteModal{{ p.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ p.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content text-start">
+                                                    <div class="modal-header border-bottom">
+                                                        <h5 class="modal-title fw-bold text-danger" id="deleteModalLabel{{ p.id }}">
+                                                            <i class="fa-solid fa-triangle-exclamation me-2"></i>Confirm Product Deletion
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p class="mb-2">Are you sure you want to permanently delete <strong>{{ p.name }}</strong>?</p>
+                                                        <div class="alert alert-danger small mb-0">
+                                                            <i class="fa-solid fa-circle-exclamation me-1"></i> This will delete the product, all its reviews, and any related anomaly alerts. This action cannot be undone.
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-top">
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                        <form method="POST" action="{% url 'admin_product_delete' p.id %}">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                                <i class="fa-solid fa-trash me-1"></i> Yes, Delete Permanently
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <div class="p-3 border-top">
+                        <nav>
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if status %}&status={{ status }}{% endif %}">&laquo;</a></li>
+                                {% endif %}
+                                {% for num in page_obj.paginator.page_range %}
+                                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                        <a class="page-link" href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endfor %}
+                                {% if page_obj.has_next %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if status %}&status={{ status }}{% endif %}">&raquo;</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+
+            {% else %}
+                <div class="text-center py-5 px-3">
+                    <i class="fa-solid fa-boxes-stacked text-muted fs-1 mb-3"></i>
+                    <h5 class="fw-bold text-dark">No Products Found</h5>
+                    <p class="text-muted small mb-0">No catalog products match your search or filter parameters.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

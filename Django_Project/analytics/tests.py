@@ -137,4 +137,4 @@ class AnalyticsViewsTestCase(TestCase):
         self.client.force_login(self.user)
         res = self.client.get('/dashboard/')
         self.assertEqual(res.status_code, 200)
-        self.assertContains(res, "Monitored Products Watchlist")
+        self.assertContains(res, "Monitored Products")
