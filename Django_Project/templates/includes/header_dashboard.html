@@ -13,32 +13,15 @@
                 <i class="fa-solid fa-crosshairs me-2 text-primary"></i>
                 <span>GRAZE</span>&nbsp;SMASHER
             </a>
-
-            <!-- Return to Home Page (Left Side) -->
-            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1 ms-1 ms-sm-2" title="Return to Home Page">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span class="d-none d-sm-inline">Return to Home Page</span>
-                <span class="d-inline d-sm-none">Home</span>
-            </a>
         </div>
 
         <!-- Right Side: User Role, User Name, Logout -->
         <div class="d-flex align-items-center gap-2 gap-sm-3">
-            <!-- User Role Badge -->
-            {% if user.profile.role == 'admin' or user.is_superuser %}
-                <span class="role-badge-admin"><i class="fa-solid fa-shield-halved me-1"></i>Administrator</span>
-            {% elif user.profile.role == 'reviewer' %}
-                <span class="role-badge-reviewer"><i class="fa-solid fa-feather-pointed me-1"></i>Reviewer</span>
-            {% else %}
-                <span class="role-badge-user"><i class="fa-solid fa-user me-1"></i>General User</span>
-            {% endif %}
-
-            <!-- User Username Link -->
-            <a href="{% url 'profile' %}" class="text-decoration-none text-dark fw-semibold small d-none d-md-inline-flex align-items-center gap-1">
-                <i class="fa-regular fa-circle-user text-primary"></i>
-                <span>{{ user.username }}</span>
+                        <!-- Return to Home Page (Left Side) -->
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1 ms-1 ms-sm-2" title="Return to Home Page">
+                <span class="d-none d-sm-inline">Return to Home Page</span>
+                <span class="d-inline d-sm-none">Home</span>
             </a>
-
             <!-- Logout Button -->
             <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1 fw-medium">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>

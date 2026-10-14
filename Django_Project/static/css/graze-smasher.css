@@ -182,6 +182,10 @@ small, .small, .form-text, .text-muted {
     color: var(--color-text-muted) !important;
 }
 
+.small-description {
+    color: var(--color-primary-subtle) !important;
+}
+
 /* Technical Monospace: Geist Mono */
 .font-mono,
 .score-pill,

@@ -9,23 +9,13 @@
     <div class="card p-4 workspace-banner">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
-                <span class="badge bg-secondary-subtle text-secondary px-3 py-1 mb-2">
-                    <i class="fa-solid fa-user me-1"></i>General User Workspace
-                </span>
                 <h3 class="fw-bold text-dark mb-1">
                     Welcome back, {{ request.user.username }}!
                 </h3>
                 <p class="text-muted small mb-0">
-                    Monitor e-commerce product authenticity, receive anomaly alerts, and submit items for AI fake review verification.
+                    Monitor e-commerce product authenticity, receive anomaly alerts, and submit items for AI fake review
+                    verification.
                 </p>
-            </div>
-            <div class="d-flex gap-2">
-                <a href="{% url 'product_create' %}" class="btn btn-primary px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm">
-                    <i class="fa-solid fa-plus-circle"></i> Add Product
-                </a>
-                <a href="{% url 'product_list' %}" class="btn btn-outline-secondary px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2">
-                    <i class="fa-solid fa-magnifying-glass"></i> Explore
-                </a>
             </div>
         </div>
     </div>
@@ -37,11 +27,9 @@
             <div class="card p-3 shadow-sm h-100 border-start border-4 border-primary">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Saved Products</small>
+                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Saved
+                            Products</small>
                         <h3 class="fw-bold text-dark mb-0 mt-1">{{ saved_count }}</h3>
-                    </div>
-                    <div class="bg-primary-subtle p-3 rounded-3 text-primary">
-                        <i class="fa-solid fa-heart fs-4"></i>
                     </div>
                 </div>
                 <div class="mt-2 pt-2 border-top">
@@ -57,23 +45,22 @@
             <div class="card p-3 shadow-sm h-100 border-start border-4 border-success">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Avg Authenticity</small>
-                        <h3 class="fw-bold mb-0 mt-1 {% if avg_saved_score >= 70 %}text-success{% elif avg_saved_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
+                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Avg
+                            Authenticity</small>
+                        <h3
+                            class="fw-bold mb-0 mt-1 {% if avg_saved_score >= 70 %}text-success{% elif avg_saved_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
                             {{ avg_saved_score }}%
                         </h3>
-                    </div>
-                    <div class="bg-success-subtle p-3 rounded-3 text-success">
-                        <i class="fa-solid fa-shield-check fs-4"></i>
                     </div>
                 </div>
                 <div class="mt-2 pt-2 border-top">
                     <span class="small text-muted">
                         {% if avg_saved_score >= 70 %}
-                            <i class="fa-solid fa-circle-check text-success me-1"></i>Healthy Trust Index
+                        <i class="fa-solid fa-circle-check text-success me-1"></i>Healthy Trust Index
                         {% elif avg_saved_score >= 40 %}
-                            <i class="fa-solid fa-circle-exclamation text-warning me-1"></i>Moderate Alert Risk
+                        <i class="fa-solid fa-circle-exclamation text-warning me-1"></i>Moderate Alert Risk
                         {% else %}
-                            <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i>High Risk Detected
+                        <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i>High Risk Detected
                         {% endif %}
                     </span>
                 </div>
@@ -85,11 +72,9 @@
             <div class="card p-3 shadow-sm h-100 border-start border-4 border-warning">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Active Alerts</small>
+                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Active
+                            Alerts</small>
                         <h3 class="fw-bold text-dark mb-0 mt-1">{{ unread_alerts_count }}</h3>
-                    </div>
-                    <div class="bg-warning-subtle p-3 rounded-3 text-warning">
-                        <i class="fa-solid fa-bell fs-4"></i>
                     </div>
                 </div>
                 <div class="mt-2 pt-2 border-top">
@@ -105,11 +90,9 @@
             <div class="card p-3 shadow-sm h-100 border-start border-4 border-info">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">My Products</small>
+                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">My
+                            Products</small>
                         <h3 class="fw-bold text-dark mb-0 mt-1">{{ created_count }}</h3>
-                    </div>
-                    <div class="bg-info-subtle p-3 rounded-3 text-info">
-                        <i class="fa-solid fa-box-open fs-4"></i>
                     </div>
                 </div>
                 <div class="mt-2 pt-2 border-top">
@@ -123,234 +106,111 @@
 
     <!-- Middle Section: Monitored Products & Authenticity Trend Chart -->
     <div class="row g-4">
-        
-        <!-- Saved / Monitored Products Preview -->
-        <div class="col-lg-7">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-shield-halved text-primary me-2"></i>Monitored Products
-                        </h6>
-                        <small class="text-muted">Live authenticity ratings for items on your watchlist</small>
-                    </div>
-                    <a href="{% url 'saved_products' %}" class="btn btn-sm btn-outline-primary">
-                        View All ({{ saved_count }})
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fa-solid fa-shield-halved text-primary me-2"></i>Monitored Products
+                    </h6>
+                    <small class="text-muted">Live authenticity ratings for items on your watchlist</small>
+                </div>
+                <a href="{% url 'saved_products' %}" class="btn btn-sm btn-outline-primary">
+                    View All ({{ saved_count }})
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if saved_products %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th style="width: 50%;">Product</th>
+                                <th>Platform</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in saved_products %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="{{ product.display_image }}" alt="{{ product.name }}"
+                                            class="rounded border"
+                                            style="width: 42px; height: 42px; object-fit: cover;">
+                                        <div>
+                                            <a href="{% url 'product_detail' product.pk %}"
+                                                class="text-decoration-none text-dark fw-semibold small d-block text-truncate"
+                                                style="max-width: 200px;">
+                                                {{ product.name }}
+                                            </a>
+                                            <small class="text-muted" style="font-size: 0.75rem;">{{
+                                                product.review_count }} reviews</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">{{ product.platform }}</span>
+                                </td>
+                                <td>
+                                    {% with score=product.overall_authenticity_score %}
+                                    <span
+                                        class="score-pill {% if score >= 70 %}score-pill-high{% elif score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %}">
+                                        {{ score }}%
+                                    </span>
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    {% with label=product.authenticity_label %}
+                                    {% if label == 'Genuine' %}
+                                    <span class="badge-genuine small"><i
+                                            class="fa-solid fa-check me-1"></i>Genuine</span>
+                                    {% elif label == 'Suspicious' %}
+                                    <span class="badge-suspicious small"><i
+                                            class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious</span>
+                                    {% else %}
+                                    <span class="badge-fake small"><i
+                                            class="fa-solid fa-xmark me-1"></i>Manipulated</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'product_detail' product.pk %}"
+                                        class="btn btn-sm btn-outline-secondary py-1 px-2" title="View Analysis">
+                                        <i class="fa-solid fa-arrow-right"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 px-3">
+                    <i class="fa-regular fa-bookmark text-muted fs-1 mb-3"></i>
+                    <h6 class="fw-bold text-dark">No Products Saved Yet</h6>
+                    <p class="text-muted small mb-3">Browse our product catalog and click the save button to track
+                        authenticity scores.</p>
+                    <a href="{% url 'product_list' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fa-solid fa-compass me-1"></i> Explore Catalog
                     </a>
                 </div>
-                <div class="card-body p-0">
-                    {% if saved_products %}
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light small">
-                                    <tr>
-                                        <th style="width: 50%;">Product</th>
-                                        <th>Platform</th>
-                                        <th>Score</th>
-                                        <th>Status</th>
-                                        <th class="text-end">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for product in saved_products %}
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <img src="{{ product.display_image }}" alt="{{ product.name }}" class="rounded border" style="width: 42px; height: 42px; object-fit: cover;">
-                                                    <div>
-                                                        <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none text-dark fw-semibold small d-block text-truncate" style="max-width: 200px;">
-                                                            {{ product.name }}
-                                                        </a>
-                                                        <small class="text-muted" style="font-size: 0.75rem;">{{ product.review_count }} reviews</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-light text-dark border">{{ product.platform }}</span>
-                                            </td>
-                                            <td>
-                                                {% with score=product.overall_authenticity_score %}
-                                                    <span class="score-pill {% if score >= 70 %}score-pill-high{% elif score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %}">
-                                                        {{ score }}%
-                                                    </span>
-                                                {% endwith %}
-                                            </td>
-                                            <td>
-                                                {% with label=product.authenticity_label %}
-                                                    {% if label == 'Genuine' %}
-                                                        <span class="badge-genuine small"><i class="fa-solid fa-check me-1"></i>Genuine</span>
-                                                    {% elif label == 'Suspicious' %}
-                                                        <span class="badge-suspicious small"><i class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious</span>
-                                                    {% else %}
-                                                        <span class="badge-fake small"><i class="fa-solid fa-xmark me-1"></i>Manipulated</span>
-                                                    {% endif %}
-                                                {% endwith %}
-                                            </td>
-                                            <td class="text-end">
-                                                <a href="{% url 'product_detail' product.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2" title="View Analysis">
-                                                    <i class="fa-solid fa-arrow-right"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5 px-3">
-                            <i class="fa-regular fa-bookmark text-muted fs-1 mb-3"></i>
-                            <h6 class="fw-bold text-dark">No Products Saved Yet</h6>
-                            <p class="text-muted small mb-3">Browse our product catalog and click the save button to track authenticity scores.</p>
-                            <a href="{% url 'product_list' %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fa-solid fa-compass me-1"></i> Explore Catalog
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
+                {% endif %}
             </div>
         </div>
-
-        <!-- Authenticity Trend Chart -->
-        <div class="col-lg-5">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-chart-column text-primary me-2"></i>Authenticity Comparison
-                        </h6>
-                        <small class="text-muted">Relative scores of your saved catalog items</small>
-                    </div>
-                </div>
-                <div class="card-body d-flex flex-column justify-content-center p-3">
-                    {% if saved_products %}
-                        <div style="position: relative; height: 260px;">
-                            <canvas id="savedProductsChart"></canvas>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4 text-muted small">
-                            <i class="fa-solid fa-chart-pie fs-2 text-secondary mb-2"></i>
-                            <p class="mb-0">Save products to visualize their comparative authenticity scores.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
     </div>
-
-    <!-- Bottom Section: Recent Alerts & Submissions Activity -->
-    <div class="row g-4">
-        
-        <!-- Recent Anomaly Alerts -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-bell text-warning me-2"></i>Recent Security & Anomaly Alerts
-                        </h6>
-                        <small class="text-muted">Automated triggers detected on your tracked products</small>
-                    </div>
-                    <a href="{% url 'user_alerts' %}" class="btn btn-sm btn-outline-secondary">All Alerts</a>
-                </div>
-                <div class="card-body p-0">
-                    {% if recent_alerts %}
-                        <div class="list-group list-group-flush">
-                            {% for alert in recent_alerts %}
-                                <div class="list-group-item p-3 {% if not alert.is_read %}bg-light{% endif %}">
-                                    <div class="d-flex justify-content-between align-items-start gap-2">
-                                        <div class="d-flex align-items-start gap-2">
-                                            <i class="fa-solid fa-triangle-exclamation text-warning mt-1"></i>
-                                            <div>
-                                                <span class="badge bg-secondary-subtle text-secondary small me-1">{{ alert.alert_type }}</span>
-                                                <strong class="text-dark small d-block">{{ alert.product.name }}</strong>
-                                                <p class="text-muted small mb-0 mt-1">{{ alert.message }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="text-end">
-                                            <small class="text-muted d-block" style="font-size: 0.72rem;">{{ alert.created_at|timesince }} ago</small>
-                                            {% if not alert.is_read %}
-                                                <form method="POST" action="{% url 'mark_alert_read' alert.id %}" class="mt-1">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none small text-primary">
-                                                        Mark read
-                                                    </button>
-                                                </form>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4 text-muted small">
-                            <i class="fa-solid fa-check-double fs-2 text-success mb-2"></i>
-                            <p class="mb-0">No active alerts. All monitored products are currently stable!</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- User Submitted Products -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-boxes-packing text-info me-2"></i>Products You've Added
-                        </h6>
-                        <small class="text-muted">Items submitted to the global catalog by your account</small>
-                    </div>
-                    <a href="{% url 'product_create' %}" class="btn btn-sm btn-primary">+ Add New</a>
-                </div>
-                <div class="card-body p-0">
-                    {% if user_created_products %}
-                        <div class="list-group list-group-flush">
-                            {% for p in user_created_products %}
-                                <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img src="{{ p.display_image }}" alt="{{ p.name }}" class="rounded border" style="width: 44px; height: 44px; object-fit: cover;">
-                                        <div>
-                                            <a href="{% url 'product_detail' p.pk %}" class="text-decoration-none text-dark fw-semibold small d-block">
-                                                {{ p.name }}
-                                            </a>
-                                            <small class="text-muted">{{ p.platform }} &bull; {{ p.review_count }} reviews</small>
-                                        </div>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="score-pill {% if p.overall_authenticity_score >= 70 %}score-pill-high{% elif p.overall_authenticity_score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %}">
-                                            {{ p.overall_authenticity_score }}%
-                                        </span>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4 text-muted small">
-                            <i class="fa-solid fa-cloud-arrow-up fs-2 text-secondary mb-2"></i>
-                            <p class="mb-2">You haven't added any products to the catalog yet.</p>
-                            <a href="{% url 'product_create' %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fa-solid fa-plus me-1"></i> Add Your First Product
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-    </div>
-
 </div>
 {% endblock %}
 
 {% block extra_js %}
 {% if saved_products %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('savedProductsChart').getContext('2d');
-    const labels = {{ chart_labels|safe }};
-    const scores = {{ chart_scores|safe }};
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('savedProductsChart').getContext('2d');
+        const labels = {{ chart_labels| safe
+    }};
+    const scores = {{ chart_scores| safe }};
 
     new Chart(ctx, {
         type: 'bar',

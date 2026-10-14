@@ -52,13 +52,13 @@
                     </select>
                 </div>
 
-                <!-- Platform Filter -->
+                <!-- Authenticity Filter -->
                 <div class="col-sm-6 col-md-2">
-                    <select name="platform" class="form-select form-select-sm">
-                        <option value="">All Platforms</option>
-                        {% for plat_val, plat_label in platforms %}
-                            <option value="{{ plat_val }}" {% if platform == plat_val %}selected{% endif %}>{{ plat_label }}</option>
-                        {% endfor %}
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">All Authenticity</option>
+                        <option value="genuine" {% if status == 'genuine' %}selected{% endif %}>Genuine (70%+)</option>
+                        <option value="suspicious" {% if status == 'suspicious' %}selected{% endif %}>Suspicious (40-69%)</option>
+                        <option value="fake" {% if status == 'fake' %}selected{% endif %}>Fake Alert (&lt; 40%)</option>
                     </select>
                 </div>
 
@@ -84,27 +84,6 @@
                     {% endif %}
                 </div>
             </form>
-
-            <!-- Authenticity Status Filter Badges -->
-            <div class="d-flex flex-wrap gap-2 mt-3 pt-2 border-top align-items-center">
-                <span class="text-muted small fw-semibold me-1"><i class="fa-solid fa-shield-halved me-1 text-primary"></i>Authenticity Filter:</span>
-                <a href="?{% if q %}q={{ q }}&{% endif %}{% if category %}category={{ category }}&{% endif %}{% if platform %}platform={{ platform }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}status=" 
-                   class="badge {% if not status %}bg-dark text-white{% else %}bg-light text-dark border{% endif %} text-decoration-none px-3 py-2">
-                    All Products ({{ total_count }})
-                </a>
-                <a href="?{% if q %}q={{ q }}&{% endif %}{% if category %}category={{ category }}&{% endif %}{% if platform %}platform={{ platform }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}status=genuine" 
-                   class="badge {% if status == 'genuine' %}bg-success text-white{% else %}bg-success-subtle text-success border border-success{% endif %} text-decoration-none px-3 py-2">
-                    <i class="fa-solid fa-circle-check me-1"></i> Genuine (&ge; 70%)
-                </a>
-                <a href="?{% if q %}q={{ q }}&{% endif %}{% if category %}category={{ category }}&{% endif %}{% if platform %}platform={{ platform }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}status=suspicious" 
-                   class="badge {% if status == 'suspicious' %}bg-warning text-dark{% else %}bg-warning-subtle text-warning border border-warning{% endif %} text-decoration-none px-3 py-2">
-                    <i class="fa-solid fa-triangle-exclamation me-1"></i> Suspicious (40-69%)
-                </a>
-                <a href="?{% if q %}q={{ q }}&{% endif %}{% if category %}category={{ category }}&{% endif %}{% if platform %}platform={{ platform }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}status=fake" 
-                   class="badge {% if status == 'fake' %}bg-danger text-white{% else %}bg-danger-subtle text-danger border border-danger{% endif %} text-decoration-none px-3 py-2">
-                    <i class="fa-solid fa-ban me-1"></i> Fake / Deceptive (&lt; 40%)
-                </a>
-            </div>
         </div>
     </div>
 
