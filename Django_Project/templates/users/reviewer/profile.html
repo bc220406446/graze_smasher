@@ -1,22 +1,22 @@
 {% extends 'dashboard_base.html' %}
 
-{% block title %}User Profile - Graze Smasher{% endblock %}
+{% block title %}Reviewer Profile - Graze Smasher{% endblock %}
 
 {% block dashboard_content %}
 <div class="d-flex flex-column gap-4">
 
     <!-- Profile Header -->
-    <div class="card p-4 workspace-banner">
+    <div class="card p-4 workspace-banner banner-reviewer">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <span class="badge {% if profile.role == 'admin' %}bg-danger{% elif profile.role == 'reviewer' %}bg-primary{% else %}bg-secondary{% endif %} px-3 py-1 mb-2">
-                    {{ profile.get_role_display }}
+                <span class="badge bg-primary px-3 py-1 mb-2">
+                    <i class="fa-solid fa-feather-pointed me-1"></i>Reviewer Account
                 </span>
                 <h3 class="fw-bold text-dark mb-1">{{ request.user.username }}'s Profile</h3>
-                <p class="text-muted small mb-0">Update your account credentials, view role capabilities, and inspect your activity history.</p>
+                <p class="text-muted small mb-0">Manage your profile credentials, review submission stats, and ML credibility metrics.</p>
             </div>
             <div class="bg-white p-3 rounded-circle shadow-sm text-primary">
-                <i class="fa-solid fa-id-badge fs-2"></i>
+                <i class="fa-solid fa-feather-pointed fs-2"></i>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-semibold" for="{{ form.bio.id_for_label }}">Bio / About Me</label>
+                    <label class="form-label fw-semibold" for="{{ form.bio.id_for_label }}">Bio / Reviewer Expertise</label>
                     {{ form.bio }}
                 </div>
 
@@ -66,23 +66,23 @@
         </div>
     </div>
 
-    <!-- User Activity Summary -->
+    <!-- Reviewer Metrics Strip -->
     <div class="card shadow-sm border">
         <div class="card-header py-3 bg-white border-bottom">
-            <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-chart-pie text-info me-2"></i>Activity & Watchlist Summary</h6>
+            <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-chart-line text-success me-2"></i>Reviewer Activity & Track Record</h6>
         </div>
         <div class="card-body p-4">
             <div class="row text-center g-3">
                 <div class="col-4">
                     <div class="p-3 bg-light rounded border">
-                        <h3 class="fw-bold text-primary mb-0">{{ request.user.saved_products.count }}</h3>
-                        <small class="text-muted">Saved Products</small>
+                        <h3 class="fw-bold text-primary mb-0">{{ request.user.reviews.count }}</h3>
+                        <small class="text-muted">Total Reviews Contributed</small>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="p-3 bg-light rounded border">
-                        <h3 class="fw-bold text-success mb-0">{{ request.user.reviews.count }}</h3>
-                        <small class="text-muted">Reviews Authored</small>
+                        <h3 class="fw-bold text-success mb-0">{{ request.user.saved_products.count }}</h3>
+                        <small class="text-muted">Saved Products</small>
                     </div>
                 </div>
                 <div class="col-4">
@@ -97,3 +97,4 @@
 
 </div>
 {% endblock %}
+

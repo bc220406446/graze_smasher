@@ -88,7 +88,13 @@ def profile_view(request):
         }
         form = UserProfileUpdateForm(instance=profile, initial=initial)
         
-    return render(request, 'users/general/profile.html', {
+    template_name = 'users/general/profile.html'
+    if user.is_superuser or profile.is_admin:
+        template_name = 'users/admin/profile.html'
+    elif profile.is_reviewer:
+        template_name = 'users/reviewer/profile.html'
+
+    return render(request, template_name, {
         'form': form,
         'profile': profile
     })

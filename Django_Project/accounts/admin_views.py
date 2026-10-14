@@ -93,7 +93,7 @@ def admin_control_panel(request):
         'recent_reviews': recent_reviews,
         'recent_flags': recent_flags,
     }
-    return render(request, 'users/admin/control_panel.html', context)
+    return render(request, 'users/admin/admin_dashboard.html', context)
 
 
 # ==============================================================================
@@ -352,16 +352,7 @@ def admin_settings_view(request):
     else:
         form = SystemConfigurationForm(instance=config_obj)
 
-    context = {
-        'form': form,
-        'config_obj': config_obj,
-    }
-    return render(request, 'users/admin/settings.html', context)
-
-
-@admin_required
-def admin_model_metrics_view(request):
-    """Inspect serialized model files, hyperparameter specifications, and evaluation benchmarks."""
+    # Re-use model metrics context so the unified tab renders fully
     csv_path = os.path.join(SCREENSHOTS_DIR, "model_comparison_table.csv")
     ml_benchmarks = []
     if os.path.exists(csv_path):
@@ -409,11 +400,19 @@ def admin_model_metrics_view(request):
     ]
 
     context = {
+        'config_form': form,
+        'config_obj': config_obj,
         'ml_benchmarks': ml_benchmarks,
         'model_artifacts': model_artifacts,
         'dataset_exists': os.path.exists(DATASET_PATH),
     }
     return render(request, 'users/admin/model_metrics.html', context)
+
+
+@admin_required
+def admin_model_metrics_view(request):
+    """Inspect serialized model files, hyperparameter specifications, and evaluation benchmarks."""
+    return admin_settings_view(request)
 
 
 # ==============================================================================
@@ -453,7 +452,7 @@ def admin_analytics_reports(request):
         'chart_labels': json.dumps(['Genuine', 'Suspicious', 'Fake']),
         'chart_data': json.dumps([genuine_count, suspicious_count, fake_count]),
     }
-    return render(request, 'users/admin/analytics_reports.html', context)
+    return render(request, 'users/admin/global_analytics_reports.html', context)
 
 
 # ==============================================================================
@@ -463,4 +462,4 @@ def admin_analytics_reports(request):
 @admin_required
 def admin_api_integration(request):
     """Interactive documentation and testing guide for REST API endpoints."""
-    return render(request, 'users/admin/api_integration.html')
+    return admin_analytics_reports(request)

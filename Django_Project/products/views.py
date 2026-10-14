@@ -188,7 +188,15 @@ def product_list(request):
         'can_create_product': can_create_product,
         'is_admin': is_admin,
     }
-    return render(request, 'public/product_list.html', context)
+    template_name = 'public/product_list.html'
+    if request.user.is_authenticated:
+        profile = getattr(request.user, 'profile', None)
+        if profile and profile.is_reviewer:
+            template_name = 'users/reviewer/explore_products.html'
+        elif profile and profile.is_general_user:
+            template_name = 'users/general/explore_products.html'
+
+    return render(request, template_name, context)
 
 
 def product_detail(request, pk):
@@ -290,7 +298,15 @@ def product_detail(request, pk):
         'chart_scores': json.dumps(timeline_scores),
         'chart_fakes': json.dumps(timeline_fakes),
     }
-    return render(request, 'public/product_detail.html', context)
+    template_name = 'public/product_detail.html'
+    if request.user.is_authenticated:
+        profile = getattr(request.user, 'profile', None)
+        if profile and profile.is_reviewer:
+            template_name = 'users/reviewer/product_detail.html'
+        elif profile and profile.is_general_user:
+            template_name = 'users/general/product_detail.html'
+
+    return render(request, template_name, context)
 
 
 @login_required
@@ -385,7 +401,7 @@ def create_product(request):
     else:
         form = ProductForm()
 
-    return render(request, 'users/general/product_form.html', {'form': form, 'client_ip': client_ip})
+    return render(request, 'users/general/add_product.html', {'form': form, 'client_ip': client_ip})
 
 
 @login_required

@@ -1,0 +1,395 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}{{ product.name }} - Review & Authenticity Analysis - Graze Smasher{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-column gap-4">
+
+    <!-- Breadcrumb & Top Actions -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-2 border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'reviewer_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'product_list' %}" class="text-decoration-none">Explore Catalog</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ product.name|truncatechars:35 }}</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex gap-2">
+            <form action="{% url 'toggle_save_product' product.pk %}" method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if is_saved %}btn-danger{% else %}btn-outline-danger{% endif %} px-3 fw-semibold">
+                    <i class="fa-solid fa-heart me-1"></i> {% if is_saved %}Watchlisted{% else %}Add to Watchlist{% endif %}
+                </button>
+            </form>
+            <button type="button" class="btn btn-sm btn-outline-secondary px-3" data-bs-toggle="modal" data-bs-target="#flagProductModal">
+                <i class="fa-solid fa-flag me-1 text-danger"></i> Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Product Summary Card -->
+    <div class="card shadow-sm border">
+        <div class="card-body p-4">
+            <div class="row g-4 align-items-center">
+                <!-- Product Image -->
+                <div class="col-md-4 col-lg-3 text-center">
+                    <div class="rounded border p-2 bg-light shadow-sm" style="max-height: 240px; overflow: hidden;">
+                        <img src="{{ product.display_image }}" class="img-fluid rounded" alt="{{ product.name }}" style="max-height: 220px; object-fit: contain;">
+                    </div>
+                </div>
+
+                <!-- Product Info & Authenticity Summary -->
+                <div class="col-md-8 col-lg-9">
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <span class="badge bg-dark">{{ product.platform }}</span>
+                        <span class="badge bg-secondary">{{ product.get_category_display }}</span>
+                        {% if product.is_external %}
+                            <span class="badge bg-info text-dark">External Feed</span>
+                        {% endif %}
+                    </div>
+
+                    <h4 class="fw-bold text-dark mb-2">{{ product.name }}</h4>
+                    <p class="text-muted small mb-3">{{ product.description|default:"No description provided." }}</p>
+
+                    {% if product.source_url %}
+                    <div class="mb-3">
+                        <a href="{{ product.source_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Original Listing on {{ product.platform }}
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Authenticity Metrics Strip -->
+                    <div class="row g-2 text-center pt-3 border-top">
+                        <div class="col-6 col-sm-3">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Authenticity Score</small>
+                                <span class="fs-5 fw-bold font-mono {% if overall_score >= 70 %}text-success{% elif overall_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ overall_score }}%
+                                </span>
+                                <small class="d-block fw-semibold" style="font-size: 0.70rem;">{{ overall_label }}</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Customer Rating</small>
+                                <span class="fs-5 fw-bold text-dark font-mono">
+                                    ⭐ {{ product.average_rating }}
+                                </span>
+                                <small class="d-block text-muted" style="font-size: 0.70rem;">{{ total_reviews }} reviews</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Community Trust</small>
+                                <span class="fs-5 fw-bold text-success font-mono">
+                                    🛡️ {{ trust_rating }}
+                                </span>
+                                <small class="d-block text-success fw-semibold" style="font-size: 0.70rem;">Genuine Only</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Fake Review Ratio</small>
+                                <span class="fs-5 fw-bold {% if fake_pct > 30 %}text-danger{% else %}text-muted{% endif %} font-mono">
+                                    {{ fake_pct }}%
+                                </span>
+                                <small class="d-block text-muted" style="font-size: 0.70rem;">{{ fake_count }} flagged</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviewer Action: Submit Review Form Card -->
+    <div class="card shadow-sm border border-primary-subtle">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0 fw-bold text-dark">
+                    <i class="fa-solid fa-feather-pointed text-primary me-2"></i>Submit Product Review for ML Evaluation
+                </h5>
+                <small class="text-muted">Enter genuine review copy. It will be immediately analyzed by LinearSVC + J-48 C4.5 models.</small>
+            </div>
+            <span class="badge bg-primary px-3 py-2">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Real-Time Inference
+            </span>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" action="{% url 'submit_review' product.pk %}">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold small" for="id_rating">Your Star Rating <span class="text-danger">*</span></label>
+                        <select name="rating" id="id_rating" class="form-select">
+                            <option value="5">⭐⭐⭐⭐⭐ 5 Stars - Excellent</option>
+                            <option value="4">⭐⭐⭐⭐ 4 Stars - Good</option>
+                            <option value="3">⭐⭐⭐ 3 Stars - Average</option>
+                            <option value="2">⭐⭐ 2 Stars - Poor</option>
+                            <option value="1">⭐ 1 Star - Terrible</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold small" for="id_text">Review Experience & Analysis Text <span class="text-danger">*</span></label>
+                        <textarea name="text" id="id_text" rows="4" class="form-control" placeholder="Share detailed feedback regarding product build quality, performance, and experience..." required></textarea>
+                    </div>
+                </div>
+
+                <div class="p-3 mb-3 bg-light rounded border small text-muted">
+                    <div class="d-flex align-items-start">
+                        <i class="fa-solid fa-shield-halved text-primary me-2 mt-1"></i>
+                        <div>
+                            <strong>Evaluation Pipeline Notice:</strong> Your submission text will be vectorized via TF-IDF n-grams (1, 2) and evaluated for sentiment-rating divergence. IP bursts and repetitive sentence entropy are scored by the J-48 C4.5 tree.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Analyze & Submit Review
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dual Column: Trend Chart & Distribution -->
+    <div class="row g-4">
+        <!-- Distribution Bar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border h-100">
+                <div class="card-header py-3 bg-white border-bottom">
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="fa-solid fa-chart-pie text-primary me-2"></i>Review Distribution
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-semibold mb-1">
+                            <span class="text-success"><i class="fa-solid fa-check-circle me-1"></i>Genuine</span>
+                            <span>{{ genuine_count }} ({{ genuine_pct }}%)</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ genuine_pct }}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-semibold mb-1">
+                            <span class="text-warning text-dark"><i class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious</span>
+                            <span>{{ suspicious_count }} ({{ suspicious_pct }}%)</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ suspicious_pct }}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-semibold mb-1">
+                            <span class="text-danger"><i class="fa-solid fa-skull-crossbones me-1"></i>Fake / Manipulated</span>
+                            <span>{{ fake_count }} ({{ fake_pct }}%)</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ fake_pct }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trend Chart -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border h-100">
+                <div class="card-header py-3 bg-white border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="fa-solid fa-chart-line text-primary me-2"></i>Review Authenticity Trend Over Time
+                    </h6>
+                    <span class="badge bg-light text-muted border small">Sequential Analysis</span>
+                </div>
+                <div class="card-body p-3">
+                    <div style="height: 220px;">
+                        <canvas id="productTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Feed -->
+    <div class="card shadow-sm border">
+        <div class="card-header py-3 bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h6 class="mb-0 fw-bold text-dark">
+                <i class="fa-solid fa-comments text-primary me-2"></i>Product Reviews ({{ total_reviews }})
+            </h6>
+
+            <!-- Filter Buttons -->
+            <div class="d-flex flex-wrap gap-1">
+                <a href="?label=" class="btn btn-xs btn-sm {% if not label_filter %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+                    All ({{ total_reviews }})
+                </a>
+                <a href="?label=genuine" class="btn btn-xs btn-sm {% if label_filter == 'Genuine' %}btn-success{% else %}btn-outline-success{% endif %}">
+                    Genuine ({{ genuine_count }})
+                </a>
+                <a href="?label=suspicious" class="btn btn-xs btn-sm {% if label_filter == 'Suspicious' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
+                    Suspicious ({{ suspicious_count }})
+                </a>
+                <a href="?label=fake" class="btn btn-xs btn-sm {% if label_filter == 'Fake' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                    Fake ({{ fake_count }})
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                {% for r in reviews %}
+                <div class="list-group-item p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold text-dark small">{{ r.user.username|default:"Anonymous Buyer" }}</span>
+                            <span class="text-warning small">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+                            <small class="text-muted" style="font-size: 0.72rem;">{{ r.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <div>
+                            {% if r.label == 'Genuine' %}
+                                <span class="badge-genuine small"><i class="fa-solid fa-check me-1"></i>Genuine ({{ r.final_score }}%)</span>
+                            {% elif r.label == 'Suspicious' %}
+                                <span class="badge-suspicious small"><i class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious ({{ r.final_score }}%)</span>
+                            {% else %}
+                                <span class="badge-fake small"><i class="fa-solid fa-skull-crossbones me-1"></i>Fake ({{ r.final_score }}%)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="small text-secondary mb-1">{{ r.text }}</p>
+                    <div class="d-flex gap-3 text-muted small" style="font-size: 0.72rem;">
+                        <span>LinearSVC: <strong>{{ r.svm_score }}%</strong></span>
+                        <span>J-48: <strong>{{ r.j48_score }}%</strong></span>
+                        <span>Sentiment Polarity: <strong>{{ r.sentiment }}</strong></span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-comment-slash fs-1 text-muted mb-2 d-block"></i>
+                    <p class="mb-0">No reviews found matching your filter criteria.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Flag Inappropriate Content Modal -->
+<div class="modal fade" id="flagProductModal" tabindex="-1" aria-labelledby="flagProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-danger" id="flagProductModalLabel">
+                    <i class="fa-solid fa-flag me-2"></i>Report Inappropriate Product
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'flag_product' product.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {% if user_flag %}
+                        <div class="alert alert-info small mb-3">
+                            <i class="fa-solid fa-circle-info me-1"></i> You reported this product on <strong>{{ user_flag.created_at|date:"M d, Y" }}</strong>. Current status: <strong>{{ user_flag.get_status_display }}</strong>.
+                        </div>
+                    {% endif %}
+                    
+                    <p class="small text-muted mb-3">
+                        Help maintain community integrity. Products reported for adult content, scams, or misleading claims are reviewed by administrators.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Violation Category <span class="text-danger">*</span></label>
+                        {{ flag_form.category }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Report Details & Explanation <span class="text-danger">*</span></label>
+                        {{ flag_form.details }}
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm px-3">
+                        <i class="fa-solid fa-flag me-1"></i> Submit Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const trendCtx = document.getElementById('productTrendChart');
+    if (!trendCtx) return;
+
+    const labels = {{ chart_labels|safe }};
+    const scores = {{ chart_scores|safe }};
+    const fakes = {{ chart_fakes|safe }};
+
+    new Chart(trendCtx.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Running Authenticity Score (%)',
+                    data: scores,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Cumulative Fake Reviews',
+                    data: fakes,
+                    borderColor: '#ef4444',
+                    borderDash: [5, 5],
+                    backgroundColor: 'transparent',
+                    tension: 0.1,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    min: 0,
+                    max: 100,
+                    ticks: { callback: v => v + '%' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    ticks: { precision: 0 }
+                }
+            },
+            plugins: {
+                legend: { position: 'top' }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+

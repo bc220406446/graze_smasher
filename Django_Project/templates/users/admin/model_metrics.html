@@ -1,6 +1,6 @@
 {% extends 'dashboard_base.html' %}
 
-{% block title %}ML Model Specifications & Benchmarks - Graze Smasher Admin{% endblock %}
+{% block title %}ML Model Metrics & System Configuration - Graze Smasher Admin{% endblock %}
 
 {% block dashboard_content %}
 <div class="d-flex flex-column gap-4">
@@ -9,88 +9,263 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
             <h4 class="fw-bold text-dark mb-1">
-                <i class="fa-solid fa-brain text-success me-2"></i>Machine Learning Model Pipeline & Metrics
+                <i class="fa-solid fa-brain text-success me-2"></i>ML Model Metrics & System Settings
             </h4>
-            <p class="text-muted small mb-0">Artifact status, serialized models, hyperparameters, and cross-validation benchmark comparison table.</p>
+            <p class="text-muted small mb-0">Inspect serialized ML models, empirical cross-validation benchmarks, and fine-tune runtime detection parameters in real time.</p>
         </div>
         <a href="{% url 'admin_control_panel' %}" class="btn btn-outline-secondary btn-sm">
-            &larr; Back to Overview
+            &larr; Back to Dashboard
         </a>
     </div>
 
-    <!-- Serialized Artifacts Status Cards -->
-    <div>
-        <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-box-archive me-2 text-primary"></i>Model Artifacts on Disk (`Trained_Model/`)</h6>
-        <div class="row g-3">
-            {% for art in model_artifacts %}
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm border p-3 bg-white">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h6 class="fw-bold text-dark mb-0">{{ art.name }}</h6>
-                        {% if art.exists %}
-                            <span class="badge bg-success-subtle text-success border border-success small">
-                                <i class="fa-solid fa-check me-1"></i>Available ({{ art.size_kb }} KB)
-                            </span>
-                        {% else %}
-                            <span class="badge bg-danger-subtle text-danger border border-danger small">
-                                <i class="fa-solid fa-xmark me-1"></i>Missing
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div class="small text-muted mb-2 font-monospace" style="font-size: 0.72rem; word-break: break-all;">
-                        {{ art.file }}
-                    </div>
-                    <div class="small text-secondary mb-1">
-                        <strong>Architecture:</strong> {{ art.architecture }}
-                    </div>
-                    <div class="small text-secondary mt-auto pt-2 border-top">
-                        <strong>Feature Space:</strong> {{ art.input_type }}
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills" id="metricsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold" id="tab-benchmarks" data-bs-toggle="tab" data-bs-target="#benchmarks-pane" type="button" role="tab">
+                <i class="fa-solid fa-chart-line me-1"></i> Model Metrics & Benchmarks
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="tab-settings" data-bs-toggle="tab" data-bs-target="#settings-pane" type="button" role="tab">
+                <i class="fa-solid fa-sliders me-1"></i> System Pipeline Settings
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="metricsTabsContent">
+
+        <!-- TAB 1: MODEL METRICS & BENCHMARKS -->
+        <div class="tab-pane fade show active" id="benchmarks-pane" role="tabpanel">
+            <div class="d-flex flex-column gap-4">
+
+                <!-- Serialized Artifacts Status Cards -->
+                <div>
+                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-box-archive me-2 text-primary"></i>Model Artifacts on Disk (`Trained_Model/`)</h6>
+                    <div class="row g-3">
+                        {% for art in model_artifacts %}
+                        <div class="col-md-4">
+                            <div class="card h-100 shadow-sm border p-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="fw-bold text-dark mb-0">{{ art.name }}</h6>
+                                    {% if art.exists %}
+                                        <span class="badge bg-success-subtle text-success border border-success small">
+                                            <i class="fa-solid fa-check me-1"></i>Available ({{ art.size_kb }} KB)
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger small">
+                                            <i class="fa-solid fa-xmark me-1"></i>Missing
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="small text-muted mb-2 font-monospace" style="font-size: 0.72rem; word-break: break-all;">
+                                    {{ art.file }}
+                                </div>
+                                <div class="small text-secondary mb-1">
+                                    <strong>Architecture:</strong> {{ art.architecture }}
+                                </div>
+                                <div class="small text-secondary mt-auto pt-2 border-top">
+                                    <strong>Feature Space:</strong> {{ art.input_type }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
 
-    <!-- Benchmark Results Table -->
-    <div class="card shadow-sm border">
-        <div class="card-header py-3 bg-white border-bottom">
-            <h6 class="mb-0 fw-bold text-dark">
-                <i class="fa-solid fa-table me-2 text-primary"></i>Empirical Model Comparison (80/20 Split + 5-Fold Stratified CV)
-            </h6>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0 text-center small align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="text-start ps-3">Model Architecture</th>
-                            <th>Accuracy</th>
-                            <th>Precision</th>
-                            <th>Recall</th>
-                            <th>F1-Score</th>
-                            <th>5-Fold CV Accuracy</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in ml_benchmarks %}
-                        <tr>
-                            <td class="text-start ps-3 fw-semibold font-body">{{ row.model }}</td>
-                            <td><span class="badge bg-primary px-2 py-1 font-mono">{{ row.accuracy }}%</span></td>
-                            <td class="font-mono">{{ row.precision }}%</td>
-                            <td class="font-mono">{{ row.recall }}%</td>
-                            <td class="font-mono">{{ row.f1_score }}%</td>
-                            <td class="font-mono"><strong class="text-success">{{ row.cv_accuracy }}%</strong></td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-muted py-4">No benchmark records found. Run `train_all.py` to regenerate results.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <!-- Benchmark Results Table -->
+                <div class="card shadow-sm border">
+                    <div class="card-header py-3 bg-white border-bottom">
+                        <h6 class="mb-0 fw-bold text-dark">
+                            <i class="fa-solid fa-table me-2 text-primary"></i>Empirical Model Comparison (80/20 Split + 5-Fold Stratified CV)
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0 text-center small align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-start ps-3">Model Architecture</th>
+                                        <th>Accuracy</th>
+                                        <th>Precision</th>
+                                        <th>Recall</th>
+                                        <th>F1-Score</th>
+                                        <th>5-Fold CV Accuracy</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in ml_benchmarks %}
+                                    <tr>
+                                        <td class="text-start ps-3 fw-semibold font-body">{{ row.model }}</td>
+                                        <td><span class="badge bg-primary px-2 py-1 font-mono">{{ row.accuracy }}%</span></td>
+                                        <td class="font-mono">{{ row.precision }}%</td>
+                                        <td class="font-mono">{{ row.recall }}%</td>
+                                        <td class="font-mono">{{ row.f1_score }}%</td>
+                                        <td class="font-mono"><strong class="text-success">{{ row.cv_accuracy }}%</strong></td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-muted py-4">No benchmark records found. Run `train_all.py` to regenerate results.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
+
+        <!-- TAB 2: SYSTEM PIPELINE SETTINGS -->
+        <div class="tab-pane fade" id="settings-pane" role="tabpanel">
+            <div class="card shadow-sm border">
+                <div class="card-header py-3 bg-white border-bottom">
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="fa-solid fa-gears text-primary me-2"></i>Configure Machine Learning Parameters & Heuristics
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{% url 'admin_settings' %}" novalidate>
+                        {% csrf_token %}
+
+                        {% if config_form.non_field_errors %}
+                            <div class="alert alert-danger py-2 small mb-4">
+                                {% for error in config_form.non_field_errors %}
+                                    <div><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Section 1: Ensemble Weights -->
+                        <h6 class="fw-bold text-primary mb-3">1. Ensemble Fusion Weights (Must Sum to 1.0)</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="{{ config_form.weight_svm.id_for_label }}">
+                                    SVM Weight (Textual)
+                                </label>
+                                {{ config_form.weight_svm }}
+                                <div class="form-text small" style="font-size: 0.70rem;">Default: 0.50 (50%)</div>
+                                {% if config_form.weight_svm.errors %}
+                                    <div class="text-danger small">{{ config_form.weight_svm.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="{{ config_form.weight_j48.id_for_label }}">
+                                    J-48 Weight (Behavioral)
+                                </label>
+                                {{ config_form.weight_j48 }}
+                                <div class="form-text small" style="font-size: 0.70rem;">Default: 0.30 (30%)</div>
+                                {% if config_form.weight_j48.errors %}
+                                    <div class="text-danger small">{{ config_form.weight_j48.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="{{ config_form.weight_risk.id_for_label }}">
+                                    Heuristic Risk Weight
+                                </label>
+                                {{ config_form.weight_risk }}
+                                <div class="form-text small" style="font-size: 0.70rem;">Default: 0.20 (20%)</div>
+                                {% if config_form.weight_risk.errors %}
+                                    <div class="text-danger small">{{ config_form.weight_risk.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Classification Cutoffs -->
+                        <h6 class="fw-bold text-primary mb-3">2. Classification Thresholds (Score: 0 to 100)</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="{{ config_form.genuine_threshold.id_for_label }}">
+                                    Genuine Cutoff Score (%)
+                                </label>
+                                {{ config_form.genuine_threshold }}
+                                <div class="form-text small" style="font-size: 0.70rem;">Scores &ge; this value are Genuine (Default: 70.0)</div>
+                                {% if config_form.genuine_threshold.errors %}
+                                    <div class="text-danger small">{{ config_form.genuine_threshold.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold" for="{{ config_form.suspicious_threshold.id_for_label }}">
+                                    Suspicious Cutoff Score (%)
+                                </label>
+                                {{ config_form.suspicious_threshold }}
+                                <div class="form-text small" style="font-size: 0.70rem;">Scores between this and Genuine are Suspicious (Default: 40.0)</div>
+                                {% if config_form.suspicious_threshold.errors %}
+                                    <div class="text-danger small">{{ config_form.suspicious_threshold.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Section 3: IP Velocity Burst Detection -->
+                        <h6 class="fw-bold text-primary mb-3">3. Heuristic Rules & IP Velocity Thresholds</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="{{ config_form.ip_burst_threshold.id_for_label }}">
+                                    IP Burst Review Limit
+                                </label>
+                                {{ config_form.ip_burst_threshold }}
+                                <div class="form-text small" style="font-size: 0.70rem;">Max reviews allowed within window before flagging (Default: 5)</div>
+                                {% if config_form.ip_burst_threshold.errors %}
+                                    <div class="text-danger small">{{ config_form.ip_burst_threshold.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="{{ config_form.ip_burst_window_minutes.id_for_label }}">
+                                    Velocity Window (Minutes)
+                                </label>
+                                {{ config_form.ip_burst_window_minutes }}
+                                <div class="form-text small" style="font-size: 0.70rem;">Time window for burst tracking (Default: 60)</div>
+                                {% if config_form.ip_burst_window_minutes.errors %}
+                                    <div class="text-danger small">{{ config_form.ip_burst_window_minutes.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold" for="{{ config_form.sentiment_divergence_threshold.id_for_label }}">
+                                    Sentiment Divergence Delta
+                                </label>
+                                {{ config_form.sentiment_divergence_threshold }}
+                                <div class="form-text small" style="font-size: 0.70rem;">Delta triggering sentiment warning (Default: 0.35)</div>
+                                {% if config_form.sentiment_divergence_threshold.errors %}
+                                    <div class="text-danger small">{{ config_form.sentiment_divergence_threshold.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Auto Moderation Toggles -->
+                        <h6 class="fw-bold text-primary mb-3">4. Autonomous Moderation Actions</h6>
+                        <div class="p-3 bg-light rounded-3 border mb-4">
+                            <div class="form-check form-switch mb-2">
+                                {{ config_form.auto_hide_flagged_products }}
+                                <label class="form-check-label small fw-semibold ms-2" for="{{ config_form.auto_hide_flagged_products.id_for_label }}">
+                                    Automatically Hide Products Exceeding Moderation Thresholds
+                                </label>
+                                <div class="form-text small ps-4">When enabled, catalog items are hidden immediately if confirmed abuse reports surpass threshold.</div>
+                            </div>
+                            <div class="form-check form-switch">
+                                {{ config_form.alert_on_fake_spike }}
+                                <label class="form-check-label small fw-semibold ms-2" for="{{ config_form.alert_on_fake_spike.id_for_label }}">
+                                    Trigger In-App Alerts for Monitored Product Fake Review Spikes
+                                </label>
+                                <div class="form-text small ps-4">Send notifications to users who watchlisted a product experiencing sudden review tampering.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="submit" class="btn btn-success px-4 py-2 fw-semibold">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Save Configuration Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 </div>

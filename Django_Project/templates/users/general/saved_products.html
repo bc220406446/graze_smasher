@@ -5,24 +5,36 @@
 {% block dashboard_content %}
 <div class="d-flex flex-column gap-4">
 
-    <!-- Header & Search -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
-            <h4 class="fw-bold text-dark mb-1">
-                <i class="fa-solid fa-heart text-danger me-2"></i>Saved Products Watchlist
-            </h4>
-            <p class="text-muted small mb-0">Products you are actively tracking for fake review anomalies and authenticity rating fluctuations.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <form method="GET" class="d-flex gap-2">
-                <input type="text" name="q" class="form-control form-control-sm" placeholder="Search saved items..." value="{{ q }}">
-                <button type="submit" class="btn btn-outline-secondary btn-sm">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
-            </form>
-            <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm px-3 fw-semibold">
-                + Browse More
+    <!-- Header & Action -->
+    <div class="d-flex flex-column gap-3">
+        <!-- Top Left Corner: Add New Product Button -->
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{% url 'product_create' %}" class="btn btn-primary btn-sm px-3 shadow-sm fw-semibold d-inline-flex align-items-center gap-2">
+                <i class="fa-solid fa-plus-circle"></i> Add New Product
             </a>
+            <span class="text-muted small">
+                <i class="fa-solid fa-bookmark text-primary me-1"></i> {{ total_count }} Saved Product{{ total_count|pluralize }}
+            </span>
+        </div>
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-2 border-bottom">
+            <div>
+                <h4 class="fw-bold text-dark mb-1">
+                    <i class="fa-solid fa-heart text-danger me-2"></i>Saved Products Watchlist
+                </h4>
+                <p class="text-muted small mb-0">Products you are actively tracking for fake review anomalies and authenticity rating fluctuations.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <form method="GET" class="d-flex gap-2">
+                    <input type="text" name="q" class="form-control form-control-sm" placeholder="Search saved items..." value="{{ q }}">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </form>
+                <a href="{% url 'product_list' %}" class="btn btn-outline-primary btn-sm px-3 fw-semibold">
+                    Browse Catalog
+                </a>
+            </div>
         </div>
     </div>
 

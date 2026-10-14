@@ -36,3 +36,7 @@ class UserProfile(models.Model):
     def is_admin(self):
         return self.role == self.ROLE_ADMIN or self.user.is_staff or self.user.is_superuser
 
+    @property
+    def is_general_user(self):
+        return self.role == self.ROLE_GENERAL
+
