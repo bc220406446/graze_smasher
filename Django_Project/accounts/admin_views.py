@@ -30,7 +30,7 @@ from products.models import Product, ProductFlag
 from products.forms import ProductAdminForm
 from analytics.models import Alert, SystemConfiguration
 from ML_Model.config import (
-    SCREENSHOTS_DIR,
+    MODEL_COMPARISON_CSV,
     SVM_MODEL_PATH,
     VECTORIZER_PATH,
     J48_MODEL_PATH,
@@ -58,7 +58,7 @@ def admin_control_panel(request):
     system_config = SystemConfiguration.get_solo()
 
     # Empirical ML accuracy from CSV
-    csv_path = os.path.join(SCREENSHOTS_DIR, "model_comparison_table.csv")
+    csv_path = str(MODEL_COMPARISON_CSV)
     svm_acc = "98.4%"
     j48_acc = "95.8%"
     if os.path.exists(csv_path):
@@ -353,7 +353,7 @@ def admin_settings_view(request):
         form = SystemConfigurationForm(instance=config_obj)
 
     # Re-use model metrics context so the unified tab renders fully
-    csv_path = os.path.join(SCREENSHOTS_DIR, "model_comparison_table.csv")
+    csv_path = str(MODEL_COMPARISON_CSV)
     ml_benchmarks = []
     if os.path.exists(csv_path):
         try:

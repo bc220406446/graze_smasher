@@ -16,7 +16,7 @@ from django.utils import timezone
 from products.models import Product, SavedProduct
 from reviews.models import Review
 from .models import Alert
-from ML_Model.config import SCREENSHOTS_DIR
+from ML_Model.config import MODEL_COMPARISON_CSV
 from accounts.decorators import reviewer_required
 
 
@@ -312,7 +312,7 @@ def analytics_overview(request):
     - Fake review trends over time
     - Leaderboards: Most Manipulated Products vs Most Authentic Products
     """
-    csv_path = os.path.join(SCREENSHOTS_DIR, "model_comparison_table.csv")
+    csv_path = str(MODEL_COMPARISON_CSV)
     ml_benchmarks = []
     if os.path.exists(csv_path):
         try:

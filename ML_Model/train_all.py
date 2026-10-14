@@ -8,7 +8,7 @@ Trains and evaluates:
 3. Composite Ensemble (Weighted SVM + J48 + Heuristic Risk)
 
 Performs 80/20 train/test evaluation and 5-fold Stratified Cross-Validation.
-Saves comparison metrics to CSV and visual plots to Screenshots/.
+Saves comparison metrics to CSV and visual plots to Trained_Model/.
 Serializes models to Trained_Model/.
 """
 
@@ -42,7 +42,7 @@ if CURRENT_DIR not in sys.path:
 from config import (
     DATASET_PATH,
     TRAINED_MODEL_DIR,
-    SCREENSHOTS_DIR,
+    MODEL_COMPARISON_CSV,
     SVM_MODEL_PATH,
     VECTORIZER_PATH,
     J48_MODEL_PATH,
@@ -69,7 +69,6 @@ def train_and_evaluate_all():
     print("=" * 70)
     
     os.makedirs(TRAINED_MODEL_DIR, exist_ok=True)
-    os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
     
     # 1. Load Dataset
     print(f"\n[1/7] Loading dataset from: {DATASET_PATH}")
@@ -273,7 +272,7 @@ def train_and_evaluate_all():
     print("=" * 70)
     
     # Save CSV comparison table
-    csv_out_path = os.path.join(SCREENSHOTS_DIR, "model_comparison_table.csv")
+    csv_out_path = str(MODEL_COMPARISON_CSV)
     comparison_df.to_csv(csv_out_path, index=False)
     print(f"\nSaved comparison table to: {csv_out_path}")
     
@@ -292,7 +291,7 @@ def train_and_evaluate_all():
     print(pd.DataFrame(cm_comp, index=["Actual Genuine", "Actual Fake"], columns=["Pred Genuine", "Pred Fake"]))
     
     # 7. Generate Visualizations
-    print("\n[7/7] Generating visualization plots in Screenshots/...")
+    print("\n[7/7] Generating evaluation plots in Trained_Model/...")
     
     # Plot 1: Performance Metrics Bar Chart
     plt.figure(figsize=(10, 6))
@@ -308,7 +307,7 @@ def train_and_evaluate_all():
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.legend(loc="lower right")
     plt.tight_layout()
-    metrics_plot_path = os.path.join(SCREENSHOTS_DIR, "model_metrics.png")
+    metrics_plot_path = os.path.join(TRAINED_MODEL_DIR, "model_metrics.png")
     plt.savefig(metrics_plot_path, dpi=300)
     plt.close()
     print(f"      Saved: {metrics_plot_path}")
@@ -334,7 +333,7 @@ def train_and_evaluate_all():
     
     plt.suptitle("Confusion Matrix Comparison (Salminen et al. Test Set)", fontsize=16, y=1.03)
     plt.tight_layout()
-    cm_plot_path = os.path.join(SCREENSHOTS_DIR, "confusion_matrices.png")
+    cm_plot_path = os.path.join(TRAINED_MODEL_DIR, "confusion_matrices.png")
     plt.savefig(cm_plot_path, dpi=300, bbox_inches="tight")
     plt.close()
     print(f"      Saved: {cm_plot_path}")

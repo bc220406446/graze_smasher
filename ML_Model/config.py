@@ -13,7 +13,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATASET_PATH = BASE_DIR / "Dataset" / "fake_reviews_dataset.csv"
 TRAINED_MODEL_DIR = BASE_DIR / "Trained_Model"
-SCREENSHOTS_DIR = BASE_DIR / "Screenshots"
+MODEL_COMPARISON_CSV = TRAINED_MODEL_DIR / "model_comparison_table.csv"
 
 # Model Artifact Paths
 SVM_MODEL_PATH = TRAINED_MODEL_DIR / "svm_model.pkl"

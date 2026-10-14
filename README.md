@@ -71,7 +71,8 @@ graze_smasher/
 ├── Trained_Model/
 │   ├── svm_model.pkl                  # Serialized Calibrated LinearSVC Classifier
 │   ├── vectorizer.pkl                 # Serialized TF-IDF (1, 2) Vectorizer
-│   └── j48_model.pkl                  # Serialized J-48 Decision Tree Classifier
+│   ├── j48_model.pkl                  # Serialized J-48 Decision Tree Classifier
+│   └── model_comparison_table.csv     # 80/20 & 5-fold CV empirical comparison table
 ├── Django_Project/
 │   ├── manage.py                      # Django project management utility
 │   ├── graze_smasher/                 # Core settings, WSGI, and global routing
@@ -103,10 +104,6 @@ graze_smasher/
 │   ├── fake_review_detection.ipynb    # Full Jupyter Notebook with SVM, J-48, and composite analysis
 │   ├── fake_review_detection.html     # HTML compiled export of notebook
 │   └── create_notebook.py             # Notebook generator script
-├── Screenshots/
-│   ├── model_comparison_table.csv     # 80/20 & 5-fold CV empirical comparison table
-│   ├── model_metrics.png              # Precision, Recall, F1 comparison bar chart
-│   └── confusion_matrices.png         # Confusion matrices for SVM, J-48, and Composite
 ├── scripts/
 │   ├── simulate_external_platform.py  # Python simulation of third-party platform API integration
 │   └── Graze_Smasher_API.postman_collection.json  # Postman test collection
@@ -241,8 +238,8 @@ This script will:
 2. Extract the 8 numerical behavioral features.
 3. Train the calibrated `LinearSVC` and `DecisionTreeClassifier(criterion='entropy')`.
 4. Perform 5-Fold Stratified Cross-Validation on both models and the composite ensemble.
-5. Save model artifacts to `Trained_Model/` (`svm_model.pkl`, `vectorizer.pkl`, `j48_model.pkl`).
-6. Save confusion matrices and evaluation charts to `Screenshots/`.
+5. Save model artifacts and benchmark table to `Trained_Model/` (`svm_model.pkl`, `vectorizer.pkl`, `j48_model.pkl`, `model_comparison_table.csv`).
+6. Save confusion matrices and evaluation charts to `Trained_Model/`.
 
 ---
 
