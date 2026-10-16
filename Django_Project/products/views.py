@@ -248,19 +248,30 @@ def product_detail(request, pk):
 
     # Trend timeline over reviews sequence
     chronological_reviews = list(product.reviews.order_by('created_at'))
-    timeline_labels = []
-    timeline_scores = []
-    timeline_fakes = []
-    cum_score_sum = 0
+    
+    # 1. Fake Review Trends (X-axis: total reviews 0, 1, 2...; Y-axis: cumulative fake count 0, 0, 1...)
+    fake_labels = [0]
+    fake_data = [0]
     fake_cum = 0
 
+    # 2. Overall Authenticity Rating Over Time (X-axis: review # 1, 2, 3...; Y-axis: running authenticity average)
+    auth_labels = []
+    auth_data = []
+    cum_score_sum = 0
+
     for idx, r in enumerate(chronological_reviews, 1):
-        timeline_labels.append(f"#{idx}")
-        cum_score_sum += r.final_score
-        timeline_scores.append(round(cum_score_sum / idx, 1))
         if r.label == 'Fake':
             fake_cum += 1
-        timeline_fakes.append(fake_cum)
+        fake_labels.append(idx)
+        fake_data.append(fake_cum)
+
+        auth_labels.append(idx)
+        cum_score_sum += r.final_score
+        auth_data.append(round(cum_score_sum / idx, 1))
+
+    if not auth_labels:
+        auth_labels = [0]
+        auth_data = [100.0]
 
     # Check if current user is Reviewer or Admin (permitted to add reviews)
     can_add_review = False
@@ -292,9 +303,13 @@ def product_detail(request, pk):
         'flag_form': flag_form,
         'can_add_review': can_add_review,
         'is_admin': is_admin,
-        'chart_labels': json.dumps(timeline_labels),
-        'chart_scores': json.dumps(timeline_scores),
-        'chart_fakes': json.dumps(timeline_fakes),
+        'chart_fake_labels': fake_labels,
+        'chart_fake_data': fake_data,
+        'chart_auth_labels': auth_labels,
+        'chart_auth_data': auth_data,
+        'chart_labels': fake_labels,
+        'chart_scores': auth_data,
+        'chart_fakes': fake_data,
     }
     template_name = 'public/product_detail.html'
     if request.user.is_authenticated:

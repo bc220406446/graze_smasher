@@ -1,12 +1,12 @@
+{% load static %}
 <!-- Public Navigation Header (Clean, Centred Menu & Action Button) -->
 <header class="gs-navbar sticky-top bg-white border-bottom shadow-xs position-relative">
     <div class="container-fluid px-lg-4 d-flex justify-content-between align-items-center">
         
-        <!-- Left: Icon Name Brand -->
+        <!-- Left: Logo Brand -->
         <div class="d-flex align-items-center">
-            <a class="gs-brand" href="{% url 'home' %}">
-                <i class="fa-solid fa-crosshairs me-2 text-primary"></i>
-                <span>GRAZE</span>&nbsp;SMASHER
+            <a class="gs-brand d-inline-flex align-items-center text-decoration-none py-1" href="{% url 'home' %}">
+                <img src="{% static 'img/logo.png' %}" alt="Graze Smasher" style="height: 38px; width: auto; object-fit: contain;">
             </a>
         </div>
 

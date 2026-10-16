@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Graze Smasher - AI-Powered Product Authenticity & Fake Review Detection{% endblock %}</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'img/Favicon.png' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/Favicon.png' %}">
+    
     <!-- Fonts: Clash Grotesk (Fontshare), Geist & Geist Mono (Google Fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -302,11 +307,11 @@
             color: var(--gs-primary);
         }
 
-        footer {
+        footer, .gs-footer {
             margin-top: auto;
             background-color: #ffffff;
             border-top: 1px solid var(--gs-border);
-            padding: 1.5rem 0;
+            padding: 0.75rem 1rem;
         }
     </style>
     {% block extra_css %}{% endblock %}
