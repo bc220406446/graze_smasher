@@ -39,8 +39,8 @@ class SystemConfiguration(models.Model):
     weight_j48 = models.FloatField(default=0.30, help_text="Weight for J-48 decision tree fake probability (default: 0.30)")
     weight_risk = models.FloatField(default=0.20, help_text="Weight for heuristic/IP risk (default: 0.20)")
     
-    genuine_threshold = models.FloatField(default=70.0, help_text="Score >= threshold is classified as Genuine (default: 70.0)")
-    suspicious_threshold = models.FloatField(default=40.0, help_text="Score >= threshold and < genuine is Suspicious (default: 40.0)")
+    genuine_threshold = models.FloatField(default=50.0, help_text="Score >= threshold is classified as Genuine (default: 50.0)")
+    suspicious_threshold = models.FloatField(default=50.0, help_text="Binary threshold (default: 50.0)")
     
     ip_max_reviews = models.IntegerField(default=5, help_text="Maximum allowed reviews per IP within velocity window (default: 5)")
     ip_window_minutes = models.IntegerField(default=60, help_text="Sliding time window for IP velocity in minutes (default: 60)")

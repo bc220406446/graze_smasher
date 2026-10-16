@@ -8,64 +8,124 @@
     <!-- Header -->
     <div>
         <h4 class="fw-bold text-dark mb-1">
-            <i class="fa-solid fa-chart-line text-info me-2"></i>Personal Analytics & Authenticity Insights
+            <i class="fa-solid fa-chart-line text-primary me-2"></i>Personal Analytics & Authenticity Insights
         </h4>
-        <p class="text-muted small mb-0">Detailed statistical breakdown of your saved watchlist, review classifications, and security exposure.</p>
+        <p class="text-muted small mb-0">Visual reports including fake review trends, ML model detection accuracy, and monitored product authenticity scores.</p>
     </div>
 
-    <!-- Summary KPI Stats -->
+    <!-- Summary KPI Stats (Strict Binary: Genuine vs Fake) -->
     <div class="row g-3">
         <div class="col-sm-6 col-xl-3">
             <div class="card p-3 shadow-sm h-100 border-start border-4 border-primary">
-                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Saved Watchlist</small>
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Monitored Watchlist</small>
                 <h3 class="fw-bold text-dark mb-0 mt-1">{{ saved_count }}</h3>
-                <small class="text-muted">Tracked items</small>
+                <small class="text-muted">Tracked Products</small>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="card p-3 shadow-sm h-100 border-start border-4 border-success">
                 <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Verified Genuine Items</small>
                 <h3 class="fw-bold text-success mb-0 mt-1">{{ saved_genuine }}</h3>
-                <small class="text-muted">Authenticity &ge; 70%</small>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card p-3 shadow-sm h-100 border-start border-4 border-warning">
-                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Borderline / Suspicious</small>
-                <h3 class="fw-bold text-warning mb-0 mt-1">{{ saved_suspicious }}</h3>
-                <small class="text-muted">Score 40% - 69%</small>
+                <small class="text-muted">Authenticity &ge; 50%</small>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="card p-3 shadow-sm h-100 border-start border-4 border-danger">
-                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">High-Risk / Manipulated</small>
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Deceptive / Fake Items</small>
                 <h3 class="fw-bold text-danger mb-0 mt-1">{{ saved_fake }}</h3>
-                <small class="text-muted">Score &lt; 40%</small>
+                <small class="text-muted">Authenticity &lt; 50%</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card p-3 shadow-sm h-100 border-start border-4 border-info">
+                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Community Reviews</small>
+                <h3 class="fw-bold text-dark mb-0 mt-1">{{ reviews_count }}</h3>
+                <small class="text-muted">{{ genuine_reviews }} Genuine Verified</small>
             </div>
         </div>
     </div>
 
-    <!-- Charts Row -->
+    <!-- 1. Fake Review Trends Chart (Full Width) -->
+    <div class="card shadow-sm border">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-arrow-trend-up text-danger me-2"></i>Fake Review Trends (Past 7 Days)
+                </h6>
+                <small class="text-muted">Temporal progression of verified genuine reviews versus detected fake reviews</small>
+            </div>
+            <span class="badge bg-light text-muted border small">7-Day Velocity</span>
+        </div>
+        <div class="card-body p-3">
+            <div style="height: 250px;">
+                <canvas id="userFakeTrendsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Dual Column: Detection Accuracy & Product Authenticity Scores -->
     <div class="row g-4">
-        
-        <!-- Saved Products Authenticity Exposure -->
+        <!-- Detection Accuracy Comparison Chart -->
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
+            <div class="card shadow-sm border h-100">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-bullseye text-success me-2"></i>ML Detection Accuracy Benchmarks
+                        </h6>
+                        <small class="text-muted">Comparison of trained ML classifier accuracy on test set</small>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small">80/20 Test Split</span>
+                </div>
+                <div class="card-body p-3">
+                    <div style="height: 260px;">
+                        <canvas id="userDetectionAccuracyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Authenticity Scores Chart -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border h-100">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-shield-halved text-primary me-2"></i>Monitored Product Authenticity Scores
+                        </h6>
+                        <small class="text-muted">Current authenticity index (%) across your tracked products</small>
+                    </div>
+                    <span class="badge bg-light text-muted border small">Authenticity Index</span>
+                </div>
+                <div class="card-body p-3">
+                    <div style="height: 260px;">
+                        <canvas id="userProductAuthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Bottom Row: Watchlist Binary Distribution & Contributions -->
+    <div class="row g-4">
+        <!-- Watchlist Genuine vs Fake Distribution -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border h-100">
+                <div class="card-header bg-white py-3 border-bottom">
                     <h6 class="fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-chart-pie text-primary me-2"></i>Watchlist Authenticity Distribution
+                        <i class="fa-solid fa-chart-pie text-info me-2"></i>Watchlist Authenticity Breakdown
                     </h6>
-                    <small class="text-muted">Proportion of genuine vs manipulated products in your saved collection</small>
+                    <small class="text-muted">Proportion of verified genuine vs fake items in your watchlist</small>
                 </div>
                 <div class="card-body d-flex flex-column justify-content-center p-3">
                     {% if saved_count > 0 %}
-                        <div style="position: relative; height: 260px;">
+                        <div style="position: relative; height: 230px;">
                             <canvas id="savedDistributionChart"></canvas>
                         </div>
                     {% else %}
                         <div class="text-center py-5 text-muted small">
                             <i class="fa-solid fa-chart-pie fs-1 text-secondary mb-2"></i>
-                            <p>No saved products to visualize yet.</p>
+                            <p>No saved products to visualize yet. Add products to your watchlist from the catalog.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -74,12 +134,12 @@
 
         <!-- Personal Contribution Summary -->
         <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
+            <div class="card shadow-sm border h-100">
+                <div class="card-header bg-white py-3 border-bottom">
                     <h6 class="fw-bold text-dark mb-0">
                         <i class="fa-solid fa-user-check text-success me-2"></i>Community Contributions
                     </h6>
-                    <small class="text-muted">Products and reviews contributed by your account</small>
+                    <small class="text-muted">Catalog products and evaluations contributed by your account</small>
                 </div>
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
@@ -100,7 +160,7 @@
 
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="fw-bold text-dark d-block">ML Predicted Genuine Ratio</span>
+                            <span class="fw-bold text-dark d-block">ML Verified Genuine Reviews</span>
                             <small class="text-muted">Evaluations verified as authentic</small>
                         </div>
                         <span class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-3 py-2">
@@ -110,47 +170,184 @@
                 </div>
             </div>
         </div>
-
     </div>
 
 </div>
 {% endblock %}
 
 {% block extra_js %}
-{% if saved_count > 0 %}
+{{ trend_labels|json_script:"userTrendLabels" }}
+{{ trend_genuine|json_script:"userTrendGenuine" }}
+{{ trend_fake|json_script:"userTrendFake" }}
+
+{{ model_names|json_script:"userModelNames" }}
+{{ model_accuracies|json_script:"userModelAccuracies" }}
+{{ model_f1|json_script:"userModelF1" }}
+
+{{ auth_prod_labels|json_script:"userAuthProdLabels" }}
+{{ auth_prod_scores|json_script:"userAuthProdScores" }}
+
+{{ chart_labels|json_script:"userPieLabels" }}
+{{ chart_data|json_script:"userPieData" }}
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('savedDistributionChart').getContext('2d');
-    const labels = {{ chart_labels|safe }};
-    const data = {{ chart_data|safe }};
+    // 1. Fake Review Trends Chart (Line Graph)
+    const trendsCanvas = document.getElementById('userFakeTrendsChart');
+    if (trendsCanvas) {
+        const trendLabels = JSON.parse(document.getElementById('userTrendLabels').textContent);
+        const trendGenuine = JSON.parse(document.getElementById('userTrendGenuine').textContent);
+        const trendFake = JSON.parse(document.getElementById('userTrendFake').textContent);
 
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: [
-                    'rgba(16, 185, 129, 0.85)',
-                    'rgba(245, 158, 11, 0.85)',
-                    'rgba(239, 68, 68, 0.85)'
-                ],
-                borderColor: ['#10b981', '#f59e0b', '#ef4444'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+        new Chart(trendsCanvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: trendLabels,
+                datasets: [
+                    {
+                        label: 'Verified Genuine Reviews',
+                        data: trendGenuine,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Detected Fake Reviews',
+                        data: trendFake,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' }
                 }
             }
-        }
-    });
+        });
+    }
+
+    // 2. Detection Accuracy Chart (Bar Graph)
+    const accCanvas = document.getElementById('userDetectionAccuracyChart');
+    if (accCanvas) {
+        const modelNames = JSON.parse(document.getElementById('userModelNames').textContent);
+        const modelAccuracies = JSON.parse(document.getElementById('userModelAccuracies').textContent);
+        const modelF1 = JSON.parse(document.getElementById('userModelF1').textContent);
+
+        new Chart(accCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: modelNames,
+                datasets: [
+                    {
+                        label: 'Accuracy (%)',
+                        data: modelAccuracies,
+                        backgroundColor: 'rgba(37, 99, 235, 0.85)',
+                        borderColor: '#2563eb',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'F1-Score (%)',
+                        data: modelF1,
+                        backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                        borderColor: '#10b981',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 70,
+                        max: 100,
+                        ticks: { callback: v => v + '%' }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    }
+
+    // 3. Product Authenticity Scores Chart (Horizontal Bar)
+    const authCanvas = document.getElementById('userProductAuthChart');
+    if (authCanvas) {
+        const prodLabels = JSON.parse(document.getElementById('userAuthProdLabels').textContent);
+        const prodScores = JSON.parse(document.getElementById('userAuthProdScores').textContent);
+
+        const barColors = prodScores.map(score => score >= 50.0 ? 'rgba(16, 185, 129, 0.85)' : 'rgba(239, 68, 68, 0.85)');
+        const borderColors = prodScores.map(score => score >= 50.0 ? '#10b981' : '#ef4444');
+
+        new Chart(authCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: prodLabels,
+                datasets: [{
+                    label: 'Authenticity Rating (%)',
+                    data: prodScores,
+                    backgroundColor: barColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 100,
+                        ticks: { callback: v => v + '%' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    // 4. Watchlist Distribution (Doughnut)
+    const pieCanvas = document.getElementById('savedDistributionChart');
+    if (pieCanvas) {
+        const pieLabels = JSON.parse(document.getElementById('userPieLabels').textContent);
+        const pieData = JSON.parse(document.getElementById('userPieData').textContent);
+
+        new Chart(pieCanvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: pieLabels,
+                datasets: [{
+                    data: pieData,
+                    backgroundColor: ['#10b981', '#ef4444'],
+                    borderColor: ['#059669', '#dc2626'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
 });
 </script>
-{% endif %}
 {% endblock %}
-

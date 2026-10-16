@@ -28,8 +28,10 @@ WEIGHT_J48 = 0.30
 WEIGHT_RISK = 0.20
 
 # Classification Thresholds (Authenticity Score 0 - 100, higher = more genuine)
-AUTHENTICITY_GENUINE_THRESHOLD = 70.0   # Score >= 70: Genuine
-AUTHENTICITY_SUSPICIOUS_THRESHOLD = 40.0 # 40 <= Score < 70: Suspicious; < 40: Fake
+# Strict Binary Classification (matching dataset OR vs CG):
+AUTHENTICITY_THRESHOLD = 50.0
+AUTHENTICITY_GENUINE_THRESHOLD = 50.0   # Score >= 50: Genuine; < 50: Fake
+AUTHENTICITY_SUSPICIOUS_THRESHOLD = 50.0 # Maintained for compatibility
 
 # IP Velocity Detection Heuristics
 IP_MAX_REVIEWS_PER_WINDOW = 5   # Max reviews allowed from a single IP

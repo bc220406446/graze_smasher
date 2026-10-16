@@ -98,9 +98,8 @@
                         <canvas id="reviewDistributionChart"></canvas>
                     </div>
                     <div class="d-flex justify-content-around w-100 mt-3 text-center border-top pt-2 small">
-                        <div><strong class="text-success">{{ overall_genuine_pct }}%</strong><br><span class="text-muted">Genuine</span></div>
-                        <div><strong class="text-warning">{{ overall_suspicious_pct }}%</strong><br><span class="text-muted">Suspicious</span></div>
-                        <div><strong class="text-danger">{{ overall_fake_pct }}%</strong><br><span class="text-muted">Fake</span></div>
+                        <div><strong class="text-success">{{ overall_genuine_pct }}%</strong><br><span class="text-muted">Verified Genuine</span></div>
+                        <div><strong class="text-danger">{{ overall_fake_pct }}%</strong><br><span class="text-muted">Detected Fake</span></div>
                     </div>
                 </div>
             </div>
@@ -243,95 +242,117 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ chart_model_names|json_script:"chartModelNames" }}
+{{ chart_model_accuracies|json_script:"chartModelAccuracies" }}
+{{ chart_model_cv|json_script:"chartModelCv" }}
+{{ chart_doughnut_labels|json_script:"chartDoughnutLabels" }}
+{{ chart_doughnut_data|json_script:"chartDoughnutData" }}
+{{ chart_platform_labels|json_script:"chartPlatformLabels" }}
+{{ chart_platform_scores|json_script:"chartPlatformScores" }}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // 1. Model Benchmark Bar Chart
-    const modelCtx = document.getElementById('modelBenchmarkChart').getContext('2d');
-    const modelNames = {{ chart_model_names|safe }};
-    const modelAccuracies = {{ chart_model_accuracies|safe }};
-    const modelCV = {{ chart_model_cv|safe }};
+    const modelCanvas = document.getElementById('modelBenchmarkChart');
+    if (modelCanvas) {
+        const modelCtx = modelCanvas.getContext('2d');
+        const modelNames = JSON.parse(document.getElementById('chartModelNames').textContent);
+        const modelAccuracies = JSON.parse(document.getElementById('chartModelAccuracies').textContent);
+        const modelCV = JSON.parse(document.getElementById('chartModelCv').textContent);
 
-    new Chart(modelCtx, {
-        type: 'bar',
-        data: {
-            labels: modelNames,
-            datasets: [
-                {
-                    label: 'Test Accuracy (%)',
-                    data: modelAccuracies,
-                    backgroundColor: '#4f46e5',
-                    borderRadius: 6
-                },
-                {
-                    label: '5-Fold CV Accuracy (%)',
-                    data: modelCV,
-                    backgroundColor: '#10b981',
-                    borderRadius: 6
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    min: 50,
-                    max: 100,
-                    ticks: { callback: v => v + '%' }
-                }
+        new Chart(modelCtx, {
+            type: 'bar',
+            data: {
+                labels: modelNames,
+                datasets: [
+                    {
+                        label: 'Test Accuracy (%)',
+                        data: modelAccuracies,
+                        backgroundColor: '#4f46e5',
+                        borderRadius: 6
+                    },
+                    {
+                        label: '5-Fold CV Accuracy (%)',
+                        data: modelCV,
+                        backgroundColor: '#10b981',
+                        borderRadius: 6
+                    }
+                ]
             },
-            plugins: {
-                legend: { position: 'top' }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 50,
+                        max: 100,
+                        ticks: { callback: v => v + '%' }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' }
+                }
             }
-        }
-    });
+        });
+    }
 
     // 2. Review Distribution Doughnut Chart
-    const distCtx = document.getElementById('reviewDistributionChart').getContext('2d');
-    new Chart(distCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {{ chart_doughnut_labels|safe }},
-            datasets: [{
-                data: {{ chart_doughnut_data|safe }},
-                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
+    const distCanvas = document.getElementById('reviewDistributionChart');
+    if (distCanvas) {
+        const distCtx = distCanvas.getContext('2d');
+        const doughnutLabels = JSON.parse(document.getElementById('chartDoughnutLabels').textContent);
+        const doughnutData = JSON.parse(document.getElementById('chartDoughnutData').textContent);
 
-    // 3. Platform Score Bar Chart
-    const platformCtx = document.getElementById('platformScoreChart').getContext('2d');
-    new Chart(platformCtx, {
-        type: 'bar',
-        data: {
-            labels: {{ chart_platform_labels|safe }},
-            datasets: [{
-                label: 'Average Authenticity Score (%)',
-                data: {{ chart_platform_scores|safe }},
-                backgroundColor: '#3b82f6',
-                borderRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    min: 0,
-                    max: 100,
-                    ticks: { callback: v => v + '%' }
+        new Chart(distCtx, {
+            type: 'doughnut',
+            data: {
+                labels: doughnutLabels,
+                datasets: [{
+                    data: doughnutData,
+                    backgroundColor: ['#10b981', '#ef4444'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
                 }
             }
-        }
-    });
+        });
+    }
+
+    // 3. Platform Score Bar Chart
+    const platformCanvas = document.getElementById('platformScoreChart');
+    if (platformCanvas) {
+        const platformCtx = platformCanvas.getContext('2d');
+        const platformLabels = JSON.parse(document.getElementById('chartPlatformLabels').textContent);
+        const platformScores = JSON.parse(document.getElementById('chartPlatformScores').textContent);
+
+        new Chart(platformCtx, {
+            type: 'bar',
+            data: {
+                labels: platformLabels,
+                datasets: [{
+                    label: 'Average Authenticity Score (%)',
+                    data: platformScores,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        ticks: { callback: v => v + '%' }
+                    }
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

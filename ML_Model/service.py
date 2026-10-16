@@ -137,11 +137,9 @@ def compute_authenticity(
     # Authenticity score (higher = genuine)
     authenticity_score = round((1.0 - fake_risk) * 100.0, 2)
     
-    # Threshold labeling
+    # Strict Binary Threshold labeling (Score >= 50.0 is Genuine, < 50.0 is Fake)
     if authenticity_score >= AUTHENTICITY_GENUINE_THRESHOLD:
         label = "Genuine"
-    elif authenticity_score >= AUTHENTICITY_SUSPICIOUS_THRESHOLD:
-        label = "Suspicious"
     else:
         label = "Fake"
         

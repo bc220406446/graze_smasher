@@ -95,7 +95,7 @@ class CompositeScoringTestCase(TestCase):
             ip_flag=False,
             mismatch_score=0.1
         )
-        self.assertGreaterEqual(score, 70.0)
+        self.assertGreaterEqual(score, 50.0)
         self.assertEqual(label, "Genuine")
 
     def test_low_authenticity_fake_review(self):
@@ -106,20 +106,28 @@ class CompositeScoringTestCase(TestCase):
             ip_flag=True,
             mismatch_score=1.5
         )
-        self.assertLess(score, 40.0)
+        self.assertLess(score, 50.0)
         self.assertEqual(label, "Fake")
 
-    def test_intermediate_suspicious_review(self):
-        """Ambiguous probability values should yield an intermediate Suspicious label."""
-        score, label = compute_authenticity(
-            svm_fake_prob=0.50,
-            j48_fake_prob=0.50,
+    def test_binary_classification_boundary(self):
+        """Boundary testing at 50.0% threshold: >= 50 is Genuine, < 50 is Fake."""
+        score_gen, label_gen = compute_authenticity(
+            svm_fake_prob=0.40,
+            j48_fake_prob=0.40,
             ip_flag=False,
-            mismatch_score=0.5
+            mismatch_score=0.1
         )
-        self.assertGreaterEqual(score, 40.0)
-        self.assertLess(score, 70.0)
-        self.assertEqual(label, "Suspicious")
+        self.assertGreaterEqual(score_gen, 50.0)
+        self.assertEqual(label_gen, "Genuine")
+
+        score_fake, label_fake = compute_authenticity(
+            svm_fake_prob=0.70,
+            j48_fake_prob=0.70,
+            ip_flag=False,
+            mismatch_score=0.1
+        )
+        self.assertLess(score_fake, 50.0)
+        self.assertEqual(label_fake, "Fake")
 
 
 class AnalyzeReviewServiceTestCase(TestCase):
@@ -136,7 +144,7 @@ class AnalyzeReviewServiceTestCase(TestCase):
         self.assertIsInstance(res['svm_score'], float)
         self.assertIsInstance(res['j48_score'], float)
         self.assertIsInstance(res['final_score'], float)
-        self.assertIn(res['label'], ['Genuine', 'Suspicious', 'Fake'])
+        self.assertIn(res['label'], ['Genuine', 'Fake'])
         self.assertGreaterEqual(res['final_score'], 0.0)
         self.assertLessEqual(res['final_score'], 100.0)
 

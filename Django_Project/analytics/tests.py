@@ -113,7 +113,7 @@ class AnalyticsViewsTestCase(TestCase):
 
         Review.objects.create(product=p1, text="Good", rating=5, final_score=90.0, label="Genuine")
         Review.objects.create(product=p1, text="Bad", rating=1, final_score=20.0, label="Fake")
-        Review.objects.create(product=p2, text="OK", rating=3, final_score=50.0, label="Suspicious")
+        Review.objects.create(product=p2, text="OK", rating=3, final_score=50.0, label="Genuine")
 
     def test_analytics_overview_view(self):
         """GET /analytics/ returns 200 OK with benchmark charts and metrics."""

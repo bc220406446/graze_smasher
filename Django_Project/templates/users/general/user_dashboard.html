@@ -205,12 +205,15 @@
 
 {% block extra_js %}
 {% if saved_products %}
+{{ chart_labels|json_script:"dashboardChartLabels" }}
+{{ chart_scores|json_script:"dashboardChartScores" }}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const ctx = document.getElementById('savedProductsChart').getContext('2d');
-        const labels = {{ chart_labels| safe
-    }};
-    const scores = {{ chart_scores| safe }};
+document.addEventListener('DOMContentLoaded', function () {
+    const canvas = document.getElementById('savedProductsChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const labels = JSON.parse(document.getElementById('dashboardChartLabels').textContent);
+    const scores = JSON.parse(document.getElementById('dashboardChartScores').textContent);
 
     new Chart(ctx, {
         type: 'bar',

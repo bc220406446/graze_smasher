@@ -48,7 +48,7 @@ class ProductModelAndViewsTestCase(TestCase):
         self.assertEqual(self.product.review_count(), 2)
         self.assertEqual(self.product.average_rating(), 5.0)
         self.assertEqual(self.product.overall_authenticity_score(), 55.0)
-        self.assertEqual(self.product.authenticity_label(), "Suspicious")
+        self.assertEqual(self.product.authenticity_label(), "Genuine")
         self.assertEqual(self.product.genuine_reviews_count(), 1)
         self.assertEqual(self.product.fake_reviews_count(), 1)
         # Community trust rating considers ONLY genuine reviews:
@@ -92,7 +92,7 @@ class ProductModelAndViewsTestCase(TestCase):
         latest_rev = Review.objects.filter(product=self.product).latest('created_at')
         self.assertEqual(latest_rev.user, self.user)
         self.assertGreater(latest_rev.final_score, 0)
-        self.assertIn(latest_rev.label, ['Genuine', 'Suspicious', 'Fake'])
+        self.assertIn(latest_rev.label, ['Genuine', 'Fake'])
 
     def test_watchlist_toggle(self):
         """Users can toggle products in their watchlist."""

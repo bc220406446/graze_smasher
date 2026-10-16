@@ -118,7 +118,7 @@ class RestApiEndpointsTestCase(APITestCase):
         self.assertIn('review', data)
         self.assertIn('product_authenticity_score', data)
         self.assertIn('product_authenticity_label', data)
-        self.assertIn(data['review']['label'], ['Genuine', 'Suspicious', 'Fake'])
+        self.assertIn(data['review']['label'], ['Genuine', 'Fake'])
 
         # Verify product review count incremented
         self.assertEqual(self.product.reviews.count(), 2)

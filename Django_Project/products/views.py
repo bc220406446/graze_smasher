@@ -132,14 +132,12 @@ def product_list(request):
     if platform:
         queryset = queryset.filter(platform=platform)
 
-    # Authenticity status filter
+    # Authenticity status filter (Strict Binary: Genuine >= 50, Fake < 50)
     status = request.GET.get('status', '').strip().lower()
     if status == 'genuine':
-        queryset = queryset.filter(avg_score__gte=70.0)
-    elif status == 'suspicious':
-        queryset = queryset.filter(avg_score__gte=40.0, avg_score__lt=70.0)
+        queryset = queryset.filter(avg_score__gte=50.0)
     elif status == 'fake':
-        queryset = queryset.filter(avg_score__lt=40.0)
+        queryset = queryset.filter(avg_score__lt=50.0)
 
     # Sorting
     sort = request.GET.get('sort', 'newest')
@@ -222,7 +220,7 @@ def product_detail(request, pk):
 
     # Filter reviews by label if requested
     label_filter = request.GET.get('label', '').strip().capitalize()
-    if label_filter in ['Genuine', 'Suspicious', 'Fake']:
+    if label_filter in ['Genuine', 'Fake']:
         reviews = reviews.filter(label=label_filter)
 
     # Star rating filter
@@ -236,11 +234,11 @@ def product_detail(request, pk):
 
     genuine_count = product.genuine_reviews_count()
     fake_count = product.fake_reviews_count()
-    suspicious_count = product.suspicious_reviews_count()
+    suspicious_count = 0
 
     fake_pct = round((fake_count / total_reviews * 100), 1) if total_reviews > 0 else 0.0
     genuine_pct = round((genuine_count / total_reviews * 100), 1) if total_reviews > 0 else 0.0
-    suspicious_pct = round((suspicious_count / total_reviews * 100), 1) if total_reviews > 0 else 0.0
+    suspicious_pct = 0.0
 
     is_saved = False
     user_flag = None

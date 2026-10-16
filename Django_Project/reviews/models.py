@@ -9,12 +9,10 @@ class Review(models.Model):
     Populated with all multi-tier ML scores and heuristic flags from analyze_review().
     """
     LABEL_GENUINE = 'Genuine'
-    LABEL_SUSPICIOUS = 'Suspicious'
     LABEL_FAKE = 'Fake'
 
     LABEL_CHOICES = [
         (LABEL_GENUINE, 'Genuine'),
-        (LABEL_SUSPICIOUS, 'Suspicious'),
         (LABEL_FAKE, 'Fake'),
     ]
 
@@ -47,7 +45,7 @@ class Review(models.Model):
 
     @property
     def is_suspicious(self):
-        return self.label == self.LABEL_SUSPICIOUS
+        return False
 
     @property
     def is_genuine(self):

@@ -61,41 +61,44 @@
                     {% endif %}
 
                     <!-- Authenticity Metrics Strip -->
+                    <!-- Product Analytics & Authenticity Metrics Strip -->
                     <div class="row g-2 text-center pt-3 border-top">
                         <div class="col-6 col-sm-3">
-                            <div class="p-2 border rounded bg-light">
-                                <small class="text-muted d-block" style="font-size: 0.72rem;">Authenticity Score</small>
-                                <span class="fs-5 fw-bold font-mono {% if overall_score >= 70 %}text-success{% elif overall_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
+                            <div class="p-2 border rounded bg-light h-100 d-flex flex-column justify-content-center">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Authenticity Rating</small>
+                                <span class="fs-5 fw-bold font-mono {% if overall_score >= 50 %}text-success{% else %}text-danger{% endif %}">
                                     {{ overall_score }}%
                                 </span>
-                                <small class="d-block fw-semibold" style="font-size: 0.70rem;">{{ overall_label }}</small>
+                                <small class="d-block fw-semibold {% if overall_score >= 50 %}text-success{% else %}text-danger{% endif %}" style="font-size: 0.70rem;">
+                                    <i class="fa-solid {% if overall_score >= 50 %}fa-circle-check{% else %}fa-ban{% endif %} me-1"></i>{{ overall_label }}
+                                </small>
                             </div>
                         </div>
                         <div class="col-6 col-sm-3">
-                            <div class="p-2 border rounded bg-light">
-                                <small class="text-muted d-block" style="font-size: 0.72rem;">Customer Rating</small>
+                            <div class="p-2 border rounded bg-light h-100 d-flex flex-column justify-content-center">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Total Reviews Received</small>
                                 <span class="fs-5 fw-bold text-dark font-mono">
-                                    ⭐ {{ product.average_rating }}
+                                    {{ total_reviews }}
                                 </span>
-                                <small class="d-block text-muted" style="font-size: 0.70rem;">{{ total_reviews }} reviews</small>
+                                <small class="d-block text-muted" style="font-size: 0.70rem;">Unverified Avg: ⭐ {{ product.average_rating }}</small>
                             </div>
                         </div>
                         <div class="col-6 col-sm-3">
-                            <div class="p-2 border rounded bg-light">
-                                <small class="text-muted d-block" style="font-size: 0.72rem;">Community Trust</small>
+                            <div class="p-2 border rounded bg-light h-100 d-flex flex-column justify-content-center">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Community Trust Rating</small>
                                 <span class="fs-5 fw-bold text-success font-mono">
-                                    🛡️ {{ trust_rating }}
+                                    🛡️ {{ trust_rating }} / 5.0
                                 </span>
-                                <small class="d-block text-success fw-semibold" style="font-size: 0.70rem;">Genuine Only</small>
+                                <small class="d-block text-success fw-semibold" style="font-size: 0.70rem;">Aggregate Genuine Only</small>
                             </div>
                         </div>
                         <div class="col-6 col-sm-3">
-                            <div class="p-2 border rounded bg-light">
-                                <small class="text-muted d-block" style="font-size: 0.72rem;">Fake Review Ratio</small>
-                                <span class="fs-5 fw-bold {% if fake_pct > 30 %}text-danger{% else %}text-muted{% endif %} font-mono">
-                                    {{ fake_pct }}%
+                            <div class="p-2 border rounded bg-light h-100 d-flex flex-column justify-content-center">
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Fake vs Genuine Ratio</small>
+                                <span class="fs-6 fw-bold font-mono">
+                                    <span class="text-success">{{ genuine_pct }}%</span> / <span class="text-danger">{{ fake_pct }}%</span>
                                 </span>
-                                <small class="d-block text-muted" style="font-size: 0.70rem;">{{ fake_count }} flagged</small>
+                                <small class="d-block text-muted" style="font-size: 0.70rem;">{{ genuine_count }} Gen &bull; {{ fake_count }} Fake</small>
                             </div>
                         </div>
                     </div>
@@ -104,20 +107,20 @@
         </div>
     </div>
 
-    <!-- Dual Column: Trend Chart & Review Distribution -->
+    <!-- Dual Column: Overall Authenticity Rating Over Time Chart & Review Distribution -->
     <div class="row g-4">
-        <!-- Review Breakdown Bar -->
+        <!-- Review Breakdown Bar (Strict Binary: Genuine vs Fake) -->
         <div class="col-lg-4">
             <div class="card shadow-sm border h-100">
                 <div class="card-header py-3 bg-white border-bottom">
                     <h6 class="mb-0 fw-bold text-dark">
-                        <i class="fa-solid fa-chart-pie text-primary me-2"></i>Review Distribution
+                        <i class="fa-solid fa-chart-pie text-primary me-2"></i>Review Distribution (Genuine vs Fake)
                     </h6>
                 </div>
                 <div class="card-body p-4">
                     <div class="mb-3">
                         <div class="d-flex justify-content-between small fw-semibold mb-1">
-                            <span class="text-success"><i class="fa-solid fa-check-circle me-1"></i>Genuine</span>
+                            <span class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Verified Genuine</span>
                             <span>{{ genuine_count }} ({{ genuine_pct }}%)</span>
                         </div>
                         <div class="progress" style="height: 10px;">
@@ -125,19 +128,9 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between small fw-semibold mb-1">
-                            <span class="text-warning text-dark"><i class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious</span>
-                            <span>{{ suspicious_count }} ({{ suspicious_pct }}%)</span>
-                        </div>
-                        <div class="progress" style="height: 10px;">
-                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ suspicious_pct }}%;" aria-valuenow="{{ suspicious_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-
                     <div class="mb-4">
                         <div class="d-flex justify-content-between small fw-semibold mb-1">
-                            <span class="text-danger"><i class="fa-solid fa-skull-crossbones me-1"></i>Fake / Manipulated</span>
+                            <span class="text-danger"><i class="fa-solid fa-ban me-1"></i>Detected Fake / Deceptive</span>
                             <span>{{ fake_count }} ({{ fake_pct }}%)</span>
                         </div>
                         <div class="progress" style="height: 10px;">
@@ -178,19 +171,16 @@
                 <i class="fa-solid fa-comments text-primary me-2"></i>Product Reviews ({{ total_reviews }})
             </h6>
 
-            <!-- Filter Buttons -->
+            <!-- Filter Buttons (Strict Binary: Genuine and Fake) -->
             <div class="d-flex flex-wrap gap-1">
                 <a href="?label=" class="btn btn-xs btn-sm {% if not label_filter %}btn-dark{% else %}btn-outline-secondary{% endif %}">
                     All ({{ total_reviews }})
                 </a>
                 <a href="?label=genuine" class="btn btn-xs btn-sm {% if label_filter == 'Genuine' %}btn-success{% else %}btn-outline-success{% endif %}">
-                    Genuine ({{ genuine_count }})
-                </a>
-                <a href="?label=suspicious" class="btn btn-xs btn-sm {% if label_filter == 'Suspicious' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
-                    Suspicious ({{ suspicious_count }})
+                    <i class="fa-solid fa-circle-check me-1"></i>Genuine ({{ genuine_count }})
                 </a>
                 <a href="?label=fake" class="btn btn-xs btn-sm {% if label_filter == 'Fake' %}btn-danger{% else %}btn-outline-danger{% endif %}">
-                    Fake ({{ fake_count }})
+                    <i class="fa-solid fa-ban me-1"></i>Fake ({{ fake_count }})
                 </a>
             </div>
         </div>
@@ -211,11 +201,9 @@
                         </div>
                         <div>
                             {% if r.label == 'Genuine' %}
-                                <span class="badge-genuine small"><i class="fa-solid fa-check me-1"></i>Genuine ({{ r.final_score }}%)</span>
-                            {% elif r.label == 'Suspicious' %}
-                                <span class="badge-suspicious small"><i class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious ({{ r.final_score }}%)</span>
+                                <span class="badge-genuine small"><i class="fa-solid fa-circle-check me-1"></i>Genuine ({{ r.final_score }}%)</span>
                             {% else %}
-                                <span class="badge-fake small"><i class="fa-solid fa-skull-crossbones me-1"></i>Fake ({{ r.final_score }}%)</span>
+                                <span class="badge-fake small"><i class="fa-solid fa-ban me-1"></i>Fake ({{ r.final_score }}%)</span>
                             {% endif %}
                         </div>
                     </div>
@@ -284,14 +272,17 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ chart_labels|json_script:"genProductChartLabels" }}
+{{ chart_scores|json_script:"genProductChartScores" }}
+{{ chart_fakes|json_script:"genProductChartFakes" }}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const trendCtx = document.getElementById('productTrendChart');
     if (!trendCtx) return;
 
-    const labels = {{ chart_labels|safe }};
-    const scores = {{ chart_scores|safe }};
-    const fakes = {{ chart_fakes|safe }};
+    const labels = JSON.parse(document.getElementById('genProductChartLabels').textContent);
+    const scores = JSON.parse(document.getElementById('genProductChartScores').textContent);
+    const fakes = JSON.parse(document.getElementById('genProductChartFakes').textContent);
 
     new Chart(trendCtx.getContext('2d'), {
         type: 'line',

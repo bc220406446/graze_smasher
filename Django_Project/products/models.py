@@ -67,10 +67,8 @@ class Product(models.Model):
 
     def authenticity_label(self) -> str:
         score = self.overall_authenticity_score()
-        if score >= 70.0:
+        if score >= 50.0:
             return "Genuine"
-        elif score >= 40.0:
-            return "Suspicious"
         else:
             return "Fake"
 
