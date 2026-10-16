@@ -186,15 +186,11 @@ def product_list(request):
         'can_create_product': can_create_product,
         'is_admin': is_admin,
     }
-    template_name = 'public/product_list.html'
-    if request.user.is_authenticated:
-        profile = getattr(request.user, 'profile', None)
-        if profile and profile.is_reviewer:
-            template_name = 'users/reviewer/explore_products.html'
-        elif profile and profile.is_general_user:
-            template_name = 'users/general/explore_products.html'
+    # Dynamic Base Template: dashboard_base.html with sidebar for logged-in users, base.html for guests
+    base_template = 'dashboard_base.html' if request.user.is_authenticated else 'base.html'
+    context['base_template'] = base_template
 
-    return render(request, template_name, context)
+    return render(request, 'public/product_list.html', context)
 
 
 def product_detail(request, pk):
@@ -311,15 +307,11 @@ def product_detail(request, pk):
         'chart_scores': auth_data,
         'chart_fakes': fake_data,
     }
-    template_name = 'public/product_detail.html'
-    if request.user.is_authenticated:
-        profile = getattr(request.user, 'profile', None)
-        if profile and profile.is_reviewer:
-            template_name = 'users/reviewer/product_detail.html'
-        elif profile and profile.is_general_user:
-            template_name = 'users/general/product_detail.html'
+    # Dynamic Base Template: dashboard_base.html with sidebar for logged-in users, base.html for guests
+    base_template = 'dashboard_base.html' if request.user.is_authenticated else 'base.html'
+    context['base_template'] = base_template
 
-    return render(request, template_name, context)
+    return render(request, 'public/product_detail.html', context)
 
 
 @login_required

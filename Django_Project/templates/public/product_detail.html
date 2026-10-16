@@ -1,17 +1,27 @@
-{% extends 'base.html' %}
+{% extends base_template|default:'base.html' %}
 {% load static %}
 
 {% block title %}{{ product.name }} - Authenticity Analysis - Graze Smasher{% endblock %}
 
-{% block content %}
-<div class="container-fluid px-lg-4 py-4">
+{% block dashboard_content %}
+<div class="d-flex flex-column gap-4">
 
     <!-- Top Navigation & Role-Specific Action Bar -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-3 mb-4 border-bottom">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-3 mb-1 border-bottom">
         <!-- Breadcrumb Navigation -->
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb small mb-0">
+                {% if user.is_authenticated %}
+                    {% if is_admin or user.is_superuser or user.profile.is_admin %}
+                    <li class="breadcrumb-item"><a href="{% url 'admin_control_panel' %}" class="text-decoration-none">Overview</a></li>
+                    {% elif user.profile.is_reviewer %}
+                    <li class="breadcrumb-item"><a href="{% url 'reviewer_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                    {% else %}
+                    <li class="breadcrumb-item"><a href="{% url 'user_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                    {% endif %}
+                {% else %}
                 <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none">Home</a></li>
+                {% endif %}
                 <li class="breadcrumb-item"><a href="{% url 'product_list' %}" class="text-decoration-none">Explore Catalog</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'product_list' %}?category={{ product.category }}" class="text-decoration-none">{{ product.get_category_display }}</a></li>
                 <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ product.name|truncatechars:35 }}</li>
@@ -137,7 +147,7 @@
                 <!-- 2. Percentage of Fake vs Genuine Reviews Detected -->
                 <div class="col-6 col-lg-3">
                     <div class="p-3 border rounded-3 bg-light h-100 d-flex flex-column justify-content-center">
-                        <span class="text-muted small fw-semibold text-uppercase mb-1" style="font-size: 0.75rem;">Fake vs Genuine Ratio</span>
+                        <span class="text-muted small fw-semibold text-uppercase mb-1" style="font-size: 0.75rem;">Genuine vs Fake Ratio</span>
                         <div class="fs-5 fw-bold font-mono">
                             <span class="text-success">{{ genuine_pct }}%</span> / <span class="text-danger">{{ fake_pct }}%</span>
                         </div>

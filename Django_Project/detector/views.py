@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .utils import analyze_review
 
 # Pre-defined 10 validation reviews for the demonstration table
@@ -97,53 +97,9 @@ def get_demo_predictions():
     return demo_list
 
 def index(request):
-    demo_data = get_demo_predictions()
-    context = {
-        "demo_reviews": demo_data,
-        "client_ip": get_client_ip(request)
-    }
-    return render(request, 'public/ml_sandbox.html', context)
+    """Legacy public ML sandbox redirected to product catalog."""
+    return redirect('product_list')
 
 def predict(request):
-    if request.method == 'POST':
-        review_text = request.POST.get('review_text', '').strip()
-        rating_val = request.POST.get('rating', '').strip()
-        ip_addr = request.POST.get('ip_address', '').strip() or get_client_ip(request)
-        
-        rating = None
-        if rating_val and rating_val.isdigit():
-            rating = int(rating_val)
-            
-        if review_text:
-            analysis = analyze_review(review_text, rating=rating, ip=ip_addr, record_ip=True)
-            result = {
-                "original_text": review_text,
-                "cleaned_text": analysis["cleaned_text"],
-                "label": analysis["label"],
-                "final_score": analysis["final_score"],
-                "svm_score": analysis["svm_score"],
-                "j48_score": analysis["j48_score"],
-                "sentiment_polarity": analysis["sentiment_polarity"],
-                "sentiment_subjectivity": analysis["sentiment_subjectivity"],
-                "ip_flag": analysis["ip_flag"],
-                "ip_reason": analysis.get("ip_reason", ""),
-                "mismatch_score": analysis.get("mismatch_score", 0.0),
-                "rating": rating,
-                "ip": ip_addr
-            }
-        else:
-            result = {
-                "error": "Please enter a valid review text."
-            }
-            
-        demo_data = get_demo_predictions()
-        context = {
-            "result": result,
-            "demo_reviews": demo_data,
-            "review_text": review_text,
-            "rating": rating_val,
-            "client_ip": ip_addr
-        }
-        return render(request, 'public/ml_sandbox.html', context)
-        
-    return index(request)
+    """Legacy public ML sandbox predict redirected to product catalog."""
+    return redirect('product_list')

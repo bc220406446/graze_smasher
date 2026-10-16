@@ -116,16 +116,16 @@ class AnalyticsViewsTestCase(TestCase):
         Review.objects.create(product=p2, text="OK", rating=3, final_score=50.0, label="Genuine")
 
     def test_analytics_overview_view(self):
-        """GET /analytics/ returns 200 OK with benchmark charts and metrics."""
+        """GET /analytics/ redirects to /explore/."""
         res = self.client.get('/analytics/')
-        self.assertEqual(res.status_code, 200)
-        self.assertContains(res, "Analytics & Detection Benchmarks")
+        self.assertEqual(res.status_code, 302)
+        self.assertRedirects(res, '/explore/')
 
     def test_suspicious_discovery_view(self):
-        """GET /suspicious-products/ returns 200 OK with suspicious radar."""
+        """GET /suspicious-products/ redirects to /explore/."""
         res = self.client.get('/suspicious-products/')
-        self.assertEqual(res.status_code, 200)
-        self.assertContains(res, "Deception Radar")
+        self.assertEqual(res.status_code, 302)
+        self.assertRedirects(res, '/explore/')
 
     def test_user_dashboard_requires_login(self):
         """GET /dashboard/ redirects anonymous visitors to login."""

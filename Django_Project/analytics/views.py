@@ -351,118 +351,13 @@ def reviewer_reviewed_products(request):
 # ==============================================================================
 
 def analytics_overview(request):
-    """
-    Comprehensive platform analytics dashboard powered by Chart.js:
-    - ML model benchmark evaluation (reads saved model_comparison_table.csv)
-    - Catalog authenticity distribution (Genuine / Suspicious / Fake)
-    - Platform comparison (Average authenticity across Amazon, eBay, Walmart, etc.)
-    - Fake review trends over time
-    - Leaderboards: Most Manipulated Products vs Most Authentic Products
-    """
-    csv_path = str(MODEL_COMPARISON_CSV)
-    ml_benchmarks = []
-    if os.path.exists(csv_path):
-        try:
-            df_comp = pd.read_csv(csv_path)
-            clean_df = df_comp.rename(columns={
-                'Model': 'model',
-                'Accuracy': 'accuracy',
-                'Precision': 'precision',
-                'Recall': 'recall',
-                'F1-Score': 'f1_score',
-                '5-Fold CV Accuracy': 'cv_accuracy'
-            })
-            ml_benchmarks = clean_df.to_dict(orient="records")
-        except Exception:
-            pass
-    if not ml_benchmarks:
-        ml_benchmarks = [
-            {'Model': 'LinearSVC (TF-IDF)', 'Accuracy': 87.5, 'Precision': 86.8, 'Recall': 88.2, 'F1-Score': 87.5, '5-Fold CV Accuracy': 87.2},
-            {'Model': 'J-48 Decision Tree', 'Accuracy': 85.0, 'Precision': 84.2, 'Recall': 86.0, 'F1-Score': 85.1, '5-Fold CV Accuracy': 84.6},
-            {'Model': 'TextBlob NLP', 'Accuracy': 81.4, 'Precision': 80.1, 'Recall': 83.0, 'F1-Score': 81.5, '5-Fold CV Accuracy': 81.0},
-            {'Model': 'Ensemble Consensus', 'Accuracy': 91.8, 'Precision': 91.2, 'Recall': 92.5, 'F1-Score': 91.8, '5-Fold CV Accuracy': 91.5},
-        ]
-
-    total_products = Product.objects.count()
-    total_reviews = Review.objects.count()
-    fake_reviews_count = Review.objects.filter(label='Fake').count()
-    suspicious_reviews_count = 0
-    genuine_reviews_count = Review.objects.filter(label='Genuine').count()
-
-    overall_fake_pct = round((fake_reviews_count / total_reviews * 100), 1) if total_reviews > 0 else 0.0
-    overall_genuine_pct = round((genuine_reviews_count / total_reviews * 100), 1) if total_reviews > 0 else 0.0
-    overall_suspicious_pct = 0.0
-
-    platform_stats = Product.objects.values('platform').annotate(
-        avg_auth=Avg('reviews__final_score'),
-        product_count=Count('id', distinct=True),
-        review_count=Count('reviews')
-    ).order_by('-avg_auth')
-
-    platform_labels = [p['platform'] for p in platform_stats]
-    platform_scores = [round(float(p['avg_auth'] or 0.0), 1) for p in platform_stats]
-
-    doughnut_labels = ['Verified Genuine Reviews', 'Detected Fake Reviews']
-    doughnut_counts = [genuine_reviews_count, fake_reviews_count]
-
-    model_names = [m.get('Model', '') for m in ml_benchmarks]
-    model_accuracies = [m.get('Accuracy', 0) for m in ml_benchmarks]
-    model_f1_scores = [m.get('F1-Score', 0) for m in ml_benchmarks]
-    model_cv_scores = [m.get('5-Fold CV Accuracy', 0) for m in ml_benchmarks]
-
-    all_products = list(Product.objects.filter(is_hidden=False))
-    products_by_score = sorted(all_products, key=lambda p: p.overall_authenticity_score())
-    top_manipulated = products_by_score[:5]
-    top_authentic = list(reversed(products_by_score))[:5]
-
-    context = {
-        'total_products': total_products,
-        'total_reviews': total_reviews,
-        'fake_reviews_count': fake_reviews_count,
-        'overall_fake_pct': overall_fake_pct,
-        'overall_genuine_pct': overall_genuine_pct,
-        'overall_suspicious_pct': overall_suspicious_pct,
-        'ml_benchmarks': ml_benchmarks,
-        'top_manipulated': top_manipulated,
-        'top_authentic': top_authentic,
-        'chart_doughnut_labels': json.dumps(doughnut_labels),
-        'chart_doughnut_data': json.dumps(doughnut_counts),
-        'chart_platform_labels': json.dumps(platform_labels),
-        'chart_platform_scores': json.dumps(platform_scores),
-        'chart_model_names': json.dumps(model_names),
-        'chart_model_accuracies': json.dumps(model_accuracies),
-        'chart_model_f1': json.dumps(model_f1_scores),
-        'chart_model_cv': json.dumps(model_cv_scores),
-    }
-    return render(request, 'public/analytics_overview.html', context)
+    """Legacy public analytics overview redirected to product catalog."""
+    return redirect('product_list')
 
 
 def suspicious_products_discovery(request):
-    """Discovery page highlighting manipulated, suspicious, and high-risk products."""
-    all_products = Product.objects.filter(is_hidden=False).annotate(
-        total_revs=Count('reviews'),
-        avg_score=Avg('reviews__final_score')
-    ).filter(total_revs__gt=0)
-
-    tab = request.GET.get('tab', 'manipulated')
-
-    if tab == 'alerts':
-        alert_product_ids = Alert.objects.values_list('product_id', flat=True).distinct()
-        products_list = all_products.filter(id__in=alert_product_ids).order_by('avg_score')
-    elif tab == 'trusted':
-        products_list = all_products.filter(avg_score__gte=70.0).order_by('-avg_score')
-    else:
-        products_list = all_products.filter(avg_score__lt=70.0).order_by('avg_score')
-
-    recent_alerts = Alert.objects.select_related('product')[:8]
-
-    context = {
-        'products': products_list,
-        'tab': tab,
-        'recent_alerts': recent_alerts,
-        'total_flagged': products_list.count(),
-    }
-    return render(request, 'public/suspicious_discovery.html', context)
+    """Legacy public suspicious products discovery redirected to product catalog."""
+    return redirect('product_list')
 
 
 @login_required

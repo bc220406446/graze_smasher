@@ -21,6 +21,11 @@
                 </a>
             </li>
             <li>
+                <a href="{% url 'product_list' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+                    <i class="fa-solid fa-compass"></i> Explore Products
+                </a>
+            </li>
+            <li>
                 <a href="{% url 'admin_products' %}" class="gs-sidebar-link {% if request.resolver_match.url_name in 'admin_products,admin_product_edit' %}active{% endif %}">
                     <i class="fa-solid fa-boxes-stacked"></i> Product Management
                 </a>

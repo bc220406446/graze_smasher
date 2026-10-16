@@ -346,7 +346,11 @@
 
     <!-- Main Page Content Block -->
     <main class="flex-grow-1">
-        {% block content %}{% endblock %}
+        {% block content %}
+            <div class="container-fluid px-lg-4 py-4">
+                {% block dashboard_content %}{% endblock %}
+            </div>
+        {% endblock %}
     </main>
 
     <!-- Footer -->
