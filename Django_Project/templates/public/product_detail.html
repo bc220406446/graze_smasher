@@ -211,22 +211,37 @@
     </div>
 
     <!-- ======================================================================
-         BLOCK 4: All Reviews Data (As Currently Displayed)
+         BLOCK 4: All Reviews Data
          ====================================================================== -->
     <div class="card shadow-sm border mb-4">
         <div class="card-header py-3 bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
             <h5 class="mb-0 fw-bold text-dark">
                 <i class="fa-solid fa-comments text-primary me-2"></i>Product Reviews ({{ total_reviews }})
             </h5>
+            <span class="text-muted small">
+                Showing {{ reviews|length }} of {{ total_reviews }} reviews
+            </span>
         </div>
 
-        <!-- Review Search & Rating Sub-Filter -->
+        <!-- Review Search & Filters Bar (Dropdown for Label and Rating) -->
         <div class="p-3 bg-light border-bottom">
-            <form method="GET" class="row g-2">
-                <div class="col-md-7">
+            <form method="GET" class="row g-2 align-items-center">
+                <!-- Search Review Text -->
+                <div class="col-md-5">
                     <input type="text" name="rev_q" value="{{ rev_q }}" class="form-control form-control-sm" placeholder="Search review text or reviewer username...">
                 </div>
-                <div class="col-md-3">
+
+                <!-- Authenticity Status Filter Dropdown -->
+                <div class="col-sm-6 col-md-3">
+                    <select name="label" class="form-select form-select-sm">
+                        <option value="">Authenticity</option>
+                        <option value="genuine" {% if label_filter == 'Genuine' %}selected{% endif %}>Genuine ({{ genuine_count }})</option>
+                        <option value="fake" {% if label_filter == 'Fake' %}selected{% endif %}>Fake ({{ fake_count }})</option>
+                    </select>
+                </div>
+
+                <!-- Star Rating Dropdown -->
+                <div class="col-sm-6 col-md-2">
                     <select name="rating" class="form-select form-select-sm">
                         <option value="">Ratings</option>
                         <option value="5" {% if rating_filter == '5' %}selected{% endif %}>5 Stars</option>
@@ -236,13 +251,14 @@
                         <option value="1" {% if rating_filter == '1' %}selected{% endif %}>1 Star</option>
                     </select>
                 </div>
+
+                <!-- Action Buttons -->
                 <div class="col-md-2 d-flex gap-1">
-                    {% if label_filter %}
-                    <input type="hidden" name="label" value="{{ label_filter }}">
-                    {% endif %}
-                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Search</button>
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1 fw-semibold">
+                        <i class="fa-solid fa-filter me-1"></i> Filter
+                    </button>
                     {% if rev_q or rating_filter or label_filter %}
-                    <a href="{% url 'product_detail' product.pk %}" class="btn btn-outline-secondary btn-sm" title="Clear">
+                    <a href="{% url 'product_detail' product.pk %}" class="btn btn-outline-secondary btn-sm" title="Clear Filters">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
                     {% endif %}
