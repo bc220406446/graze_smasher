@@ -398,7 +398,7 @@ def create_product(request):
     else:
         form = ProductForm()
 
-    return render(request, 'users/general/add_product.html', {'form': form, 'client_ip': client_ip})
+    return render(request, 'users/shared/add_product.html', {'form': form, 'client_ip': client_ip})
 
 
 @login_required
@@ -418,7 +418,11 @@ def edit_product(request, pk):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
-            form.save()
+            p = form.save(commit=False)
+            if is_admin:
+                p.is_hidden = request.POST.get('is_hidden') in ['on', 'true', '1', True]
+                p.is_external = request.POST.get('is_external') in ['on', 'true', '1', True]
+            p.save()
 
             # Process newly added reviews
             review_texts = request.POST.getlist('review_text[]')
@@ -464,7 +468,7 @@ def edit_product(request, pk):
             else:
                 messages.success(request, f"Product '{product.name}' was successfully updated.")
 
-            next_url = request.POST.get('next') or 'saved_products'
+            next_url = request.POST.get('next') or ('admin_products' if is_admin else 'saved_products')
             return redirect(next_url)
         else:
             messages.error(request, "Please correct the errors in the product details.")
@@ -478,7 +482,7 @@ def edit_product(request, pk):
         'product': product,
         'existing_reviews': existing_reviews,
     }
-    return render(request, 'users/general/edit_product.html', context)
+    return render(request, 'users/shared/edit_product.html', context)
 
 
 @login_required

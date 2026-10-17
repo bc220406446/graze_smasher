@@ -28,6 +28,8 @@ from .admin_forms import SystemConfigurationForm
 from reviews.models import Review
 from products.models import Product, ProductFlag
 from products.forms import ProductAdminForm
+from detector.utils import analyze_review
+from analytics.services import evaluate_product_alerts
 from analytics.models import Alert, SystemConfiguration
 from ML_Model.config import (
     MODEL_COMPARISON_CSV,
@@ -137,23 +139,77 @@ def admin_products_list(request):
 
 @admin_required
 def admin_product_edit(request, product_id):
-    """Admin view to edit product details and toggle hidden/moderation state."""
+    """
+    Admin view to edit product details, add new reviews, manipulate existing reviews,
+    and toggle hidden/moderation state.
+    """
     product = get_object_or_404(Product, id=product_id)
 
     if request.method == 'POST':
         form = ProductAdminForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
-            messages.success(request, f"Product '{product.name}' updated successfully.")
-            return redirect('admin_products')
+
+            # Process newly added reviews
+            review_texts = request.POST.getlist('review_text[]')
+            review_ratings = request.POST.getlist('review_rating[]')
+
+            created_reviews_count = 0
+            for idx, text in enumerate(review_texts):
+                cleaned_text = text.strip()
+                if not cleaned_text:
+                    continue
+
+                raw_rating = review_ratings[idx] if idx < len(review_ratings) else '5'
+                try:
+                    rating_val = int(raw_rating)
+                    rating_val = max(1, min(5, rating_val))
+                except (ValueError, TypeError):
+                    rating_val = 5
+
+                analysis = analyze_review(text=cleaned_text, rating=rating_val, ip=None, record_ip=False)
+
+                rev = Review.objects.create(
+                    product=product,
+                    user=request.user,
+                    text=cleaned_text,
+                    rating=rating_val,
+                    ip_address=None,
+                    svm_score=analysis['svm_score'],
+                    j48_score=analysis['j48_score'],
+                    sentiment=analysis['sentiment_polarity'],
+                    ip_flag=analysis['ip_flag'],
+                    final_score=analysis['final_score'],
+                    label=analysis['label'],
+                    source='user_submission'
+                )
+                evaluate_product_alerts(product=product, trigger_review=rev)
+                created_reviews_count += 1
+
+            if created_reviews_count > 0:
+                messages.success(
+                    request,
+                    f"Product '{product.name}' updated and {created_reviews_count} new review(s) analyzed and saved!"
+                )
+            else:
+                messages.success(request, f"Product '{product.name}' updated successfully.")
+
+            next_url = request.POST.get('next') or 'admin_products'
+            return redirect(next_url)
+        else:
+            messages.error(request, "Please correct the errors in the product details.")
     else:
         form = ProductAdminForm(instance=product)
+
+    existing_reviews = product.reviews.all().order_by('-created_at')
 
     context = {
         'form': form,
         'product': product,
+        'existing_reviews': existing_reviews,
+        'is_admin_portal': True,
     }
-    return render(request, 'users/admin/product_edit.html', context)
+    return render(request, 'users/shared/edit_product.html', context)
 
 
 @admin_required
