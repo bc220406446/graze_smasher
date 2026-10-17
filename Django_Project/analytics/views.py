@@ -367,15 +367,32 @@ def reviewer_my_reviews(request):
     user = request.user
     q = request.GET.get('q', '').strip()
     label_filter = request.GET.get('label', '').strip().capitalize()
+    rating_filter = request.GET.get('rating', '').strip()
+    sort_filter = request.GET.get('sort', 'newest').strip()
 
-    reviews_qs = Review.objects.filter(user=user).select_related('product').order_by('-created_at')
+    reviews_qs = Review.objects.filter(user=user).select_related('product')
 
     if q:
         reviews_qs = reviews_qs.filter(
             Q(text__icontains=q) | Q(product__name__icontains=q)
         )
-    if label_filter in ['Genuine', 'Fake']:
+    if label_filter in ['Genuine', 'Fake', 'Suspicious']:
         reviews_qs = reviews_qs.filter(label=label_filter)
+    if rating_filter.isdigit():
+        reviews_qs = reviews_qs.filter(rating=int(rating_filter))
+
+    if sort_filter == 'oldest':
+        reviews_qs = reviews_qs.order_by('created_at')
+    elif sort_filter == 'score_high':
+        reviews_qs = reviews_qs.order_by('-final_score')
+    elif sort_filter == 'score_low':
+        reviews_qs = reviews_qs.order_by('final_score')
+    elif sort_filter == 'rating_high':
+        reviews_qs = reviews_qs.order_by('-rating', '-created_at')
+    elif sort_filter == 'rating_low':
+        reviews_qs = reviews_qs.order_by('rating', '-created_at')
+    else:
+        reviews_qs = reviews_qs.order_by('-created_at')
 
     paginator = Paginator(reviews_qs, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -384,9 +401,12 @@ def reviewer_my_reviews(request):
         'page_obj': page_obj,
         'q': q,
         'label_filter': label_filter,
+        'rating_filter': rating_filter,
+        'sort_filter': sort_filter,
         'total_count': reviews_qs.count(),
     }
     return render(request, 'users/reviewer/reviewer_my_reviews.html', context)
+
 
 
 @reviewer_required

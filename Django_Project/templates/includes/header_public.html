@@ -34,6 +34,11 @@
                     <li><a class="dropdown-item" href="{% url 'home' %}"><i class="fa-solid fa-house me-2 text-muted"></i> Home</a></li>
                     <li><a class="dropdown-item" href="{% url 'product_list' %}"><i class="fa-solid fa-compass me-2 text-muted"></i> Explore</a></li>
                     <li><a class="dropdown-item" href="{% url 'privacy_policy' %}"><i class="fa-solid fa-scale-balanced me-2 text-muted"></i> Privacy Policy</a></li>
+                    {% if not user.is_authenticated %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'login' %}"><i class="fa-solid fa-right-to-bracket me-2 text-muted"></i> Log In</a></li>
+                        <li><a class="dropdown-item" href="{% url 'register' %}"><i class="fa-solid fa-user-plus me-2 text-muted"></i> Sign Up</a></li>
+                    {% endif %}
                 </ul>
             </div>
 
@@ -42,8 +47,11 @@
                     View Dashboard
                 </a>
             {% else %}
+                <a class="btn btn-outline-secondary btn-sm px-3 fw-semibold" href="{% url 'login' %}">
+                    Log In
+                </a>
                 <a class="btn btn-primary btn-sm px-3 fw-semibold shadow-sm" href="{% url 'register' %}">
-                    Get Started
+                    Sign Up
                 </a>
             {% endif %}
         </div>

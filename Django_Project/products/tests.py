@@ -143,3 +143,70 @@ class ProductModelAndViewsTestCase(TestCase):
         self.assertEqual(res2.status_code, 200)
         self.assertContains(res2, "You have already reviewed this product")
         self.assertEqual(Review.objects.filter(product=self.product, user=self.user).count(), 1)
+
+    def test_saved_products_edit_and_delete_actions(self):
+        """User can view, edit and delete their own products from saved products."""
+        # Create a general user
+        general_user = User.objects.create_user(username="gen_user", password="password123")
+        user_product = Product.objects.create(
+            name="My Custom Mechanical Keyboard",
+            category="Electronics",
+            platform="Amazon",
+            description="Hot-swappable switches with RGB backlight.",
+            created_by=general_user
+        )
+
+        self.client.login(username="gen_user", password="password123")
+        
+        # 1. Saved products page displays Edit and Delete buttons
+        res = self.client.get('/saved-products/')
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "My Custom Mechanical Keyboard")
+        self.assertContains(res, "Edit")
+        self.assertContains(res, "Delete")
+
+        # 2. Edit product view GET
+        edit_url = f'/products/{user_product.id}/edit/'
+        res_edit_get = self.client.get(edit_url)
+        self.assertEqual(res_edit_get.status_code, 200)
+        self.assertContains(res_edit_get, "Edit Product:")
+
+        # 3. Edit product POST with newly added reviews
+        res_edit_post = self.client.post(edit_url, {
+            'name': 'Updated Mechanical Keyboard Pro',
+            'category': 'Electronics',
+            'platform': 'eBay',
+            'description': 'Updated description with new switches.',
+            'source_url': 'https://ebay.com/itm/12345',
+            'image_url': 'https://example.com/img.jpg',
+            'review_text[]': ['Amazing tactile feel and crisp clicks!'],
+            'review_rating[]': ['5'],
+        }, follow=True)
+        self.assertEqual(res_edit_post.status_code, 200)
+        user_product.refresh_from_db()
+        self.assertEqual(user_product.name, 'Updated Mechanical Keyboard Pro')
+        self.assertEqual(user_product.platform, 'eBay')
+        self.assertEqual(user_product.description, 'Updated description with new switches.')
+        self.assertEqual(user_product.review_count(), 1)
+
+        # 4. Unauthorized user cannot edit
+        self.client.login(username="test_reviewer", password="password123")
+        res_unauth_edit = self.client.post(edit_url, {
+            'name': 'Hacked Product Name',
+            'category': 'Electronics',
+            'platform': 'Amazon',
+        }, follow=True)
+        user_product.refresh_from_db()
+        self.assertEqual(user_product.name, 'Updated Mechanical Keyboard Pro')
+
+        # 5. Unauthorized user cannot delete
+        delete_url = f'/products/{user_product.id}/delete/'
+        res_unauth_del = self.client.post(delete_url, follow=True)
+        self.assertTrue(Product.objects.filter(id=user_product.id).exists())
+
+        # 6. Owner can delete product
+        self.client.login(username="gen_user", password="password123")
+        res_auth_del = self.client.post(delete_url, follow=True)
+        self.assertEqual(res_auth_del.status_code, 200)
+        self.assertFalse(Product.objects.filter(id=user_product.id).exists())
+

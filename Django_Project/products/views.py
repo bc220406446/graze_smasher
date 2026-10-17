@@ -402,6 +402,108 @@ def create_product(request):
 
 
 @login_required
+def edit_product(request, pk):
+    """
+    Allows product creators (or staff/admin) to edit any detail of their product.
+    Updates name, description, category, platform, source_url, image_url, and uploaded image.
+    """
+    product = get_object_or_404(Product, pk=pk)
+    profile = getattr(request.user, 'profile', None)
+    is_admin = request.user.is_superuser or request.user.is_staff or (profile and profile.is_admin)
+
+    if product.created_by != request.user and not is_admin:
+        messages.error(request, "Permission denied: You can only edit products you created.")
+        return redirect('saved_products')
+
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+
+            # Process newly added reviews
+            review_texts = request.POST.getlist('review_text[]')
+            review_ratings = request.POST.getlist('review_rating[]')
+
+            created_reviews_count = 0
+            for idx, text in enumerate(review_texts):
+                cleaned_text = text.strip()
+                if not cleaned_text:
+                    continue
+
+                raw_rating = review_ratings[idx] if idx < len(review_ratings) else '5'
+                try:
+                    rating_val = int(raw_rating)
+                    rating_val = max(1, min(5, rating_val))
+                except (ValueError, TypeError):
+                    rating_val = 5
+
+                analysis = analyze_review(text=cleaned_text, rating=rating_val, ip=None, record_ip=False)
+
+                rev = Review.objects.create(
+                    product=product,
+                    user=request.user,
+                    text=cleaned_text,
+                    rating=rating_val,
+                    ip_address=None,
+                    svm_score=analysis['svm_score'],
+                    j48_score=analysis['j48_score'],
+                    sentiment=analysis['sentiment_polarity'],
+                    ip_flag=analysis['ip_flag'],
+                    final_score=analysis['final_score'],
+                    label=analysis['label'],
+                    source='user_submission'
+                )
+                evaluate_product_alerts(product=product, trigger_review=rev)
+                created_reviews_count += 1
+
+            if created_reviews_count > 0:
+                messages.success(
+                    request,
+                    f"Product '{product.name}' updated and {created_reviews_count} new review(s) analyzed and saved!"
+                )
+            else:
+                messages.success(request, f"Product '{product.name}' was successfully updated.")
+
+            next_url = request.POST.get('next') or 'saved_products'
+            return redirect(next_url)
+        else:
+            messages.error(request, "Please correct the errors in the product details.")
+    else:
+        form = ProductForm(instance=product)
+
+    existing_reviews = product.reviews.all().order_by('-created_at')
+
+    context = {
+        'form': form,
+        'product': product,
+        'existing_reviews': existing_reviews,
+    }
+    return render(request, 'users/general/edit_product.html', context)
+
+
+@login_required
+@require_POST
+def delete_product(request, pk):
+    """
+    Allows product creators (or staff/admin) to delete their product.
+    """
+    product = get_object_or_404(Product, pk=pk)
+    profile = getattr(request.user, 'profile', None)
+    is_admin = request.user.is_superuser or request.user.is_staff or (profile and profile.is_admin)
+
+    if product.created_by != request.user and not is_admin:
+        messages.error(request, "Permission denied: You can only delete products you created.")
+        return redirect('saved_products')
+
+    name = product.name
+    product.delete()
+    messages.success(request, f"Product '{name}' and all associated data were successfully deleted.")
+    next_url = request.POST.get('next') or 'saved_products'
+    return redirect(next_url)
+
+
+
+@login_required
 @require_POST
 def flag_product_view(request, pk):
     """

@@ -7,8 +7,7 @@
 
     <!-- Header & Action -->
     <div class="d-flex flex-column gap-3">
-        <div
-            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-2 border-bottom">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-2 border-bottom">
             <div>
                 <h4 class="fw-bold text-dark mb-1">
                     <i class="fa-solid fa-box text-primary me-2"></i>Saved Products
@@ -29,7 +28,7 @@
     <div class="row g-3">
         {% for product in page_obj %}
         <div class="col-md-6 col-xl-4">
-            <div class="card h-100 shadow-sm border position-relative">
+            <div class="card h-100 shadow-sm border rounded-3 position-relative">
                 <img src="{{ product.display_image }}" class="card-img-top" alt="{{ product.name }}"
                     style="height: 180px; object-fit: cover;">
 
@@ -57,12 +56,23 @@
 
                     <div class="d-flex justify-content-between align-items-center pt-2 border-top">
                         <small class="text-muted">
-                            <i class="fa-regular fa-comment-dots me-1"></i>{{ product.review_count }} reviews
+                            <i class="fa-regular fa-comment-dots me-1"></i>{{ product.review_count }} review{{ product.review_count|pluralize }}
                         </small>
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'product_detail' product.pk %}" class="btn btn-primary btn-sm py-1 px-3">
-                               View Analysis
+                        <div class="d-inline-flex align-items-center gap-1">
+                            <a href="{% url 'product_detail' product.pk %}" class="btn btn-sm btn-outline-secondary px-2 py-1 fw-semibold" title="View Analysis">
+                                View
                             </a>
+                            <a href="{% url 'product_edit' product.pk %}" class="btn btn-sm btn-outline-primary px-2 py-1 fw-semibold" title="Edit Product on Full Page">
+                                <i class="fa-solid fa-pen-to-square me-1"></i>Edit
+                            </a>
+                            <form action="{% url 'product_delete' product.pk %}" method="POST" class="d-inline"
+                                  onsubmit="return confirm('Are you sure you want to delete \'{{ product.name|escapejs }}\'? This will permanently delete this product and its reviews.');">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1 fw-semibold" title="Delete Product">
+                                    <i class="fa-solid fa-trash-can me-1"></i>Delete
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

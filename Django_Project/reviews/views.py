@@ -1,5 +1,6 @@
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from products.models import Product
 from analytics.models import Alert
@@ -79,4 +80,75 @@ def submit_review(request, product_id):
         messages.error(request, "Please enter a valid review text and star rating.")
 
     return redirect('product_detail', pk=product.pk)
+
+
+@login_required
+def edit_review(request, review_id):
+    """Allows author or admin to update a review and recalculates ML scores."""
+    review = get_object_or_404(Review, pk=review_id)
+    profile = getattr(request.user, 'profile', None)
+    is_admin = request.user.is_superuser or request.user.is_staff or (profile and profile.is_admin)
+
+    if review.user != request.user and not is_admin:
+        messages.error(request, "Permission denied: You can only edit your own reviews.")
+        return redirect('reviewer_dashboard')
+
+    if request.method == 'POST':
+        form = ReviewSubmissionForm(request.POST, instance=review)
+        if form.is_valid():
+            text = form.cleaned_data['text']
+            rating = int(form.cleaned_data['rating'])
+
+            # Run ML detector pipeline on updated review text and rating
+            analysis = analyze_review(text=text, rating=rating, ip=None, record_ip=False)
+
+            review.text = text
+            review.rating = rating
+            review.svm_score = analysis['svm_score']
+            review.j48_score = analysis['j48_score']
+            review.sentiment = analysis['sentiment_polarity']
+            review.ip_flag = analysis['ip_flag']
+            review.final_score = analysis['final_score']
+            review.label = analysis['label']
+            review.save()
+
+            # Re-evaluate product alerts
+            from analytics.services import evaluate_product_alerts
+            evaluate_product_alerts(product=review.product, trigger_review=review)
+
+            messages.success(
+                request,
+                f"Review updated and re-analyzed! Classification: {analysis['label']} "
+                f"(Authenticity Score: {analysis['final_score']}%)"
+            )
+            next_url = request.POST.get('next') or 'reviewer_dashboard'
+            return redirect(next_url)
+        else:
+            messages.error(request, "Please provide valid review details.")
+            next_url = request.POST.get('next') or 'reviewer_dashboard'
+            return redirect(next_url)
+
+    form = ReviewSubmissionForm(instance=review)
+    return render(request, 'reviews/edit_review.html', {'form': form, 'review': review})
+
+
+@require_POST
+@login_required
+def delete_review(request, review_id):
+    """Allows author or admin to delete a review."""
+    review = get_object_or_404(Review, pk=review_id)
+    profile = getattr(request.user, 'profile', None)
+    is_admin = request.user.is_superuser or request.user.is_staff or (profile and profile.is_admin)
+
+    if review.user != request.user and not is_admin:
+        messages.error(request, "Permission denied: You can only delete your own reviews.")
+        return redirect('reviewer_dashboard')
+
+    product_name = review.product.name
+    review.delete()
+    messages.success(request, f"Review for '{product_name}' has been deleted.")
+    next_url = request.POST.get('next') or 'reviewer_dashboard'
+    return redirect(next_url)
+
+
 
