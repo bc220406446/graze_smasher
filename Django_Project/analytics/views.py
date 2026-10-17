@@ -125,13 +125,15 @@ def monitored_products_view(request):
     # Enrich each monitored product with alert count
     enriched = []
     for p in monitored:
-        alert_count = Alert.objects.filter(product=p, is_read=False).count()
+        active_count = Alert.objects.filter(product=p, is_read=False).count()
+        total_count = Alert.objects.filter(product=p).count()
         enriched.append({
             'product': p,
             'score': p.overall_authenticity_score(),
             'label': p.authenticity_label(),
             'review_count': p.review_count(),
-            'active_alerts': alert_count,
+            'active_alerts': active_count,
+            'total_alerts': total_count,
         })
 
     context = {

@@ -25,39 +25,39 @@
             <h6 class="fw-bold text-dark mb-0">
                 <i class="fa-solid fa-bolt text-primary me-2"></i>Quick Actions
             </h6>
-            <small class="text-muted">Browse the verified catalog or inspect detection analytics</small>
+            <small class="text-muted">Register new e-commerce products or manage your monitored watchlist</small>
         </div>
         <div class="card-body p-4">
             <div class="row g-4">
-                <!-- Column 1: Explore Products -->
+                <!-- Column 1: Add Product -->
                 <div class="col-md-6">
                     <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-between">
                         <div class="mb-3">
-                            <h6 class="fw-bold text-dark mb-1">Browse Catalog Products</h6>
+                            <h6 class="fw-bold text-dark mb-1">Add Product to Catalog</h6>
                             <p class="text-muted small mb-0" style="font-size: 0.84rem; line-height: 1.45;">
-                                Discover trending e-commerce items, review genuine feedback, and add new products to your monitoring watchlist.
+                                Register a new product, input customer reviews, and run instant AI fake review detection.
                             </p>
                         </div>
                         <div>
-                            <a href="{% url 'product_list' %}" class="btn btn-primary px-4 fw-semibold shadow-xs">
-                                Explore Products
+                            <a href="{% url 'product_create' %}" class="btn btn-primary px-4 fw-semibold shadow-xs">
+                                Add Product
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Column 2: View Analytics -->
+                <!-- Column 2: Saved Products -->
                 <div class="col-md-6">
                     <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-between">
                         <div class="mb-3">
-                            <h6 class="fw-bold text-dark mb-1">Authenticity &amp; Accuracy Reports</h6>
+                            <h6 class="fw-bold text-dark mb-1">Saved Products Watchlist</h6>
                             <p class="text-muted small mb-0" style="font-size: 0.84rem; line-height: 1.45;">
-                                Inspect overall trust distribution, machine learning model benchmarks, and personalized detection metrics.
+                                View and manage all your tracked items, review score histories, and monitor fake review alerts.
                             </p>
                         </div>
                         <div>
-                            <a href="{% url 'user_personal_analytics' %}" class="btn btn-outline-dark px-4 fw-semibold bg-white">
-                                View Analytics
+                            <a href="{% url 'saved_products' %}" class="btn btn-outline-dark px-4 fw-semibold bg-white">
+                                Saved Products
                             </a>
                         </div>
                     </div>
@@ -88,7 +88,7 @@
                             <th class="ps-4" style="width: 48%;">Name &amp; Description</th>
                             <th class="text-center" style="width: 16%;">Authenticity</th>
                             <th class="text-center" style="width: 14%;">Alerts</th>
-                            <th class="text-end pe-4" style="width: 22%;">Action</th>
+                            <th class="text-start ps-3" style="width: 22%;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -140,8 +140,8 @@
                                 {% endif %}
                             </td>
 
-                            <!-- Action: View Detail and Unmonitor (Clean buttons without icons before titles) -->
-                            <td class="text-end pe-4 py-3">
+                            <!-- Action: View Detail and Unmonitor (Left-aligned, clean buttons without icons before titles) -->
+                            <td class="text-start ps-3 py-3">
                                 <div class="d-inline-flex align-items-center gap-2">
                                     <a href="{% url 'product_detail' product.pk %}"
                                        class="btn btn-sm btn-outline-primary px-3 fw-semibold text-nowrap"
