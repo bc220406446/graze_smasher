@@ -113,13 +113,7 @@ def evaluate_product_alerts(product, trigger_review=None):
         if rev_alert:
             alerts_created.append(rev_alert)
 
-    # 2. Heuristic Alert: Suspicious IP velocity burst
-    if trigger_review and trigger_review.ip_flag:
-        msg = (f"Suspicious IP submission velocity detected from {trigger_review.ip_address} "
-               f"on '{product.name}'. Multiple submissions within velocity window.")
-        _dispatch_alert(product, 'ip_burst', msg, alerts_created, window_hours=6)
-
-    # 3. Product Fake Review Ratio Evaluation
+    # 2. Product Fake Review Ratio Evaluation (Rule 1 & Rule 3)
     total_reviews = product.reviews.count()
     fake_reviews = product.reviews.filter(label='Fake').count()
     fake_ratio = (fake_reviews / total_reviews * 100.0) if total_reviews > 0 else 0.0
@@ -127,10 +121,10 @@ def evaluate_product_alerts(product, trigger_review=None):
     # Strict 50% threshold: only trigger ratio alerts when fake review ratio >= 50%
     if total_reviews > 0 and fake_ratio >= 50.0:
         pct_val = int(fake_ratio) if fake_ratio.is_integer() else round(fake_ratio, 1)
-        ratio_msg = f"Fake reviews for {product.name} is increase to {pct_val}%"
+        ratio_msg = f"Fake reviews for subject product is increase to {pct_val}%"
         cooldown_24h = timezone.now() - timedelta(hours=24)
 
-        # 3A. Admin Alerts: Notify platform administrators (24-hour cooldown per product)
+        # 2A. Admin Alerts: Notify platform administrators (24-hour cooldown per product)
         admin_users = list(User.objects.filter(
             Q(is_superuser=True) | Q(is_staff=True) | Q(profile__role='admin')
         ).distinct())
@@ -160,7 +154,7 @@ def evaluate_product_alerts(product, trigger_review=None):
                 )
                 alerts_created.append(alert)
 
-        # 3B. General User Alerts: Notify users monitoring this product (24-hour cooldown per user per product)
+        # 2B. General User Alerts: Notify users monitoring this product (24-hour cooldown per user per product)
         monitored_users = list(User.objects.filter(
             saved_products__product=product
         ).exclude(id__in=[u.id for u in admin_users]).distinct())
@@ -180,14 +174,6 @@ def evaluate_product_alerts(product, trigger_review=None):
                     message=ratio_msg
                 )
                 alerts_created.append(alert)
-
-    # 4. Critical Authenticity Drop Trigger (< 50% composite score with >= 5 reviews)
-    overall_score = product.overall_authenticity_score()
-    auth_threshold = getattr(settings, 'AUTHENTICITY_THRESHOLD', 50.0)
-    if total_reviews >= 5 and overall_score < auth_threshold:
-        msg = (f"Critical Authenticity Warning: Overall authenticity score for '{product.name}' "
-               f"dropped to {overall_score}% (Classified as Deceptive / Fake).")
-        _dispatch_alert(product, 'low_authenticity', msg, alerts_created, window_hours=24)
 
     # 5. Optional Email Notifications
     if alerts_created and getattr(settings, 'ALERT_EMAIL_NOTIFICATIONS', False):

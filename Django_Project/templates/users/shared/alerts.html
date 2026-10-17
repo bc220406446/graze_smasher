@@ -5,131 +5,127 @@
 {% block dashboard_content %}
 <div class="d-flex flex-column gap-4">
 
-    <!-- Header & Product Browsing Filter Bar -->
-    <div class="d-flex flex-column gap-3 pb-2 border-bottom">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div>
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <h4 class="fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-bell text-warning me-2"></i>Security &amp; Anomaly Alerts
-                    </h4>
-                    <span class="badge {% if is_admin %}bg-danger-subtle text-danger border border-danger-subtle{% elif is_reviewer %}bg-primary-subtle text-primary border border-primary-subtle{% else %}bg-secondary-subtle text-secondary border border-secondary-subtle{% endif %} px-2 py-1 small fw-semibold">
-                        {{ role_label|default:"Alerts" }}
-                    </span>
-                </div>
-                <p class="text-muted small mb-0">{{ feed_subtitle|default:"Automated alerts triggered when abnormal fake review spikes or authenticity score drops occur." }}</p>
+    <!-- Header Bar -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-2 border-bottom">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h3 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-bell text-warning me-2"></i>Security &amp; Anomaly Alerts
+                </h3>
             </div>
-            <!-- Status Filter Buttons -->
-            <div class="d-flex gap-2">
-                <a href="?status=all{% if product_filter %}&product={{ product_filter }}{% endif %}"
-                   class="btn btn-sm {% if status != 'unread' %}btn-primary{% else %}btn-outline-secondary{% endif %} fw-semibold">
-                    All Alerts ({{ total_alerts_count }})
-                </a>
-                <a href="?status=unread{% if product_filter %}&product={{ product_filter }}{% endif %}"
-                   class="btn btn-sm {% if status == 'unread' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %} fw-semibold">
-                    Unread ({{ unread_count }})
-                </a>
-            </div>
+            <p class="text-muted mb-0" style="font-size: 0.92rem;">
+                {{ feed_subtitle|default:"Automated alerts triggered when abnormal fake review spikes or authenticity score drops occur." }}
+            </p>
         </div>
-
-        <!-- Product-Based Alert Browsing Filter -->
-        {% if monitored_products %}
-        <div class="p-3 bg-light rounded-3 border d-flex flex-wrap align-items-center gap-2">
-            <span class="small fw-bold text-dark me-2">
-                <i class="fa-solid fa-filter text-primary me-1"></i>Filter by Product:
-            </span>
-            <a href="?status={{ status }}"
-               class="btn btn-sm {% if not product_filter %}btn-dark{% else %}btn-outline-secondary bg-white{% endif %} px-3 rounded-pill">
-                {% if is_admin %}All Products{% else %}All Monitored Products{% endif %}
-            </a>
-            {% for prod in monitored_products %}
-            <a href="?status={{ status }}&product={{ prod.id }}"
-               class="btn btn-sm {% if product_filter == prod.id|stringformat:'s' %}btn-dark{% else %}btn-outline-secondary bg-white{% endif %} px-3 rounded-pill text-truncate"
-               style="max-width: 240px;" title="{{ prod.name }}">
-                {{ prod.name }}
-            </a>
-            {% endfor %}
-        </div>
-        {% endif %}
     </div>
 
-    <!-- Alerts Table (Heading: Alert Detail and Action) -->
-    <div class="card shadow-sm border rounded-4 overflow-hidden">
-        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <div>
-                <small class="text-muted">
-                    {% if selected_product %}
-                        Showing alerts specifically for <strong>{{ selected_product.name }}</strong>
-                    {% else %}
-                        {% if is_admin %}
-                            Showing real-time platform anomaly alerts across all products
-                        {% elif is_reviewer %}
-                            Showing review classification and security alerts
-                        {% else %}
-                            Showing real-time authenticity alerts across your monitored products
-                        {% endif %}
-                    {% endif %}
-                </small>
+    <!-- Filter Bar Matching User Provided Design (Search, All Products dropdown, Status, Filter, Reset) -->
+    <div class="card shadow-sm border rounded-4 p-3 bg-white">
+        <form method="GET" action="{% url 'user_alerts' %}" class="row g-2 align-items-center">
+            <!-- Search area with magnifying glass -->
+            <div class="col-12 col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted ps-3">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="q" value="{{ q }}"
+                           class="form-control border-start-0 ps-1"
+                           placeholder="Search product name or keywords...">
+                </div>
             </div>
-            {% if selected_product %}
-            <a href="?status={{ status }}" class="btn btn-outline-secondary btn-sm">
-                Clear Product Filter
-            </a>
-            {% endif %}
-        </div>
+
+            <!-- All Products Dropdown -->
+            <div class="col-12 col-sm-6 col-md-3">
+                <select name="product" class="form-select">
+                    <option value="">{% if is_admin %}All Products{% else %}All Monitored Products{% endif %}</option>
+                    {% for prod in monitored_products %}
+                    <option value="{{ prod.id }}" {% if product_filter == prod.id|stringformat:'s' %}selected{% endif %}>
+                        {{ prod.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- All Alerts / Status Dropdown -->
+            <div class="col-12 col-sm-6 col-md-2">
+                <select name="status" class="form-select">
+                    <option value="all" {% if status == 'all' or not status %}selected{% endif %}>All Alerts</option>
+                    <option value="unread" {% if status == 'unread' %}selected{% endif %}>Unread Only</option>
+                    <option value="read" {% if status == 'read' %}selected{% endif %}>Read Only</option>
+                </select>
+            </div>
+
+            <!-- Primary Blue Filter Button -->
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary px-3.5 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-filter"></i> Filter
+                </button>
+            </div>
+
+            <!-- Circular Undo/Reset Button -->
+            <div class="col-auto">
+                <a href="{% url 'user_alerts' %}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center justify-content-center" title="Reset Filters">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Alert Queue Section (Increased size, clear typography, no product name repetition in message) -->
+    <div class="card shadow-sm border rounded-4 overflow-hidden">
         <div class="card-body p-0">
             {% if page_obj %}
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-4" style="width: 72%;">Alert Detail</th>
-                            <th class="text-start ps-3" style="width: 28%;">Action</th>
+                            <th class="ps-4 py-3.5" style="width: 72%; font-size: 0.85rem; letter-spacing: 0.5px;">Alert Detail</th>
+                            <th class="text-start ps-3 py-3.5" style="width: 28%; font-size: 0.85rem; letter-spacing: 0.5px;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for alert in page_obj %}
                         <tr class="{% if not alert.is_read %}bg-light bg-opacity-75{% endif %}">
                             <!-- Alert Detail (Row-wise: Product Title, Alert Message, Triggered Time) -->
-                            <td class="ps-4 py-3">
-                                <div class="d-flex flex-column gap-1">
+                            <td class="ps-4 py-4">
+                                <div class="d-flex flex-column gap-2">
                                     <!-- Row 1: Product Title & Badges -->
                                     <div class="d-flex align-items-center gap-2 flex-wrap">
                                         <a href="{% url 'product_detail' alert.product.pk %}"
-                                           class="fw-bold text-dark text-decoration-none" style="font-size: 0.92rem;">
+                                           class="fw-bold text-dark text-decoration-none" style="font-size: 1.18rem; letter-spacing: -0.2px;">
                                             {{ alert.product.name }}
                                         </a>
                                         {% if not alert.is_read %}
-                                            <span class="badge bg-warning text-dark small fw-bold" style="font-size: 0.68rem;">NEW</span>
+                                            <span class="badge bg-warning text-dark small fw-bold px-2 py-1" style="font-size: 0.72rem;">NEW</span>
                                         {% endif %}
                                     </div>
 
-                                    <!-- Row 2: Alert Message -->
-                                    <p class="text-dark small mb-0 lh-base" style="font-size: 0.85rem;">
+                                    <!-- Row 2: Alert Message (Prominent font size, clean text) -->
+                                    <div class="text-dark fw-medium lh-base mb-0" style="font-size: 1.05rem; color: #1e293b;">
                                         {{ alert.message }}
-                                    </p>
+                                    </div>
 
                                     <!-- Row 3: Triggered Time -->
-                                    <div class="text-muted small d-flex align-items-center gap-1" style="font-size: 0.75rem;">
-                                        <i class="fa-regular fa-clock"></i>
+                                    <div class="text-muted d-flex align-items-center gap-1" style="font-size: 0.84rem;">
+                                        <i class="fa-regular fa-clock me-1"></i>
                                         <span>Triggered Time: <strong>{{ alert.created_at|date:"M d, Y - H:i" }}</strong></span>
                                     </div>
                                 </div>
                             </td>
 
-                            <!-- Action: View Product and Mark as Read -->
-                            <td class="text-start ps-3 py-3">
+                            <!-- Action Column: View Product always, Mark as Read ONLY when unread, NO delete option -->
+                            <td class="text-start ps-3 py-4">
                                 <div class="d-inline-flex align-items-center gap-2 flex-wrap">
                                     {% if not alert.is_read %}
                                     <form method="POST" action="{% url 'mark_alert_read' alert.id %}" class="d-inline">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary px-3 fw-semibold text-nowrap">
+                                        <button type="submit" class="btn btn-outline-secondary px-3 py-2 fw-semibold text-nowrap" style="font-size: 0.9rem;">
                                             Mark as Read
                                         </button>
                                     </form>
                                     {% else %}
-                                    <span class="badge bg-light text-muted border px-2 py-1 small">
-                                        Read
+                                    <span class="badge bg-light text-muted border px-2.5 py-2 small fw-semibold" style="font-size: 0.85rem;">
+                                        <i class="fa-solid fa-check text-success me-1"></i>Read
                                     </span>
                                     {% endif %}
                                 </div>
@@ -142,19 +138,19 @@
 
             <!-- Pagination -->
             {% if page_obj.has_other_pages %}
-            <div class="p-3 border-top">
+            <div class="p-3 border-top bg-white">
                 <nav>
                     <ul class="pagination pagination-sm justify-content-center mb-0">
                         {% if page_obj.has_previous %}
-                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status }}{% if product_filter %}&product={{ product_filter }}{% endif %}">&laquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status }}{% if product_filter %}&product={{ product_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}">&laquo;</a></li>
                         {% endif %}
                         {% for num in page_obj.paginator.page_range %}
                             <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                <a class="page-link" href="?page={{ num }}&status={{ status }}{% if product_filter %}&product={{ product_filter }}{% endif %}">{{ num }}</a>
+                                <a class="page-link" href="?page={{ num }}&status={{ status }}{% if product_filter %}&product={{ product_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}">{{ num }}</a>
                             </li>
                         {% endfor %}
                         {% if page_obj.has_next %}
-                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status }}{% if product_filter %}&product={{ product_filter }}{% endif %}">&raquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status }}{% if product_filter %}&product={{ product_filter }}{% endif %}{% if q %}&q={{ q }}{% endif %}">&raquo;</a></li>
                         {% endif %}
                     </ul>
                 </nav>
@@ -168,6 +164,8 @@
                 <p class="text-muted small mb-0">
                     {% if selected_product %}
                         There are no active anomaly alerts for <strong>{{ selected_product.name }}</strong>.
+                    {% elif q %}
+                        No alerts match your search query "<strong>{{ q }}</strong>".
                     {% else %}
                         {% if is_admin %}
                             There are currently no active anomaly alerts across platform products.
@@ -183,4 +181,3 @@
 
 </div>
 {% endblock %}
-

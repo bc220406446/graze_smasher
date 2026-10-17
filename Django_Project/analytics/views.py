@@ -151,6 +151,7 @@ def user_alerts_view(request):
     is_admin = user.is_superuser or user.is_staff or (profile and profile.role == 'admin')
     is_reviewer = profile and profile.role == 'reviewer'
 
+    q = request.GET.get('q', '').strip()
     status = request.GET.get('status', 'all')
     product_filter = request.GET.get('product', '').strip()
 
@@ -193,6 +194,12 @@ def user_alerts_view(request):
             role_label = "General User"
             feed_subtitle = "Real-time fake review surges and authenticity score drop alerts across your monitored products."
 
+    # Filter by keyword search (product name or alert message)
+    if q:
+        alerts_qs = alerts_qs.filter(
+            Q(product__name__icontains=q) | Q(message__icontains=q)
+        )
+
     # Filter by selected product if specified
     selected_product = None
     if product_filter.isdigit():
@@ -203,12 +210,15 @@ def user_alerts_view(request):
 
     if status == 'unread':
         alerts_qs = alerts_qs.filter(is_read=False)
+    elif status == 'read':
+        alerts_qs = alerts_qs.filter(is_read=True)
 
     paginator = Paginator(alerts_qs, 12)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     context = {
         'page_obj': page_obj,
+        'q': q,
         'status': status,
         'product_filter': product_filter,
         'selected_product': selected_product,
