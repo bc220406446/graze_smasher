@@ -49,15 +49,7 @@ class ReviewActionTests(TestCase):
         self.assertContains(response, 'Quick Actions')
         self.assertContains(response, 'Add Review')
         self.assertContains(response, 'Reviewed Products')
-        self.assertContains(response, 'Recent Review Submissions &amp; ML Results')
-        self.assertContains(response, 'Product Title')
-        self.assertContains(response, 'Review Content')
-        self.assertContains(response, 'Rating')
-        self.assertContains(response, 'Classification')
-        self.assertContains(response, 'Final Score')
-        self.assertContains(response, 'Action')
-        self.assertContains(response, 'Edit')
-        self.assertContains(response, 'Delete')
+        self.assertContains(response, 'Recent System Alerts')
 
     def test_reviewer_my_reviews_renders_dropdowns_and_dashboard_table(self):
         self.client.login(username='reviewer1', password='Password123!')

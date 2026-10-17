@@ -21,11 +21,6 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'product_list' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
-                    <i class="fa-solid fa-compass"></i> Explore Products
-                </a>
-            </li>
-            <li>
                 <a href="{% url 'admin_products' %}" class="gs-sidebar-link {% if request.resolver_match.url_name in 'admin_products,admin_product_edit' %}active{% endif %}">
                     <i class="fa-solid fa-boxes-stacked"></i> Product Management
                 </a>
@@ -37,26 +32,17 @@
             </li>
             <li>
                 <a href="{% url 'admin_flagged_content' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_flagged_content' %}active{% endif %}">
-                    <i class="fa-solid fa-flag text-danger"></i> Flagged Content
+                    <i class="fa-solid fa-flag text-danger"></i> Reports Management
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'admin_settings' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
+                    <i class="fa-solid fa-sliders"></i> ML Models Management
                 </a>
             </li>
             <li>
                 <a href="{% url 'user_alerts' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
                     <i class="fa-solid fa-bell text-warning"></i> Anomaly Alerts
-                </a>
-            </li>
-        </ul>
-
-        <div class="gs-sidebar-heading mt-3">Intelligence & System</div>
-        <ul class="gs-sidebar-menu">
-            <li>
-                <a href="{% url 'admin_settings' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
-                    <i class="fa-solid fa-sliders"></i> Models Settings
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin_model_metrics' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_model_metrics' %}active{% endif %}">
-                    <i class="fa-solid fa-brain text-primary"></i> ML Performance
                 </a>
             </li>
             <li>

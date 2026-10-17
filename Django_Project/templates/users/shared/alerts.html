@@ -75,63 +75,120 @@
         </form>
     </div>
 
-    <!-- Alert Queue Section -->
+    <!-- Recent Alerts Block -->
     <div class="card shadow-sm border rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <div>
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-bell text-danger me-2"></i>Recent System Alerts
+                </h6>
+                <small class="text-muted">Live fake review surges, suspicious IP velocity bursts, and authenticity
+                    anomalies</small>
+            </div>
+            {% if total_alerts_count > 0 %}
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fw-semibold">
+                {{ total_alerts_count }} Total Alert{{ total_alerts_count|pluralize }}
+            </span>
+            {% endif %}
+        </div>
         <div class="card-body p-0">
             {% if page_obj %}
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-4 py-3" style="font-size: 0.85rem; width: 75%;">Alert Detail</th>
-                            <th class="text-start ps-3 py-3" style="width: 25%; white-space: nowrap; font-size: 0.85rem;">Action</th>
+                            <th class="ps-4" style="width: 30%;">Product</th>
+                            <th style="width: 30%;">Message</th>
+                            <th class="text-center" style="width: 20%;">Alert Type</th>
+                            <th class="text-center" style="width: 10%;">Date</th>
+                            <th class="text-start pe-4" style="width: 10%;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for alert in page_obj %}
-                        <tr class="{% if not alert.is_read %}bg-light bg-opacity-75{% endif %}">
-                            <!-- Alert Detail (Matching monitored_products font size and style) -->
+                        <tr>
+                            <!-- Product Column -->
                             <td class="ps-4 py-3">
-                                <div class="d-flex flex-column gap-1">
-                                    <!-- Row 1: Product Title & Badges -->
-                                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                                        <a href="{% url 'product_detail' alert.product.pk %}"
-                                           class="text-decoration-none text-dark fw-bold text-truncate d-inline-block"
-                                           style="max-width: 420px; font-size: 0.85rem;" title="{{ alert.product.name }}">
-                                            {{ alert.product.name }}
-                                        </a>
-                                        {% if not alert.is_read %}
-                                            <span class="badge bg-warning text-dark small fw-bold px-1 py-0.5" style="font-size: 0.72rem;">NEW</span>
-                                        {% endif %}
-                                    </div>
-
-                                    <!-- Row 2: Alert Message flexed with Triggered Time -->
-                                    <div class="d-flex align-items-center justify-content-start flex-wrap gap-2">
-                                        <p class="text-muted mb-0" style="font-size: 0.775rem; line-height: 1.35;">
-                                            {{ alert.message }}
-                                        </p>
-                                        <div class="text-muted small d-flex align-items-center gap-1 text-nowrap" style="font-size: 0.75rem;">
-                                            <i class="fa-regular fa-clock me-1 text-secondary"></i>
-                                            <span>Triggered Time: <strong>{{ alert.created_at|date:"M d, Y - H:i" }}</strong></span>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="{{ alert.product.display_image }}" alt="{{ alert.product.name }}"
+                                        class="rounded-3 border flex-shrink-0"
+                                        style="width: 44px; height: 44px; object-fit: cover;">
+                                    <div class="min-w-0">
+                                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                            <a href="{% url 'product_detail' alert.product.pk %}"
+                                                class="text-decoration-none text-dark fw-bold text-truncate d-inline-block"
+                                                style="max-width: 260px; font-size: 0.85rem;"
+                                                title="{{ alert.product.name }}">
+                                                {{ alert.product.name }}
+                                            </a>
                                         </div>
+                                        <p class="text-muted mb-0 text-truncate"
+                                            style="max-width: 260px; font-size: 0.775rem;">
+                                            {{ alert.product.description|default:"No Description Available" }}
+                                        </p>
                                     </div>
                                 </div>
                             </td>
 
-                            <!-- Action Column: View Detail, Mark as Read (when unread), Delete (when read) -->
-                            <td class="text-start ps-3 py-3" style="width: 1%; white-space: nowrap;">
+                            <!-- Message Column -->
+                            <td class="py-3">
+                                <p class="mb-0 text-dark small" style="line-height: 1.45; font-size: 0.825rem;">
+                                    {{ alert.message }}
+                                </p>
+                            </td>
+
+                            <!-- Alert Type Badge -->
+                            <td class="text-center py-3">
+                                {% if alert.type == 'fake_spike' %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    Fake Review Spike
+                                </span>
+                                {% elif alert.type == 'ip_burst' %}
+                                <span class="small fw-semibold">
+                                    Suspicious IP Burst
+                                </span>
+                                {% elif alert.type == 'low_authenticity' %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    Low Authenticity
+                                </span>
+                                {% elif alert.type == 'sentiment_mismatch' %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    Rating Discrepancy
+                                </span>
+                                {% else %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    {{ alert.get_type_display }}
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Date Column -->
+                            <td class="text-center py-3 text-nowrap">
+                                <span class="text-muted small" style="font-size: 0.8rem;"
+                                    title="{{ alert.created_at|date:'M d, Y H:i' }}">
+                                    {{ alert.created_at}}
+                                </span>
+                            </td>
+
+                            <!-- Action Column -->
+                            <td class="text-start pe-4 py-3">
                                 <div class="d-inline-flex align-items-center gap-2">
                                     {% if not alert.is_read %}
                                     <form method="POST" action="{% url 'mark_alert_read' alert.id %}" class="d-inline">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary px-3 fw-semibold text-nowrap">
-                                            Mark as Read
+                                        <button type="submit" class="btn btn-sm btn-outline-primary px-3 fw-semibold text-nowrap">
+                                            Mark as Reviewed
                                         </button>
                                     </form>
                                     {% else %}
-                                    <form method="POST" action="{% url 'delete_alert' alert.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this alert?');">
+                                    <form method="POST" action="{% url 'delete_alert' alert.id %}" class="d-inline">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger px-3 fw-semibold text-nowrap" title="Delete this alert">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger px-3 fw-semibold text-nowrap"
+                                                data-confirm="Are you sure you want to delete this alert?"
+                                                data-confirm-title="Delete Alert"
+                                                data-confirm-btn="Delete"
+                                                title="Delete this alert">
                                             Delete
                                         </button>
                                     </form>
@@ -167,21 +224,10 @@
 
             {% else %}
             <div class="text-center py-5 px-3">
-                <i class="fa-solid fa-bell-slash text-muted fs-1 mb-3"></i>
-                <h5 class="fw-bold text-dark">No Alerts in Queue</h5>
-                <p class="text-muted small mb-0">
-                    {% if selected_product %}
-                        There are no active anomaly alerts for <strong>{{ selected_product.name }}</strong>.
-                    {% elif q %}
-                        No alerts match your search query "<strong>{{ q }}</strong>".
-                    {% else %}
-                        {% if is_admin %}
-                            There are currently no active anomaly alerts across platform products.
-                        {% else %}
-                            Your monitored products currently have no active anomaly alerts.
-                        {% endif %}
-                    {% endif %}
-                </p>
+                <i class="fa-regular fa-bell-slash text-muted fs-1 mb-3"></i>
+                <h6 class="fw-bold text-dark">No System Alerts Detected</h6>
+                <p class="text-muted small mb-0">All monitored catalog products and incoming reviews are currently
+                    within normal authenticity thresholds.</p>
             </div>
             {% endif %}
         </div>

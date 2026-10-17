@@ -69,8 +69,7 @@
                             </td>
                             <td>
                                 <span class="small fw-semibold text-dark">{{ flag.user.username }}</span><br>
-                                <small class="text-muted" style="font-size: 0.7rem;">{{ flag.created_at|date:"M d, Y
-                                    H:i" }}</small>
+                                <small class="text-muted" style="font-size: 0.7rem;">{{ flag.created_at}}</small>
                             </td>
                             <td>
                                 {% if flag.status == 'pending' %}
@@ -90,7 +89,7 @@
                                     <form method="POST" action="{% url 'admin_resolve_product_flag' flag.id %}">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="resolve_and_hide">
-                                        <button type="submit" class="btn btn-sm btn-danger py-1 px-2"
+                                        <button type="submit" class="btn btn-sm btn-outline-primary px-2 py-1 fw-semibold text-nowrap"
                                             title="Confirm violation & Hide Product from Catalog">
                                             Resolve
                                         </button>

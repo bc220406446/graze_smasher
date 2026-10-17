@@ -81,6 +81,7 @@ def user_dashboard(request):
         'created_count': user_created_products.count(),
         'recent_alerts': recent_alerts,
         'unread_alerts_count': unread_alerts_count,
+        'total_alerts_count': alerts_qs.count(),
         'chart_labels': json.dumps(chart_labels),
         'chart_scores': json.dumps(chart_scores),
     }
@@ -214,6 +215,7 @@ def user_alerts_view(request):
 
     context = {
         'page_obj': page_obj,
+        'recent_alerts': page_obj,
         'q': q,
         'status': status,
         'product_filter': product_filter,
@@ -348,12 +350,25 @@ def reviewer_dashboard(request):
         reviewer_reviews.filter(rating=r).count() for r in [1, 2, 3, 4, 5]
     ]
 
+    # Anomaly alerts for reviewed, saved or created products
+    saved_product_ids = list(SavedProduct.objects.filter(user=user).values_list('product_id', flat=True))
+    created_product_ids = list(Product.objects.filter(created_by=user).values_list('id', flat=True))
+    relevant_ids = list(set(list(reviewed_product_ids) + saved_product_ids + created_product_ids))
+    alerts_qs = Alert.objects.filter(
+        Q(user=user) | Q(user__isnull=True, product_id__in=relevant_ids)
+    ).select_related('product', 'user').order_by('-created_at')
+
+    recent_alerts = alerts_qs[:8]
+    total_alerts_count = alerts_qs.count()
+
     context = {
         'total_submitted': total_submitted,
         'genuine_count': genuine_count,
         'fake_count': fake_count,
         'products_reviewed_count': products_reviewed_count,
         'recent_reviews': recent_reviews,
+        'recent_alerts': recent_alerts,
+        'total_alerts_count': total_alerts_count,
         'chart_labels': json.dumps(distribution_labels),
         'chart_data': json.dumps(distribution_data),
         'ratings_data': json.dumps(ratings_data),

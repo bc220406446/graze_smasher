@@ -5,297 +5,203 @@
 {% block dashboard_content %}
 <div class="d-flex flex-column gap-4">
 
-    <!-- Admin Welcome Header -->
-    <div class="card p-4 workspace-banner banner-admin">
+    <!-- Welcome Block -->
+    <div class="card p-4 workspace-banner">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
-                <span class="badge bg-danger px-3 py-1 mb-2">
-                    <i class="fa-solid fa-shield-halved me-1"></i>System Administration
-                </span>
                 <h3 class="fw-bold text-dark mb-1">
-                    Administrator Command Center
+                    Welcome back, {{ request.user.get_full_name|default:request.user.username }}!
                 </h3>
                 <p class="text-muted small mb-0">
-                    Comprehensive platform oversight: User RBAC roles, product catalog moderation, dual-queue abuse reporting, and ML pipeline health.
+                    System administration command center: manage catalog products, oversee registered user accounts, and
+                    track real-time anomaly alerts.
                 </p>
             </div>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="{% url 'admin_products' %}" class="btn btn-outline-danger btn-sm px-3 py-2 fw-semibold">
-                    <i class="fa-solid fa-boxes-stacked me-1"></i> Manage Products
-                </a>
-                <a href="{% url 'admin_users' %}" class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold">
-                    <i class="fa-solid fa-users-gear me-1"></i> Manage Users
-                </a>
-                <a href="{% url 'admin_settings' %}" class="btn btn-danger btn-sm px-3 py-2 fw-semibold">
-                    <i class="fa-solid fa-sliders me-1"></i> Settings
-                </a>
-            </div>
         </div>
     </div>
 
-    <!-- System-Wide Operational Statistics -->
-    <div class="row g-3">
-        <!-- Total Products -->
-        <div class="col-sm-6 col-xl-3">
-            <a href="{% url 'admin_products' %}" class="text-decoration-none">
-                <div class="card p-3 shadow-sm h-100 border-start border-4 border-primary">
-                    <div class="d-flex justify-content-between align-items-center">
+    <!-- Quick Actions Block -->
+    <div class="card shadow-sm border rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="fw-bold text-dark mb-0">
+                <i class="fa-solid fa-bolt text-primary me-2"></i>Quick Actions
+            </h6>
+            <small class="text-muted">Direct access to catalog inventory moderation and user RBAC controls</small>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <!-- Column 1: Manage Products -->
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-between">
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark mb-1">Manage Products</h6>
+                            <p class="text-muted small mb-0" style="font-size: 0.84rem; line-height: 1.45;">
+                                Inspect e-commerce catalog items, update details, moderate visibility, and review
+                                authenticity scores.
+                            </p>
+                        </div>
                         <div>
-                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Catalog Products</small>
-                            <h3 class="fw-bold text-dark mb-0 mt-1">{{ total_products }}</h3>
+                            <a href="{% url 'admin_products' %}" class="btn btn-primary px-4 fw-semibold shadow-xs">
+                                Manage Products
+                            </a>
                         </div>
-                        <div class="bg-primary-subtle p-3 rounded-3 text-primary">
-                            <i class="fa-solid fa-boxes-stacked fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2 pt-2 border-top">
-                        <span class="small text-primary fw-semibold">Manage Catalog &rarr;</span>
                     </div>
                 </div>
-            </a>
-        </div>
 
-        <!-- Registered Users -->
-        <div class="col-sm-6 col-xl-3">
-            <a href="{% url 'admin_users' %}" class="text-decoration-none">
-                <div class="card p-3 shadow-sm h-100 border-start border-4 border-info">
-                    <div class="d-flex justify-content-between align-items-center">
+                <!-- Column 2: Manage Users -->
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-between">
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark mb-1">Manage Users</h6>
+                            <p class="text-muted small mb-0" style="font-size: 0.84rem; line-height: 1.45;">
+                                View registered general users and reviewers, manage profiles, add accounts, and control
+                                system access.
+                            </p>
+                        </div>
                         <div>
-                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Registered Users</small>
-                            <h3 class="fw-bold text-dark mb-0 mt-1">{{ total_users }}</h3>
-                        </div>
-                        <div class="bg-info-subtle p-3 rounded-3 text-info">
-                            <i class="fa-solid fa-users fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2 pt-2 border-top">
-                        <span class="small text-info fw-semibold">Manage RBAC Roles &rarr;</span>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <!-- Pending Moderation Flags -->
-        <div class="col-sm-6 col-xl-3">
-            <a href="{% url 'admin_flagged_content' %}" class="text-decoration-none">
-                <div class="card p-3 shadow-sm h-100 border-start border-4 border-danger">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Pending Product Flags</small>
-                            <h3 class="fw-bold text-danger mb-0 mt-1">{{ pending_product_flags }}</h3>
-                        </div>
-                        <div class="bg-danger-subtle p-3 rounded-3 text-danger">
-                            <i class="fa-solid fa-flag fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2 pt-2 border-top">
-                        <span class="small text-danger fw-semibold">Moderation Queue &rarr;</span>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <!-- Flagged Reviews Queue -->
-        <div class="col-sm-6 col-xl-3">
-            <a href="{% url 'admin_flagged_content' %}?tab=reviews" class="text-decoration-none">
-                <div class="card p-3 shadow-sm h-100 border-start border-4 border-warning">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">ML Flagged Reviews</small>
-                            <h3 class="fw-bold text-warning mb-0 mt-1">{{ flagged_reviews_count }}</h3>
-                        </div>
-                        <div class="bg-warning-subtle p-3 rounded-3 text-warning">
-                            <i class="fa-solid fa-triangle-exclamation fs-4"></i>
-                        </div>
-                    </div>
-                    <div class="mt-2 pt-2 border-top">
-                        <span class="small text-warning fw-semibold">Inspect Anomalies &rarr;</span>
-                    </div>
-                </div>
-            </a>
-        </div>
-    </div>
-
-    <!-- Review Classification Breakdown & ML Benchmarks -->
-    <div class="row g-4">
-        
-        <!-- Total Reviews Analyzed & Authenticity Split -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-magnifying-glass-chart text-primary me-2"></i>Review Classifications Distribution
-                        </h6>
-                        <small class="text-muted">Total Reviews Evaluated: <strong>{{ total_reviews }}</strong></small>
-                    </div>
-                </div>
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge-genuine small"><i class="fa-solid fa-check"></i></span>
-                            <span class="fw-semibold text-dark">Predicted Genuine Reviews</span>
-                        </div>
-                        <span class="badge bg-success-subtle text-success fs-6 px-3">{{ genuine_reviews_count }}</span>
-                    </div>
-
-
-                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge-fake small"><i class="fa-solid fa-ban"></i></span>
-                            <span class="fw-semibold text-dark">Predicted Fake / Manipulated</span>
-                        </div>
-                        <span class="badge bg-danger-subtle text-danger fs-6 px-3">{{ fake_reviews_count }}</span>
-                    </div>
-
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-danger-subtle text-danger small"><i class="fa-solid fa-bell"></i></span>
-                            <span class="fw-semibold text-dark">Active System Anomaly Alerts</span>
-                        </div>
-                        <span class="badge bg-light text-dark border fs-6 px-3">{{ active_alerts_count }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Empirical ML Performance Summary -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-brain text-success me-2"></i>Core ML Engine Performance
-                        </h6>
-                        <small class="text-muted">Empirical 5-fold cross-validated benchmarks</small>
-                    </div>
-                    <a href="{% url 'admin_model_metrics' %}" class="btn btn-sm btn-outline-success">Full Metrics</a>
-                </div>
-                <div class="card-body p-4">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold text-dark small">Linear Support Vector Classifier (LinearSVC)</span>
-                            <span class="badge bg-success small">{{ svm_acc }} Accuracy</span>
-                        </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-success" style="width: 98.4%;"></div>
-                        </div>
-                        <small class="text-muted" style="font-size: 0.75rem;">Calibrated probability outputs &bull; TF-IDF N-grams (1,2) &bull; Sublinear TF</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold text-dark small">J-48 Decision Tree (C4.5)</span>
-                            <span class="badge bg-primary small">{{ j48_acc }} Accuracy</span>
-                        </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-primary" style="width: 95.8%;"></div>
-                        </div>
-                        <small class="text-muted" style="font-size: 0.75rem;">Entropy criterion &bull; 8 Behavioral metadata & sentiment features</small>
-                    </div>
-
-                    <div class="p-3 bg-light rounded-3 border">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong class="small text-dark d-block">Configured Detection Weights:</strong>
-                                <span class="text-muted small">SVM: <strong>{{ system_config.svm_weight }}</strong> &bull; J48: <strong>{{ system_config.j48_weight }}</strong> &bull; Sentiment: <strong>{{ system_config.sentiment_weight }}</strong></span>
-                            </div>
-                            <a href="{% url 'admin_settings' %}" class="btn btn-outline-secondary btn-sm py-1 px-2">Edit</a>
+                            <a href="{% url 'admin_users' %}" class="btn btn-outline-dark px-4 fw-semibold bg-white">
+                                Manage Users
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Recent Activity & Flagged Queue Feeds -->
-    <div class="row g-4">
-        
-        <!-- User Product Flag Reports -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-flag text-danger me-2"></i>Recent User Flag Reports
-                        </h6>
-                        <small class="text-muted">Content reported for abuse, adult content, or fraud</small>
-                    </div>
-                    <a href="{% url 'admin_flagged_content' %}" class="btn btn-sm btn-outline-danger">Queue ({{ pending_product_flags }})</a>
-                </div>
-                <div class="card-body p-0">
-                    {% if recent_flags %}
-                        <div class="list-group list-group-flush">
-                            {% for f in recent_flags %}
-                                <div class="list-group-item p-3">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <span class="badge bg-danger-subtle text-danger small mb-1">{{ f.get_category_display }}</span>
-                                            <strong class="text-dark small d-block">{{ f.product.name }}</strong>
-                                            <p class="text-muted small mb-0 mt-1">{{ f.details|default:"No details provided." }}</p>
-                                            <small class="text-muted" style="font-size: 0.72rem;">Reported by {{ f.user.username }} &bull; {{ f.created_at|timesince }} ago</small>
+    <!-- Recent Alerts Block -->
+    <div class="card shadow-sm border rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <div>
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-bell text-danger me-2"></i>Recent System Alerts
+                </h6>
+                <small class="text-muted">Live fake review surges, suspicious IP velocity bursts, and authenticity
+                    anomalies</small>
+            </div>
+            <a href="{% url 'admin_alerts' %}" class="btn btn-sm btn-outline-primary fw-semibold px-3">
+                View All ({{ total_alerts_count }})
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_alerts %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4" style="width: 30%;">Product</th>
+                            <th style="width: 30%;">Message</th>
+                            <th class="text-center" style="width: 20%;">Alert Type</th>
+                            <th class="text-center" style="width: 10%;">Date</th>
+                            <th class="text-start pe-4" style="width: 10%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in recent_alerts %}
+                        <tr>
+                            <!-- Product Column -->
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="{{ alert.product.display_image }}" alt="{{ alert.product.name }}"
+                                        class="rounded-3 border flex-shrink-0"
+                                        style="width: 44px; height: 44px; object-fit: cover;">
+                                    <div class="min-w-0">
+                                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                            <a href="{% url 'product_detail' alert.product.pk %}"
+                                                class="text-decoration-none text-dark fw-bold text-truncate d-inline-block"
+                                                style="max-width: 260px; font-size: 0.85rem;"
+                                                title="{{ alert.product.name }}">
+                                                {{ alert.product.name }}
+                                            </a>
                                         </div>
-                                        <span class="badge bg-light text-dark border small">{{ f.get_status_display }}</span>
+                                        <p class="text-muted mb-0 text-truncate"
+                                            style="max-width: 260px; font-size: 0.775rem;">
+                                            {{ alert.product.description|default:"No Description Available" }}
+                                        </p>
                                     </div>
                                 </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4 text-muted small">
-                            <i class="fa-solid fa-check text-success fs-2 mb-2"></i>
-                            <p class="mb-0">No active product flags. All clear!</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+                            </td>
 
-        <!-- Recent Reviews Evaluated -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100 border">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Recent Evaluated Reviews
-                        </h6>
-                        <small class="text-muted">Latest reviews processed across the platform</small>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    {% if recent_reviews %}
-                        <div class="list-group list-group-flush">
-                            {% for r in recent_reviews %}
-                                <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong class="text-dark small d-block">{{ r.product.name }}</strong>
-                                        <p class="text-muted small mb-0 text-truncate" style="max-width: 280px;">{{ r.text }}</p>
-                                        <small class="text-muted" style="font-size: 0.72rem;">By {{ r.user.username|default:"Anonymous" }} &bull; {{ r.created_at|timesince }} ago</small>
-                                    </div>
-                                    <div class="text-end">
-                                        {% if r.label == 'Genuine' %}
-                                            <span class="badge-genuine small d-block mb-1">Genuine</span>
-                                        {% else %}
-                                            <span class="badge-fake small d-block mb-1">Fake</span>
-                                        {% endif %}
-                                        <span class="score-pill {% if r.final_score >= 50 %}score-pill-high{% else %}score-pill-low{% endif %}" style="font-size: 0.75rem;">
-                                            {{ r.final_score }}%
-                                        </span>
-                                    </div>
+                            <!-- Message Column -->
+                            <td class="py-3">
+                                <p class="mb-0 text-dark small" style="line-height: 1.45; font-size: 0.825rem;">
+                                    {{ alert.message }}
+                                </p>
+                            </td>
+
+                            <!-- Alert Type Badge -->
+                            <td class="text-center py-3">
+                                {% if alert.type == 'fake_spike' %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    Fake Review Spike
+                                </span>
+                                {% elif alert.type == 'ip_burst' %}
+                                <span class="small fw-semibold">
+                                    Suspicious IP Burst
+                                </span>
+                                {% elif alert.type == 'low_authenticity' %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    Low Authenticity
+                                </span>
+                                {% elif alert.type == 'sentiment_mismatch' %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    Rating Discrepancy
+                                </span>
+                                {% else %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    {{ alert.get_type_display }}
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Date Column -->
+                            <td class="text-center py-3 text-nowrap">
+                                <span class="text-muted small" style="font-size: 0.8rem;"
+                                    title="{{ alert.created_at|date:'M d, Y H:i' }}">
+                                    {{ alert.created_at}}
+                                </span>
+                            </td>
+
+                            <!-- Action Column -->
+                            <td class="text-start pe-4 py-3">
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    {% if not alert.is_read %}
+                                    <form method="POST" action="{% url 'mark_alert_read' alert.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-primary px-3 fw-semibold text-nowrap">
+                                            Mark as Reviewed
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form method="POST" action="{% url 'delete_alert' alert.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger px-3 fw-semibold text-nowrap"
+                                                data-confirm="Are you sure you want to delete this alert?"
+                                                data-confirm-title="Delete Alert"
+                                                data-confirm-btn="Delete"
+                                                title="Delete this alert">
+                                            Delete
+                                        </button>
+                                    </form>
+                                    {% endif %}
                                 </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4 text-muted small">
-                            <p class="mb-0">No reviews found.</p>
-                        </div>
-                    {% endif %}
-                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% else %}
+            <div class="text-center py-5 px-3">
+                <i class="fa-regular fa-bell-slash text-muted fs-1 mb-3"></i>
+                <h6 class="fw-bold text-dark">No System Alerts Detected</h6>
+                <p class="text-muted small mb-0">All monitored catalog products and incoming reviews are currently
+                    within normal authenticity thresholds.</p>
+            </div>
+            {% endif %}
         </div>
-
     </div>
 
 </div>
 {% endblock %}
-

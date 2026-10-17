@@ -7,6 +7,8 @@ urlpatterns = [
     path('saved-products/', views.saved_products_view, name='saved_products'),
     path('monitored-products/', views.monitored_products_view, name='monitored_products'),
     path('alerts/', views.user_alerts_view, name='user_alerts'),
+    path('admin-alerts/', views.user_alerts_view, name='admin_alerts'),
+    path('alerts-all/', views.user_alerts_view, name='alerts'),
     path('my-analytics/', views.user_personal_analytics, name='user_personal_analytics'),
     
     # Reviewer Dashboard & Subpages

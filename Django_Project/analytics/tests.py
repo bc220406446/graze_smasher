@@ -214,7 +214,7 @@ class AnalyticsViewsTestCase(TestCase):
         self.client.force_login(self.user)
         res = self.client.get('/dashboard/')
         self.assertEqual(res.status_code, 200)
-        self.assertContains(res, "Monitored Products")
+        self.assertContains(res, "Recent System Alerts")
 
     def test_mark_alert_read_and_delete_alert(self):
         """Test marking an alert as read and then deleting it."""

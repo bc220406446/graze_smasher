@@ -66,98 +66,122 @@
         </div>
     </div>
 
-    <!-- Monitored Products Block -->
+    <!-- Recent Alerts Block -->
     <div class="card shadow-sm border rounded-4 overflow-hidden">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
             <div>
                 <h6 class="fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-shield-halved text-primary me-2"></i>Monitored Products
+                    <i class="fa-solid fa-bell text-danger me-2"></i>Recent System Alerts
                 </h6>
-                <small class="text-muted">Live authenticity ratings and anomaly detection for items on your watchlist</small>
+                <small class="text-muted">Live fake review surges, suspicious IP velocity bursts, and authenticity
+                    anomalies</small>
             </div>
-            <a href="{% url 'monitored_products' %}" class="btn btn-sm btn-outline-primary fw-semibold px-3">
-                View All ({{ monitored_count }})
+            <a href="{% url 'user_alerts' %}" class="btn btn-sm btn-outline-primary fw-semibold px-3">
+                View All ({{ total_alerts_count }})
             </a>
         </div>
         <div class="card-body p-0">
-            {% if saved_products %}
+            {% if recent_alerts %}
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-4" style="width: 48%;">Name &amp; Description</th>
-                            <th class="text-center" style="width: 16%;">Authenticity</th>
-                            <th class="text-center" style="width: 14%;">Alerts</th>
-                            <th class="text-start ps-3" style="width: 22%;">Action</th>
+                            <th class="ps-4" style="width: 30%;">Product</th>
+                            <th style="width: 30%;">Message</th>
+                            <th class="text-center" style="width: 20%;">Alert Type</th>
+                            <th class="text-center" style="width: 10%;">Date</th>
+                            <th class="text-start pe-4" style="width: 10%;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for product in saved_products %}
+                        {% for alert in recent_alerts %}
                         <tr>
-                            <!-- Name and Description Below That (With Refined Compact Font Sizes) -->
+                            <!-- Product Column -->
                             <td class="ps-4 py-3">
-                                <div class="d-flex align-items-start gap-3">
-                                    <img src="{{ product.display_image }}" alt="{{ product.name }}"
-                                         class="rounded-3 border flex-shrink-0"
-                                         style="width: 44px; height: 44px; object-fit: cover;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="{{ alert.product.display_image }}" alt="{{ alert.product.name }}"
+                                        class="rounded-3 border flex-shrink-0"
+                                        style="width: 44px; height: 44px; object-fit: cover;">
                                     <div class="min-w-0">
                                         <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                            <a href="{% url 'product_detail' product.pk %}"
-                                               class="text-decoration-none text-dark fw-bold text-truncate d-inline-block"
-                                               style="max-width: 320px; font-size: 0.85rem;" title="{{ product.name }}">
-                                                {{ product.name }}
+                                            <a href="{% url 'product_detail' alert.product.pk %}"
+                                                class="text-decoration-none text-dark fw-bold text-truncate d-inline-block"
+                                                style="max-width: 260px; font-size: 0.85rem;"
+                                                title="{{ alert.product.name }}">
+                                                {{ alert.product.name }}
                                             </a>
                                         </div>
                                         <p class="text-muted mb-0 text-truncate"
-                                           style="max-width: 380px; font-size: 0.775rem; line-height: 1.35;">
-                                            {{ product.description|default:"No product description available." }}
+                                            style="max-width: 260px; font-size: 0.775rem;">
+                                            {{ alert.product.description|default:"No Description Available" }}
                                         </p>
                                     </div>
                                 </div>
                             </td>
 
-                            <!-- Authenticity -->
-                            <td class="text-center py-3">
-                                {% with score=product.overall_authenticity_score %}
-                                <div class="d-flex flex-column align-items-center gap-1">
-                                    <span class="score-pill {% if score >= 50 %}score-pill-high{% else %}score-pill-low{% endif %}">
-                                        {{ score }}%
-                                    </span>
-                                </div>
-                                {% endwith %}
+                            <!-- Message Column -->
+                            <td class="py-3">
+                                <p class="mb-0 text-dark small" style="line-height: 1.45; font-size: 0.825rem;">
+                                    {{ alert.message }}
+                                </p>
                             </td>
 
-                            <!-- Alerts: Displaying Total Alerts Count only (Clickable to forward to alerts) -->
+                            <!-- Alert Type Badge -->
                             <td class="text-center py-3">
-                                <a href="{% url 'user_alerts' %}" class="text-decoration-none">
-                                    {% if product.total_alerts_count > 0 %}
-                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 small fw-semibold">
-                                        {{ product.total_alerts_count }} alert{{ product.total_alerts_count|pluralize }}
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-light text-muted border px-2 py-1 small">
-                                        0 alerts
-                                    </span>
-                                    {% endif %}
-                                </a>
+                                {% if alert.type == 'fake_spike' %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    Fake Review Spike
+                                </span>
+                                {% elif alert.type == 'ip_burst' %}
+                                <span class="small fw-semibold">
+                                    Suspicious IP Burst
+                                </span>
+                                {% elif alert.type == 'low_authenticity' %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    Low Authenticity
+                                </span>
+                                {% elif alert.type == 'sentiment_mismatch' %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    Rating Discrepancy
+                                </span>
+                                {% else %}
+                                <span class="px-2 py-1 small fw-semibold">
+                                    {{ alert.get_type_display }}
+                                </span>
+                                {% endif %}
                             </td>
 
-                            <!-- Action: View Detail and Unmonitor (Left-aligned, clean buttons without icons before titles) -->
-                            <td class="text-start ps-3 py-3">
+                            <!-- Date Column -->
+                            <td class="text-center py-3 text-nowrap">
+                                <span class="text-muted small" style="font-size: 0.8rem;"
+                                    title="{{ alert.created_at|date:'M d, Y H:i' }}">
+                                    {{ alert.created_at}}
+                                </span>
+                            </td>
+
+                            <!-- Action Column -->
+                            <td class="text-start pe-4 py-3">
                                 <div class="d-inline-flex align-items-center gap-2">
-                                    <a href="{% url 'product_detail' product.pk %}"
-                                       class="btn btn-sm btn-outline-primary px-3 fw-semibold text-nowrap"
-                                       title="View Product Analysis &amp; Detail">
-                                        View Detail
-                                    </a>
-                                    <form action="{% url 'toggle_save_product' product.pk %}" method="POST" class="d-inline">
+                                    {% if not alert.is_read %}
+                                    <form method="POST" action="{% url 'mark_alert_read' alert.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-primary px-3 fw-semibold text-nowrap">
+                                            Mark as Reviewed
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <form method="POST" action="{% url 'delete_alert' alert.id %}" class="d-inline">
                                         {% csrf_token %}
                                         <button type="submit"
                                                 class="btn btn-sm btn-outline-danger px-3 fw-semibold text-nowrap"
-                                                title="Remove this product from your monitored watchlist">
-                                            Unmonitor
+                                                data-confirm="Are you sure you want to delete this alert?"
+                                                data-confirm-title="Delete Alert"
+                                                data-confirm-btn="Delete"
+                                                title="Delete this alert">
+                                            Delete
                                         </button>
                                     </form>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -167,12 +191,10 @@
             </div>
             {% else %}
             <div class="text-center py-5 px-3">
-                <i class="fa-regular fa-bookmark text-muted fs-1 mb-3"></i>
-                <h6 class="fw-bold text-dark">No Products Monitored Yet</h6>
-                <p class="text-muted small mb-3">Browse our product catalog and click the save button to track authenticity scores and alerts.</p>
-                <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm px-4 fw-semibold">
-                    Explore Products
-                </a>
+                <i class="fa-regular fa-bell-slash text-muted fs-1 mb-3"></i>
+                <h6 class="fw-bold text-dark">No System Alerts Detected</h6>
+                <p class="text-muted small mb-0">All monitored catalog products and incoming reviews are currently
+                    within normal authenticity thresholds.</p>
             </div>
             {% endif %}
         </div>
