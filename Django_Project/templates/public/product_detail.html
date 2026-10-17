@@ -40,10 +40,16 @@
                         <i class="fa-solid fa-gear me-1"></i> Manage Product
                     </a>
                 {% elif user.profile.role == 'reviewer' %}
-                    <!-- Reviewer Role: Add Review (Modal) -->
+                    <!-- Reviewer Role: Add Review (Modal) or Already Reviewed status -->
+                    {% if has_reviewed %}
+                    <button type="button" class="btn btn-secondary btn-sm px-3 fw-semibold shadow-xs" disabled title="You have already submitted a review for this product">
+                        <i class="fa-solid fa-check me-1"></i> Already Reviewed
+                    </button>
+                    {% else %}
                     <button type="button" class="btn btn-primary btn-sm px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#submitReviewModal">
                         <i class="fa-solid fa-pen-to-square me-1"></i> Add Review
                     </button>
+                    {% endif %}
                 {% else %}
                     <!-- General User Role: Add to Watchlist + Report -->
                     <form action="{% url 'toggle_save_product' product.pk %}" method="POST" class="d-inline">
@@ -364,7 +370,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold text-dark">Review Copy</label>
                         <textarea name="text" rows="5" class="form-control" placeholder="Write your authentic product experience here..." required></textarea>
-                        <div class="form-text small">Your review will be analyzed in real time by the LinearSVC & J-48 ensemble pipeline.</div>
+                        <div class="form-text small">Your review will be analyzed in real time by the LinearSVC, J-48 Decision Tree, and Sentiment Analysis pipeline.</div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">

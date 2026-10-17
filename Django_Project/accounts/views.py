@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import UserRegistrationForm, UserProfileUpdateForm
+from .forms import UserRegistrationForm, UserProfileUpdateForm, EmailLoginForm
 from .models import UserProfile
 
 
@@ -17,16 +17,9 @@ def register_view(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.save()
-            
-            # Update role on profile (created via post_save signal)
-            profile = user.profile
-            profile.role = form.cleaned_data.get('role', UserProfile.ROLE_GENERAL)
-            profile.save()
-            
-            messages.success(request, f"Account created successfully for {user.username}! You can now log in.")
+            user = form.save()
+            display_name = user.get_full_name() or user.email
+            messages.success(request, f"Account created successfully for {display_name}! You can now log in.")
             return redirect('login')
     else:
         form = UserRegistrationForm()
@@ -39,22 +32,25 @@ def login_view(request):
         return redirect(get_role_dashboard_name(request.user))
         
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
+        form = EmailLoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+            user = authenticate(request, username=email, password=password)
             if user is not None:
                 login(request, user)
-                messages.success(request, f"Welcome back, {user.username}!")
+                display_name = user.get_full_name() or user.email
+                messages.success(request, f"Welcome back, {display_name}!")
                 next_url = request.GET.get('next')
                 if next_url and next_url not in ['/', '/accounts/login/', '/accounts/register/']:
                     return redirect(next_url)
                 return redirect(get_role_dashboard_name(user))
+            else:
+                form.add_error(None, "Invalid email address or password. Please try again.")
         else:
-            messages.error(request, "Invalid username or password. Please try again.")
+            messages.error(request, "Please enter a valid email address and password.")
     else:
-        form = AuthenticationForm()
+        form = EmailLoginForm()
         
     return render(request, 'auth/login.html', {'form': form})
 

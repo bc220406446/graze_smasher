@@ -150,3 +150,44 @@ class RBACPermissionsTestCase(TestCase):
         review.refresh_from_db()
         self.assertEqual(review.label, Review.LABEL_GENUINE)
         self.assertGreaterEqual(review.final_score, 70.0)
+
+    def test_registration_with_fullname_and_email(self):
+        """User registers using Full Name, Email, Role, and matching Passwords (no username)."""
+        res = self.client.post('/accounts/register/', {
+            'full_name': 'Jane Doe',
+            'email': 'jane.doe@example.com',
+            'role': UserProfile.ROLE_REVIEWER,
+            'password': 'SecurePassword123!',
+            'confirm_password': 'SecurePassword123!',
+        }, follow=True)
+        self.assertEqual(res.status_code, 200)
+
+        user = User.objects.get(email='jane.doe@example.com')
+        self.assertEqual(user.first_name, 'Jane')
+        self.assertEqual(user.last_name, 'Doe')
+        self.assertEqual(user.profile.role, UserProfile.ROLE_REVIEWER)
+        self.assertTrue(user.check_password('SecurePassword123!'))
+
+    def test_email_login_success(self):
+        """User logs in using their email address and password."""
+        User.objects.create_user(
+            username='user_login@example.com',
+            email='user_login@example.com',
+            password='UserPass123!'
+        )
+        res = self.client.post('/accounts/login/', {
+            'email': 'user_login@example.com',
+            'password': 'UserPass123!'
+        }, follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res.context['user'].is_authenticated)
+        self.assertEqual(res.context['user'].email, 'user_login@example.com')
+
+    def test_email_login_invalid_credentials(self):
+        """Invalid email or password returns an error message."""
+        res = self.client.post('/accounts/login/', {
+            'email': 'nonexistent@example.com',
+            'password': 'WrongPassword123'
+        })
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "Invalid email address or password")

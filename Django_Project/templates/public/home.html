@@ -24,8 +24,7 @@
                     style="font-family: var(--font-body); font-size: 1.15rem; line-height: 1.6;">
                     Graze Smasher empowers e-commerce hunters and smart consumers to identify astroturfing campaigns,
                     fake reviewer rings, and deceptive star ratings using an empirical machine learning ensemble of
-                    <strong>LinearSVC</strong>, <strong>J-48 Decision Trees</strong>, and <strong>IP Velocity</strong>
-                    heuristics.
+                    <strong>LinearSVC</strong>, <strong>J-48 Decision Trees</strong>, and <strong>Sentiment Classification</strong>.
                 </p>
 
                 <!-- Action CTAs -->
@@ -132,10 +131,10 @@
                             style="width: 36px; height: 36px;">3</span>
                         <span class="text-muted small font-monospace">Phase 03</span>
                     </div>
-                    <h5 class="fw-bold mb-2">Dual-Model Inference</h5>
+                    <h5 class="fw-bold mb-2">Multi-Model Inference</h5>
                     <p class="text-muted small mb-0">
-                        Evaluates vectorized data concurrently through <strong>LinearSVC</strong> hyperplane separation
-                        and <strong>J-48 (C4.5)</strong> entropy decision trees with IP velocity checks.
+                        Evaluates vectorized text concurrently through <strong>LinearSVC</strong> hyperplane separation,
+                        <strong>J-48 (C4.5)</strong> entropy decision trees, and <strong>Sentiment Polarity</strong> divergence analysis.
                     </p>
                 </div>
             </div>
@@ -151,7 +150,7 @@
                     </div>
                     <h5 class="fw-bold mb-2">Scoring & Pure Rating</h5>
                     <p class="text-muted small mb-0">
-                        Generates a 0–100% Authenticity Score, tags the review as <em>Genuine</em>,Want to test custom review copy live
+                        Generates a 0–100% Authenticity Score combining SVM (50%), J-48 (30%), and Sentiment (20%), tags the review as <em>Genuine</em>
                         or <em>Fake</em>, updates product community trust, and dispatches alerts.
                     </p>
                 </div>
@@ -165,7 +164,7 @@
             <div><i class="fa-solid fa-arrow-right text-muted"></i></div>
             <div class="flex-grow-1"><i class="fa-solid fa-code text-info me-1"></i> TF-IDF & Sentiment Vector</div>
             <div><i class="fa-solid fa-arrow-right text-muted"></i></div>
-            <div class="flex-grow-1"><i class="fa-solid fa-brain text-warning me-1"></i> LinearSVC + J-48 Inference
+            <div class="flex-grow-1"><i class="fa-solid fa-brain text-warning me-1"></i> SVM + J-48 + Sentiment ML
             </div>
             <div><i class="fa-solid fa-arrow-right text-muted"></i></div>
             <div class="flex-grow-1"><i class="fa-solid fa-shield-halved text-success me-1"></i> 0-100% Authenticity

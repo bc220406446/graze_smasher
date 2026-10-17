@@ -5,7 +5,7 @@
 {% block dashboard_content %}
 <div class="d-flex flex-column gap-4">
 
-    <!-- Welcome & Action Header -->
+    <!-- Welcome Block -->
     <div class="card p-4 workspace-banner">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
@@ -13,239 +13,168 @@
                     Welcome back, {{ request.user.username }}!
                 </h3>
                 <p class="text-muted small mb-0">
-                    Monitor e-commerce product authenticity, receive anomaly alerts, and submit items for AI fake review
-                    verification.
+                    Monitor e-commerce product authenticity, receive anomaly alerts, and submit items for AI fake review verification.
                 </p>
             </div>
         </div>
     </div>
 
-    <!-- Summary Statistics KPI Cards -->
-    <div class="row g-3">
-        <!-- Monitored / Saved Products -->
-        <div class="col-sm-6 col-xl-3">
-            <div class="card p-3 shadow-sm h-100 border-start border-4 border-primary">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Saved
-                            Products</small>
-                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ saved_count }}</h3>
-                    </div>
-                </div>
-                <div class="mt-2 pt-2 border-top">
-                    <a href="{% url 'saved_products' %}" class="small text-decoration-none text-primary fw-semibold">
-                        View Watchlist &rarr;
-                    </a>
-                </div>
-            </div>
+    <!-- Quick Actions Block (Full Width with Proper Heading like Monitored Block) -->
+    <div class="card shadow-sm border rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="fw-bold text-dark mb-0">
+                <i class="fa-solid fa-bolt text-primary me-2"></i>Quick Actions
+            </h6>
+            <small class="text-muted">Browse the verified catalog or inspect detection analytics</small>
         </div>
-
-        <!-- Average Authenticity Score -->
-        <div class="col-sm-6 col-xl-3">
-            <div class="card p-3 shadow-sm h-100 border-start border-4 border-success">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Avg
-                            Authenticity</small>
-                        <h3
-                            class="fw-bold mb-0 mt-1 {% if avg_saved_score >= 70 %}text-success{% elif avg_saved_score >= 40 %}text-warning{% else %}text-danger{% endif %}">
-                            {{ avg_saved_score }}%
-                        </h3>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <!-- Column 1: Explore Products -->
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-between">
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark mb-1">Browse Catalog Products</h6>
+                            <p class="text-muted small mb-0" style="font-size: 0.84rem; line-height: 1.45;">
+                                Discover trending e-commerce items, review genuine feedback, and add new products to your monitoring watchlist.
+                            </p>
+                        </div>
+                        <div>
+                            <a href="{% url 'product_list' %}" class="btn btn-primary px-4 fw-semibold shadow-xs">
+                                Explore Products
+                            </a>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-2 pt-2 border-top">
-                    <span class="small text-muted">
-                        {% if avg_saved_score >= 70 %}
-                        <i class="fa-solid fa-circle-check text-success me-1"></i>Healthy Trust Index
-                        {% elif avg_saved_score >= 40 %}
-                        <i class="fa-solid fa-circle-exclamation text-warning me-1"></i>Moderate Alert Risk
-                        {% else %}
-                        <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i>High Risk Detected
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
-        </div>
 
-        <!-- Unread Anomaly Alerts -->
-        <div class="col-sm-6 col-xl-3">
-            <div class="card p-3 shadow-sm h-100 border-start border-4 border-warning">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">Active
-                            Alerts</small>
-                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ unread_alerts_count }}</h3>
+                <!-- Column 2: View Analytics -->
+                <div class="col-md-6">
+                    <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-between">
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark mb-1">Authenticity &amp; Accuracy Reports</h6>
+                            <p class="text-muted small mb-0" style="font-size: 0.84rem; line-height: 1.45;">
+                                Inspect overall trust distribution, machine learning model benchmarks, and personalized detection metrics.
+                            </p>
+                        </div>
+                        <div>
+                            <a href="{% url 'user_personal_analytics' %}" class="btn btn-outline-dark px-4 fw-semibold bg-white">
+                                View Analytics
+                            </a>
+                        </div>
                     </div>
-                </div>
-                <div class="mt-2 pt-2 border-top">
-                    <a href="{% url 'user_alerts' %}" class="small text-decoration-none text-warning fw-semibold">
-                        View Alerts Queue &rarr;
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Submitted Products -->
-        <div class="col-sm-6 col-xl-3">
-            <div class="card p-3 shadow-sm h-100 border-start border-4 border-info">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.72rem;">My
-                            Products</small>
-                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ created_count }}</h3>
-                    </div>
-                </div>
-                <div class="mt-2 pt-2 border-top">
-                    <a href="{% url 'product_create' %}" class="small text-decoration-none text-info fw-semibold">
-                        + Submit Another &rarr;
-                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Middle Section: Monitored Products & Authenticity Trend Chart -->
-    <div class="row g-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-shield-halved text-primary me-2"></i>Monitored Products
-                    </h6>
-                    <small class="text-muted">Live authenticity ratings for items on your watchlist</small>
-                </div>
-                <a href="{% url 'saved_products' %}" class="btn btn-sm btn-outline-primary">
-                    View All ({{ saved_count }})
-                </a>
+    <!-- Monitored Products Block -->
+    <div class="card shadow-sm border rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <div>
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-shield-halved text-primary me-2"></i>Monitored Products
+                </h6>
+                <small class="text-muted">Live authenticity ratings and anomaly detection for items on your watchlist</small>
             </div>
-            <div class="card-body p-0">
-                {% if saved_products %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light small">
-                            <tr>
-                                <th style="width: 50%;">Product</th>
-                                <th>Platform</th>
-                                <th>Score</th>
-                                <th>Status</th>
-                                <th class="text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in saved_products %}
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <img src="{{ product.display_image }}" alt="{{ product.name }}"
-                                            class="rounded border"
-                                            style="width: 42px; height: 42px; object-fit: cover;">
-                                        <div>
+            <a href="{% url 'saved_products' %}" class="btn btn-sm btn-outline-primary fw-semibold px-3">
+                View All ({{ saved_count }})
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if saved_products %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4" style="width: 48%;">Name &amp; Description</th>
+                            <th class="text-center" style="width: 16%;">Authenticity</th>
+                            <th class="text-center" style="width: 14%;">Alerts</th>
+                            <th class="text-end pe-4" style="width: 22%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in saved_products %}
+                        <tr>
+                            <!-- Name and Description Below That (With Refined Compact Font Sizes) -->
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-start gap-3">
+                                    <img src="{{ product.display_image }}" alt="{{ product.name }}"
+                                         class="rounded-3 border flex-shrink-0"
+                                         style="width: 44px; height: 44px; object-fit: cover;">
+                                    <div class="min-w-0">
+                                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                                             <a href="{% url 'product_detail' product.pk %}"
-                                                class="text-decoration-none text-dark fw-semibold small d-block text-truncate"
-                                                style="max-width: 200px;">
+                                               class="text-decoration-none text-dark fw-bold text-truncate d-inline-block"
+                                               style="max-width: 320px; font-size: 0.85rem;" title="{{ product.name }}">
                                                 {{ product.name }}
                                             </a>
-                                            <small class="text-muted" style="font-size: 0.75rem;">{{
-                                                product.review_count }} reviews</small>
                                         </div>
+                                        <p class="text-muted mb-0 text-truncate"
+                                           style="max-width: 380px; font-size: 0.775rem; line-height: 1.35;">
+                                            {{ product.description|default:"No product description available." }}
+                                        </p>
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border">{{ product.platform }}</span>
-                                </td>
-                                <td>
-                                    {% with score=product.overall_authenticity_score %}
-                                    <span
-                                        class="score-pill {% if score >= 70 %}score-pill-high{% elif score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %}">
+                                </div>
+                            </td>
+
+                            <!-- Authenticity -->
+                            <td class="text-center py-3">
+                                {% with score=product.overall_authenticity_score %}
+                                <div class="d-flex flex-column align-items-center gap-1">
+                                    <span class="score-pill {% if score >= 50 %}score-pill-high{% else %}score-pill-low{% endif %}">
                                         {{ score }}%
                                     </span>
-                                    {% endwith %}
-                                </td>
-                                <td>
-                                    {% with label=product.authenticity_label %}
-                                    {% if label == 'Genuine' %}
-                                    <span class="badge-genuine small"><i
-                                            class="fa-solid fa-check me-1"></i>Genuine</span>
-                                    {% elif label == 'Suspicious' %}
-                                    <span class="badge-suspicious small"><i
-                                            class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious</span>
-                                    {% else %}
-                                    <span class="badge-fake small"><i
-                                            class="fa-solid fa-xmark me-1"></i>Manipulated</span>
-                                    {% endif %}
-                                    {% endwith %}
-                                </td>
-                                <td class="text-end">
+                                </div>
+                                {% endwith %}
+                            </td>
+
+                            <!-- Alerts: Displaying Total Alerts Count only (e.g. "0 alerts", "1 alert", "2 alerts") -->
+                            <td class="text-center py-3">
+                                {% if product.total_alerts_count > 0 %}
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 small fw-semibold">
+                                    {{ product.total_alerts_count }} alert{{ product.total_alerts_count|pluralize }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-light text-muted border px-2 py-1 small">
+                                    0 alerts
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Action: View Detail and Unmonitor (Clean buttons without icons before titles) -->
+                            <td class="text-end pe-4 py-3">
+                                <div class="d-inline-flex align-items-center gap-2">
                                     <a href="{% url 'product_detail' product.pk %}"
-                                        class="btn btn-sm btn-outline-secondary py-1 px-2" title="View Analysis">
-                                        <i class="fa-solid fa-arrow-right"></i>
+                                       class="btn btn-sm btn-outline-primary px-3 fw-semibold text-nowrap"
+                                       title="View Product Analysis &amp; Detail">
+                                        View Detail
                                     </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-5 px-3">
-                    <i class="fa-regular fa-bookmark text-muted fs-1 mb-3"></i>
-                    <h6 class="fw-bold text-dark">No Products Saved Yet</h6>
-                    <p class="text-muted small mb-3">Browse our product catalog and click the save button to track
-                        authenticity scores.</p>
-                    <a href="{% url 'product_list' %}" class="btn btn-outline-primary btn-sm">
-                        <i class="fa-solid fa-compass me-1"></i> Explore Catalog
-                    </a>
-                </div>
-                {% endif %}
+                                    <form action="{% url 'toggle_save_product' product.pk %}" method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger px-3 fw-semibold text-nowrap"
+                                                title="Remove this product from your monitored watchlist">
+                                            Unmonitor
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% else %}
+            <div class="text-center py-5 px-3">
+                <i class="fa-regular fa-bookmark text-muted fs-1 mb-3"></i>
+                <h6 class="fw-bold text-dark">No Products Monitored Yet</h6>
+                <p class="text-muted small mb-3">Browse our product catalog and click the save button to track authenticity scores and alerts.</p>
+                <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm px-4 fw-semibold">
+                    Explore Products
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
+
 </div>
-{% endblock %}
-
-{% block extra_js %}
-{% if saved_products %}
-{{ chart_labels|json_script:"dashboardChartLabels" }}
-{{ chart_scores|json_script:"dashboardChartScores" }}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const canvas = document.getElementById('savedProductsChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const labels = JSON.parse(document.getElementById('dashboardChartLabels').textContent);
-    const scores = JSON.parse(document.getElementById('dashboardChartScores').textContent);
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Authenticity Score (%)',
-                data: scores,
-                backgroundColor: scores.map(s => s >= 70 ? 'rgba(16, 185, 129, 0.7)' : (s >= 40 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(239, 68, 68, 0.7)')),
-                borderColor: scores.map(s => s >= 70 ? '#10b981' : (s >= 40 ? '#f59e0b' : '#ef4444')),
-                borderWidth: 1,
-                borderRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: val => val + '%'
-                    }
-                }
-            },
-            plugins: {
-                legend: { display: false }
-            }
-        }
-    });
-});
-</script>
-{% endif %}
 {% endblock %}

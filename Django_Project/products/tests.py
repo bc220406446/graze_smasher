@@ -107,9 +107,39 @@ class ProductModelAndViewsTestCase(TestCase):
         self.assertFalse(SavedProduct.objects.filter(user=self.user, product=self.product).exists())
 
     def test_privacy_policy_view(self):
-        """Privacy and Data Use policy view renders 200 OK with key disclosure sections."""
+        """Privacy and Data policy view renders 200 OK with key disclosure sections."""
         res = self.client.get('/privacy/')
         self.assertEqual(res.status_code, 200)
-        self.assertContains(res, "Privacy, Data Use & Algorithmic Ethics Policy")
-        self.assertContains(res, "IP Address Velocity Heuristics")
-        self.assertContains(res, "Multi-Signal Ensemble")
+        self.assertContains(res, "Privacy &amp; Data Policy")
+        self.assertContains(res, "Ethical Data Privacy &amp; Zero IP Sharing")
+        self.assertContains(res, "Multi-Model ML Ensemble")
+
+    def test_reviewer_can_only_review_once(self):
+        """Reviewers are strictly limited to one review per product; second attempt is rejected."""
+        self.client.force_login(self.user)
+        # First submission succeeds
+        res1 = self.client.post(
+            f'/products/{self.product.id}/review/',
+            {
+                'rating': '5',
+                'text': 'First review submitted by reviewer.'
+            },
+            follow=True
+        )
+        self.assertEqual(res1.status_code, 200)
+        self.assertEqual(Review.objects.filter(product=self.product, user=self.user).count(), 1)
+        latest_rev = Review.objects.filter(product=self.product, user=self.user).first()
+        self.assertIsNone(latest_rev.ip_address)  # Zero IP storage
+
+        # Second submission by same reviewer is blocked
+        res2 = self.client.post(
+            f'/products/{self.product.id}/review/',
+            {
+                'rating': '4',
+                'text': 'Attempted second review on the same product.'
+            },
+            follow=True
+        )
+        self.assertEqual(res2.status_code, 200)
+        self.assertContains(res2, "You have already reviewed this product")
+        self.assertEqual(Review.objects.filter(product=self.product, user=self.user).count(), 1)

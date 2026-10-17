@@ -20,6 +20,7 @@ try:
         J48_MODEL_PATH,
         WEIGHT_SVM,
         WEIGHT_J48,
+        WEIGHT_SENTIMENT,
         WEIGHT_RISK,
         AUTHENTICITY_GENUINE_THRESHOLD,
         AUTHENTICITY_SUSPICIOUS_THRESHOLD,
@@ -35,6 +36,7 @@ except ImportError:
         J48_MODEL_PATH,
         WEIGHT_SVM,
         WEIGHT_J48,
+        WEIGHT_SENTIMENT,
         WEIGHT_RISK,
         AUTHENTICITY_GENUINE_THRESHOLD,
         AUTHENTICITY_SUSPICIOUS_THRESHOLD,
@@ -107,30 +109,28 @@ def get_fake_probability(model, X) -> float:
 def compute_authenticity(
     svm_fake_prob: float,
     j48_fake_prob: float,
-    ip_flag: bool,
-    mismatch_score: float
+    ip_flag: bool = False,
+    mismatch_score: float = 0.0
 ) -> tuple[float, str]:
     """
     Computes the composite authenticity score (0 - 100, higher = more genuine)
-    and categorical label (Genuine / Suspicious / Fake).
+    and categorical label (Genuine / Fake) strictly based on 100% text-based ML algorithms:
+    1. LinearSVC (SVM) fake probability (50%)
+    2. Decision Tree J-48 fake probability (30%)
+    3. Sentiment Classification / Polarity mismatch risk (20%)
     
     Composite fake risk formula:
-        fake_risk = (w_svm * svm_fake) + (w_j48 * j48_fake) + (w_risk * risk_score)
+        fake_risk = (WEIGHT_SVM * svm_fake) + (WEIGHT_J48 * j48_fake) + (WEIGHT_SENTIMENT * sentiment_mismatch_risk)
         authenticity_score = (1.0 - fake_risk) * 100
     """
-    # Risk component combining IP velocity and rating-sentiment mismatch
-    ip_risk = 1.0 if ip_flag else 0.0
-    # mismatch_score is typically between 0.0 and 2.0; normalize to [0.0, 1.0]
-    mismatch_risk = min(1.0, mismatch_score / 2.0)
+    # Normalize rating-sentiment mismatch score (typically 0.0 to 2.0) into [0.0, 1.0]
+    sentiment_mismatch_risk = min(1.0, max(0.0, mismatch_score / 2.0))
     
-    # Combined heuristic risk
-    risk_score = (0.6 * ip_risk) + (0.4 * mismatch_risk)
-    
-    # Total fake risk [0.0, 1.0]
+    # 100% Text-Based ML Fake Risk [0.0, 1.0]
     fake_risk = (
         (WEIGHT_SVM * svm_fake_prob) +
         (WEIGHT_J48 * j48_fake_prob) +
-        (WEIGHT_RISK * risk_score)
+        (WEIGHT_SENTIMENT * sentiment_mismatch_risk)
     )
     fake_risk = max(0.0, min(1.0, fake_risk))
     

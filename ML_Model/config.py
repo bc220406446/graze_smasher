@@ -20,12 +20,13 @@ SVM_MODEL_PATH = TRAINED_MODEL_DIR / "svm_model.pkl"
 VECTORIZER_PATH = TRAINED_MODEL_DIR / "vectorizer.pkl"
 J48_MODEL_PATH = TRAINED_MODEL_DIR / "j48_model.pkl"
 
-# Composite Authenticity Score Weights (Must sum to 1.0)
-# Formula: fake_risk = (WEIGHT_SVM * svm_fake_prob) + (WEIGHT_J48 * j48_fake_prob) + (WEIGHT_RISK * risk_score)
+# Composite Authenticity Score Weights (100% Text-Based ML, Must sum to 1.0)
+# Formula: fake_risk = (WEIGHT_SVM * svm_fake_prob) + (WEIGHT_J48 * j48_fake_prob) + (WEIGHT_SENTIMENT * sentiment_mismatch_risk)
 # authenticity_score = (1.0 - fake_risk) * 100
 WEIGHT_SVM = 0.50
 WEIGHT_J48 = 0.30
-WEIGHT_RISK = 0.20
+WEIGHT_SENTIMENT = 0.20
+WEIGHT_RISK = WEIGHT_SENTIMENT  # Backwards compatibility alias
 
 # Classification Thresholds (Authenticity Score 0 - 100, higher = more genuine)
 # Strict Binary Classification (matching dataset OR vs CG):

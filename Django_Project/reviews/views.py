@@ -23,29 +23,40 @@ def get_client_ip(request):
 @reviewer_required
 def submit_review(request, product_id):
     """
-    Handles user review submission:
-    1. Captures client IP address
-    2. Calls unified analyze_review() pipeline (Calibrated SVM + J-48 + Sentiment + IP velocity)
-    3. Persists Review record with all multi-tier ML scores and labels
-    4. Automatically generates an Alert if suspicious activity or fake content is detected
+    Handles reviewer review submission:
+    1. Enforces single review per product limit for Reviewers
+    2. Zero IP address storage for user privacy compliance
+    3. Calls unified 100% text-based ML analyze_review() pipeline (SVM + J-48 + Sentiment)
+    4. Persists Review record with multi-tier ML scores and labels
+    5. Automatically generates an Alert if suspicious activity or fake content is detected
     """
     product = get_object_or_404(Product, pk=product_id)
+
+    # Reviewers are strictly limited to one review per product
+    profile = getattr(request.user, 'profile', None)
+    if profile and profile.is_reviewer:
+        if Review.objects.filter(product=product, user=request.user).exists():
+            messages.warning(
+                request,
+                "You have already reviewed this product. Each reviewer is limited to one review per product."
+            )
+            return redirect('product_detail', pk=product.pk)
+
     form = ReviewSubmissionForm(request.POST)
 
     if form.is_valid():
         text = form.cleaned_data['text']
         rating = int(form.cleaned_data['rating'])
-        client_ip = get_client_ip(request)
 
-        # Execute unified ML analysis service
-        analysis = analyze_review(text=text, rating=rating, ip=client_ip, record_ip=True)
+        # Execute unified ML analysis service (100% text-based scoring, no IP retention)
+        analysis = analyze_review(text=text, rating=rating, ip=None, record_ip=False)
 
         review = Review.objects.create(
             product=product,
             user=request.user,
             text=text,
             rating=rating,
-            ip_address=client_ip,
+            ip_address=None,  # Zero IP storage
             svm_score=analysis['svm_score'],
             j48_score=analysis['j48_score'],
             sentiment=analysis['sentiment_polarity'],
@@ -55,7 +66,7 @@ def submit_review(request, product_id):
             source='user_submission'
         )
 
-        # Evaluate and trigger product alerts (rolling window, spike, low score, and IP burst)
+        # Evaluate and trigger product alerts (rolling window, spike, and low score)
         from analytics.services import evaluate_product_alerts
         evaluate_product_alerts(product=product, trigger_review=review)
 

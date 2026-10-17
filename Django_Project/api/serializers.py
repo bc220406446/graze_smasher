@@ -35,7 +35,7 @@ class SingleReviewCreateSerializer(serializers.Serializer):
 
 
 class ReviewOutputSerializer(serializers.ModelSerializer):
-    """Output schema for analyzed reviews."""
+    """Output schema for analyzed reviews (sanitized of sensitive reviewer metadata)."""
     class Meta:
         model = Review
         fields = [
@@ -43,7 +43,6 @@ class ReviewOutputSerializer(serializers.ModelSerializer):
             'product',
             'text',
             'rating',
-            'ip_address',
             'svm_score',
             'j48_score',
             'sentiment',

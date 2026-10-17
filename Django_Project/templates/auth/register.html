@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Register - Graze Smasher{% endblock %}
+{% block title %}Create an Account - Graze Smasher{% endblock %}
 
 {% block content %}
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-7 col-lg-6">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm border">
                 <div class="card-header py-3 bg-white border-bottom text-center">
                     <h4 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-user-plus text-primary me-2"></i>Create an Account</h4>
                     <p class="text-muted small mb-0 mt-1">Join Graze Smasher to monitor products and submit verified reviews</p>
@@ -18,58 +18,76 @@
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger py-2 small">
                                 {% for error in form.non_field_errors %}
-                                    <div>{{ error }}</div>
+                                    <div><i class="fa-solid fa-circle-exclamation me-1"></i> {{ error }}</div>
                                 {% endfor %}
                             </div>
                         {% endif %}
 
+                        <!-- Full Name Field -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
-                            {{ form.username }}
-                            {% if form.username.errors %}
-                                <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                            <label class="form-label fw-semibold" for="id_full_name">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
+                                <input type="text" name="full_name" value="{{ form.full_name.value|default:'' }}" required class="form-control {% if form.full_name.errors %}is-invalid{% endif %}" id="id_full_name" placeholder="Enter your full name">
+                            </div>
+                            {% if form.full_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>
                             {% endif %}
                         </div>
 
+                        <!-- Email Address Field -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
-                            {{ form.email }}
+                            <label class="form-label fw-semibold" for="id_email">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-muted"></i></span>
+                                <input type="email" name="email" value="{{ form.email.value|default:'' }}" required class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="id_email" placeholder="Enter your email address">
+                            </div>
                             {% if form.email.errors %}
                                 <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
                             {% endif %}
                         </div>
 
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
-                                {{ form.first_name }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
-                                {{ form.last_name }}
-                            </div>
-                        </div>
-
+                        <!-- Role Selection Field -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold" for="{{ form.role.id_for_label }}">{{ form.role.label }}</label>
-                            {{ form.role }}
-                            <div class="form-text small">Select 'Reviewer' if you wish to write and submit reviews for ML verification.</div>
+                            <label class="form-label fw-semibold" for="id_role">Account Role</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-id-badge text-muted"></i></span>
+                                <select name="role" id="id_role" class="form-select {% if form.role.errors %}is-invalid{% endif %}">
+                                    <option value="general" {% if form.role.value == 'general' or not form.role.value %}selected{% endif %}>General User (Search & Browse)</option>
+                                    <option value="reviewer" {% if form.role.value == 'reviewer' %}selected{% endif %}>Reviewer (Write Reviews & Test Detection)</option>
+                                </select>
+                            </div>
+                            <div class="form-text small text-muted">Select 'Reviewer' if you intend to evaluate and submit reviews for ML verification.</div>
                             {% if form.role.errors %}
                                 <div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>
                             {% endif %}
                         </div>
 
+                        <!-- Password Field with Hide/Unhide Toggle -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
-                            {{ form.password }}
+                            <label class="form-label fw-semibold" for="id_password">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-muted"></i></span>
+                                <input type="password" name="password" required class="form-control {% if form.password.errors %}is-invalid{% endif %}" id="id_password" placeholder="Create password (minimum 6 characters)">
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="id_password" title="Show or hide password" tabindex="-1">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
                             {% if form.password.errors %}
                                 <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
                             {% endif %}
                         </div>
 
+                        <!-- Confirm Password Field with Hide/Unhide Toggle -->
                         <div class="mb-4">
-                            <label class="form-label fw-semibold" for="{{ form.confirm_password.id_for_label }}">{{ form.confirm_password.label }}</label>
-                            {{ form.confirm_password }}
+                            <label class="form-label fw-semibold" for="id_confirm_password">Confirm Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-shield-halved text-muted"></i></span>
+                                <input type="password" name="confirm_password" required class="form-control {% if form.confirm_password.errors %}is-invalid{% endif %}" id="id_confirm_password" placeholder="Re-enter password to confirm">
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="id_confirm_password" title="Show or hide password" tabindex="-1">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
                             {% if form.confirm_password.errors %}
                                 <div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>
                             {% endif %}
@@ -92,3 +110,28 @@
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleButtons = document.querySelectorAll('.toggle-password');
+        toggleButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                if (passwordInput) {
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

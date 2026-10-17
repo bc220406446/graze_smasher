@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}Log In - Graze Smasher{% endblock %}
+{% block title %}Sign In - Graze Smasher{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm border">
                 <div class="card-header py-3 bg-white border-bottom text-center">
                     <h4 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-arrow-right-to-bracket text-primary me-2"></i>Sign In</h4>
-                    <p class="text-muted small mb-0 mt-1">Access your monitored products and review submissions</p>
+                    <p class="text-muted small mb-0 mt-1">Access your monitored products, reviews, and authenticity reports</p>
                 </div>
                 <div class="card-body p-4">
                     <form method="POST" novalidate>
@@ -18,28 +18,39 @@
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger py-2 small">
                                 {% for error in form.non_field_errors %}
-                                    <div>{{ error }}</div>
+                                    <div><i class="fa-solid fa-circle-exclamation me-1"></i> {{ error }}</div>
                                 {% endfor %}
                             </div>
                         {% endif %}
 
+                        <!-- Email Address Input -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold" for="id_username">Username</label>
+                            <label class="form-label fw-semibold" for="id_email">Email Address</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
-                                <input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required class="form-control" id="id_username" placeholder="Enter username">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-muted"></i></span>
+                                <input type="email" name="email" value="{{ form.email.value|default:'' }}" autofocus autocomplete="email" required class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="id_email" placeholder="Enter your email address">
                             </div>
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                            {% endif %}
                         </div>
 
+                        <!-- Password Input with Toggle Hide/Unhide -->
                         <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <label class="form-label fw-semibold" for="id_password">Password</label>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-semibold mb-0" for="id_password">Password</label>
                                 <a href="{% url 'password_reset' %}" class="small text-muted text-decoration-none">Forgot password?</a>
                             </div>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-muted"></i></span>
-                                <input type="password" name="password" autocomplete="current-password" required class="form-control" id="id_password" placeholder="Enter password">
+                                <input type="password" name="password" autocomplete="current-password" required class="form-control {% if form.password.errors %}is-invalid{% endif %}" id="id_password" placeholder="Enter your password">
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="id_password" title="Show or hide password" tabindex="-1">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
                             </div>
+                            {% if form.password.errors %}
+                                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="d-grid mb-3 mt-4">
@@ -59,3 +70,28 @@
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleButtons = document.querySelectorAll('.toggle-password');
+        toggleButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                const targetId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                if (passwordInput) {
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

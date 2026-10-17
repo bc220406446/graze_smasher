@@ -52,32 +52,20 @@ def home_view(request):
             'highlight': 'Deterministic information-gain splits across readability, length, and sentiment metrics'
         },
         {
-            'name': 'TextBlob NLP Sentiment Polarity',
-            'type': 'Linguistic Sentiment Divergence',
+            'name': 'TextBlob NLP Sentiment Engine',
+            'type': 'Linguistic Sentiment & Polarity Analysis',
             'accuracy': '81.4%',
             'precision': '80.1%',
             'recall': '83.0%',
             'f1': '81.5%',
             'latency': '5ms',
-            'status': 'Active Heuristic',
+            'status': 'Production Core',
             'status_class': 'info',
-            'highlight': 'Detects 5-star ratings masking hollow praise, filler copy, or hidden complaints'
-        },
-        {
-            'name': 'IP Velocity & Burst Radar',
-            'type': 'Behavioral Temporal Analysis',
-            'accuracy': '92.0% (Prec)',
-            'precision': '92.0%',
-            'recall': '84.5%',
-            'f1': '88.1%',
-            'latency': '< 2ms',
-            'status': 'Fraud Shield',
-            'status_class': 'warning',
-            'highlight': 'Mitigates astroturfing rings, seller bot farms, and coordinated submission spikes'
+            'highlight': 'Detects sentiment divergence, polarity extremes, and rating-sentiment inconsistencies'
         },
         {
             'name': 'Graze Smasher Multi-Model Ensemble',
-            'type': 'Hybrid Weighted Consensus',
+            'type': 'Hybrid Weighted Consensus (SVM 50% + J-48 30% + Sentiment 20%)',
             'accuracy': '91.8%',
             'precision': '91.2%',
             'recall': '92.5%',
@@ -85,7 +73,7 @@ def home_view(request):
             'latency': '< 25ms',
             'status': 'Consensus Engine',
             'status_class': 'primary',
-            'highlight': 'Unified decision confidence combining textual, sentiment, and behavioral vectors'
+            'highlight': 'Unified composite decision combining textual vectorization, structural entropy, and sentiment alignment'
         },
     ]
 
@@ -271,8 +259,10 @@ def product_detail(request, pk):
 
     # Check if current user is Reviewer or Admin (permitted to add reviews)
     can_add_review = False
+    has_reviewed = False
     if request.user.is_authenticated:
         profile = getattr(request.user, 'profile', None)
+        has_reviewed = Review.objects.filter(product=product, user=request.user).exists()
         if request.user.is_superuser or is_admin or (profile and profile.is_reviewer):
             can_add_review = True
 
@@ -283,6 +273,7 @@ def product_detail(request, pk):
         'reviews': reviews,
         'rev_q': rev_q,
         'label_filter': label_filter,
+        'has_reviewed': has_reviewed,
         'rating_filter': rating_filter,
         'total_reviews': total_reviews,
         'overall_score': overall_score,
@@ -366,18 +357,15 @@ def create_product(request):
                 except (ValueError, TypeError):
                     rating_val = 5
 
-                # Use provided review IP or client IP
-                rev_ip = review_ips[idx].strip() if idx < len(review_ips) and review_ips[idx].strip() else client_ip
-
-                # Execute ML Analysis Pipeline
-                analysis = analyze_review(text=cleaned_text, rating=rating_val, ip=rev_ip, record_ip=True)
+                # Execute ML Analysis Pipeline (100% text-based ML scoring)
+                analysis = analyze_review(text=cleaned_text, rating=rating_val, ip=None, record_ip=False)
 
                 rev = Review.objects.create(
                     product=product,
                     user=request.user,
                     text=cleaned_text,
                     rating=rating_val,
-                    ip_address=rev_ip,
+                    ip_address=None,  # Zero IP storage
                     svm_score=analysis['svm_score'],
                     j48_score=analysis['j48_score'],
                     sentiment=analysis['sentiment_polarity'],

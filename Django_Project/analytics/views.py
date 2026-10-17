@@ -63,6 +63,11 @@ def user_dashboard(request):
     unread_alerts_count = alerts_qs.filter(is_read=False).count()
     recent_alerts = alerts_qs[:8]
 
+    # Attach active alert count to each saved product
+    for p in saved_products:
+        p.active_alerts_count = alerts_qs.filter(product_id=p.id, is_read=False).count()
+        p.total_alerts_count = alerts_qs.filter(product_id=p.id).count()
+
     # 4. Chart data for authenticity scores of saved products
     chart_labels = [p.name[:18] + '...' if len(p.name) > 18 else p.name for p in saved_products[:7]]
     chart_scores = [p.overall_authenticity_score() for p in saved_products[:7]]
