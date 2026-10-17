@@ -36,6 +36,9 @@ urlpatterns = [
 
     # User Management
     path('admin-panel/users/', admin_views.admin_users_view, name='admin_users'),
+    path('admin-panel/users/add/', admin_views.admin_add_user, name='admin_add_user'),
+    path('admin-panel/users/<int:user_id>/edit/', admin_views.admin_edit_user, name='admin_edit_user'),
+    path('admin-panel/users/<int:user_id>/delete/', admin_views.admin_delete_user, name='admin_delete_user'),
     path('admin-panel/users/<int:user_id>/role/', admin_views.admin_update_user_role, name='admin_update_user_role'),
 
     # Flagged Content Moderation

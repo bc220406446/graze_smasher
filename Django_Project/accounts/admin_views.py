@@ -24,7 +24,7 @@ from django.contrib.auth.models import User
 from django.db.models import Count, Avg, Q
 from .decorators import admin_required
 from .models import UserProfile
-from .admin_forms import SystemConfigurationForm
+from .admin_forms import SystemConfigurationForm, AdminAddUserForm, AdminEditUserForm
 from reviews.models import Review
 from products.models import Product, ProductFlag
 from products.forms import ProductAdminForm
@@ -238,39 +238,124 @@ def admin_toggle_hide_product(request, product_id):
 
 
 # ==============================================================================
-# USER MANAGEMENT
+# USER MANAGEMENT (GENERAL USERS & REVIEWERS ONLY)
 # ==============================================================================
 
 @admin_required
 def admin_users_view(request):
-    """Manage platform user accounts and RBAC role assignments."""
+    """
+    Manage platform user accounts (General Users and Reviewers only).
+    Administrator accounts are excluded for security and system integrity.
+    """
     search = request.GET.get('q', '').strip()
     role_filter = request.GET.get('role', '').strip()
 
-    users_qs = User.objects.select_related('profile').order_by('-date_joined')
+    # Exclude Superusers, Staff, and Administrator profiles
+    users_qs = User.objects.select_related('profile') \
+        .filter(is_superuser=False, is_staff=False) \
+        .exclude(profile__role=UserProfile.ROLE_ADMIN) \
+        .order_by('-date_joined')
 
     if search:
-        users_qs = users_qs.filter(Q(username__icontains=search) | Q(email__icontains=search))
+        users_qs = users_qs.filter(
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search) |
+            Q(username__icontains=search)
+        )
     if role_filter:
         users_qs = users_qs.filter(profile__role=role_filter)
 
     paginator = Paginator(users_qs, 15)
     page_obj = paginator.get_page(request.GET.get('page'))
 
+    role_choices_for_filter = [
+        (UserProfile.ROLE_GENERAL, 'General User'),
+        (UserProfile.ROLE_REVIEWER, 'Reviewer'),
+    ]
+
+    add_form = AdminAddUserForm()
+
     context = {
         'page_obj': page_obj,
         'search': search,
         'role_filter': role_filter,
-        'role_choices': UserProfile.ROLE_CHOICES,
+        'role_choices': role_choices_for_filter,
         'total_users': users_qs.count(),
+        'add_form': add_form,
     }
     return render(request, 'users/admin/users_list.html', context)
 
 
 @admin_required
 @require_POST
+def admin_add_user(request):
+    """Creates a new General User or Reviewer account from the Admin panel."""
+    form = AdminAddUserForm(request.POST)
+    if form.is_valid():
+        user = form.save()
+        messages.success(
+            request,
+            f"Account created successfully for '{user.get_full_name() or user.email}' as {user.profile.get_role_display()}."
+        )
+    else:
+        for field, errors in form.errors.items():
+            for err in errors:
+                label = field.replace('_', ' ').capitalize()
+                messages.error(request, f"{label}: {err}")
+    return redirect('admin_users')
+
+
+@admin_required
+@require_POST
+def admin_edit_user(request, user_id):
+    """
+    Updates a user's Full Name, Email, Active status, or resets password.
+    Role is fixed to prevent workflow conflict between General Users and Reviewers.
+    """
+    target_user = get_object_or_404(User, id=user_id)
+    if target_user.is_superuser or target_user.is_staff or (getattr(target_user, 'profile', None) and target_user.profile.is_admin):
+        messages.error(request, "Permission denied: Administrator accounts cannot be modified here.")
+        return redirect('admin_users')
+
+    form = AdminEditUserForm(request.POST, target_user=target_user)
+    if form.is_valid():
+        form.save()
+        messages.success(
+            request,
+            f"User account '{target_user.get_full_name() or target_user.email}' was updated successfully."
+        )
+    else:
+        for field, errors in form.errors.items():
+            for err in errors:
+                label = field.replace('_', ' ').capitalize()
+                messages.error(request, f"{label}: {err}")
+    return redirect('admin_users')
+
+
+@admin_required
+@require_POST
+def admin_delete_user(request, user_id):
+    """Safely deletes a General User or Reviewer account and cascades cleanup."""
+    target_user = get_object_or_404(User, id=user_id)
+    if target_user.is_superuser or target_user.is_staff or (getattr(target_user, 'profile', None) and target_user.profile.is_admin):
+        messages.error(request, "Permission denied: Administrator accounts cannot be deleted.")
+        return redirect('admin_users')
+
+    if target_user == request.user:
+        messages.error(request, "Permission denied: You cannot delete your current session account.")
+        return redirect('admin_users')
+
+    display_name = target_user.get_full_name() or target_user.email
+    target_user.delete()
+    messages.success(request, f"User '{display_name}' was permanently deleted.")
+    return redirect('admin_users')
+
+
+@admin_required
+@require_POST
 def admin_update_user_role(request, user_id):
-    """Updates the role of a user."""
+    """Updates the role of a user (retained for backward compatibility and API/test support)."""
     target_user = get_object_or_404(User, id=user_id)
     new_role = request.POST.get('role', '').strip()
 

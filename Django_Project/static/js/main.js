@@ -23,32 +23,49 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 6000);
     });
 
-    // 3. Global Confirmation Modal Handler
+    // 3. Global Confirmation Modal Handler (Dynamic Actions & Deletions)
     const confirmModalEl = document.getElementById('confirmationModal');
     if (confirmModalEl) {
         let targetFormOrUrl = null;
         let isFormSubmit = false;
 
-        document.querySelectorAll('[data-confirm]').forEach(function (trigger) {
-            trigger.addEventListener('click', function (e) {
-                e.preventDefault();
-                const msg = trigger.getAttribute('data-confirm') || 'Are you sure you want to proceed?';
-                const modalBody = document.getElementById('confirmationModalBody');
-                if (modalBody) {
-                    modalBody.textContent = msg;
-                }
+        document.addEventListener('click', function (e) {
+            const trigger = e.target.closest('[data-confirm]');
+            if (!trigger) return;
 
-                if (trigger.tagName.toLowerCase() === 'button' && trigger.closest('form')) {
-                    targetFormOrUrl = trigger.closest('form');
-                    isFormSubmit = true;
-                } else {
-                    targetFormOrUrl = trigger.getAttribute('href');
-                    isFormSubmit = false;
-                }
+            e.preventDefault();
+            const msg = trigger.getAttribute('data-confirm') || 'Are you sure you want to proceed with this action? This operation cannot be undone.';
+            const title = trigger.getAttribute('data-confirm-title') || 'Confirm Action';
+            const btnText = trigger.getAttribute('data-confirm-btn') || 'Confirm';
 
-                const modal = new bootstrap.Modal(confirmModalEl);
-                modal.show();
-            });
+            const modalBody = document.getElementById('confirmationModalBody');
+            if (modalBody) {
+                modalBody.innerHTML = msg;
+            }
+
+            const modalTitle = document.getElementById('confirmationModalLabel');
+            if (modalTitle) {
+                modalTitle.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>${title}`;
+            }
+
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            if (confirmBtn) {
+                confirmBtn.textContent = btnText;
+            }
+
+            if (trigger.tagName.toLowerCase() === 'button' && trigger.closest('form')) {
+                targetFormOrUrl = trigger.closest('form');
+                isFormSubmit = true;
+            } else if (trigger.closest('a')) {
+                targetFormOrUrl = trigger.closest('a').getAttribute('href');
+                isFormSubmit = false;
+            } else {
+                targetFormOrUrl = trigger.getAttribute('href');
+                isFormSubmit = false;
+            }
+
+            const modal = bootstrap.Modal.getOrCreateInstance(confirmModalEl);
+            modal.show();
         });
 
         const confirmBtn = document.getElementById('confirmActionBtn');

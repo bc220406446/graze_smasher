@@ -216,3 +216,72 @@ class RBACPermissionsTestCase(TestCase):
         self.general_user.refresh_from_db()
         self.assertTrue(self.general_user.check_password('NewStrongPassword456!'))
 
+    def test_admin_users_view_excludes_admins(self):
+        """User management list must only show General Users & Reviewers, excluding Admins & Superusers."""
+        self.client.force_login(self.admin_user)
+        res = self.client.get('/accounts/admin-panel/users/')
+        self.assertEqual(res.status_code, 200)
+        page_users = res.context['page_obj'].object_list
+        self.assertIn(self.general_user, page_users)
+        self.assertIn(self.reviewer_user, page_users)
+        self.assertNotIn(self.admin_user, page_users)
+
+    def test_admin_add_user_success(self):
+        """Admin can create a new Reviewer or General User account."""
+        self.client.force_login(self.admin_user)
+        res = self.client.post('/accounts/admin-panel/users/add/', {
+            'full_name': 'New Reviewer Agent',
+            'email': 'new_reviewer@example.com',
+            'role': UserProfile.ROLE_REVIEWER,
+            'password': 'SecurePassword789!',
+        }, follow=True)
+        self.assertEqual(res.status_code, 200)
+
+        created = User.objects.get(email='new_reviewer@example.com')
+        self.assertEqual(created.first_name, 'New')
+        self.assertEqual(created.last_name, 'Reviewer Agent')
+        self.assertEqual(created.profile.role, UserProfile.ROLE_REVIEWER)
+        self.assertTrue(created.is_active)
+        self.assertTrue(created.check_password('SecurePassword789!'))
+
+    def test_admin_edit_user_success_no_role_swap(self):
+        """Admin can edit user details, active status, and password, but the role remains unchanged."""
+        self.client.force_login(self.admin_user)
+        original_role = self.general_user.profile.role
+
+        res = self.client.post(f'/accounts/admin-panel/users/{self.general_user.id}/edit/', {
+            'full_name': 'Updated General User',
+            'email': 'updated_gen@example.com',
+            'new_password': 'BrandNewPassword123!',
+        }, follow=True)
+        self.assertEqual(res.status_code, 200)
+
+        self.general_user.refresh_from_db()
+        self.assertEqual(self.general_user.first_name, 'Updated')
+        self.assertEqual(self.general_user.last_name, 'General User')
+        self.assertEqual(self.general_user.email, 'updated_gen@example.com')
+        self.assertTrue(self.general_user.is_active)
+        self.assertTrue(self.general_user.check_password('BrandNewPassword123!'))
+        # Ensure role was not swapped/altered
+        self.assertEqual(self.general_user.profile.role, original_role)
+
+    def test_admin_delete_user_success(self):
+        """Admin can delete a General User or Reviewer account."""
+        self.client.force_login(self.admin_user)
+        user_to_delete = User.objects.create_user(
+            username='temp_delete@example.com',
+            email='temp_delete@example.com',
+            password='password123'
+        )
+        user_id = user_to_delete.id
+        res = self.client.post(f'/accounts/admin-panel/users/{user_id}/delete/', follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertFalse(User.objects.filter(id=user_id).exists())
+
+    def test_admin_cannot_delete_admin_account(self):
+        """Administrator accounts cannot be deleted through this interface."""
+        self.client.force_login(self.admin_user)
+        res = self.client.post(f'/accounts/admin-panel/users/{self.admin_user.id}/delete/', follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(User.objects.filter(id=self.admin_user.id).exists())
+

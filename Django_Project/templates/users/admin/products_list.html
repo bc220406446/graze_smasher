@@ -121,39 +121,17 @@
                                                 </button>
                                             </form>
 
-                                            <!-- Delete Button with Confirmation Modal Trigger -->
-                                            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" data-bs-toggle="modal" data-bs-target="#deleteModal{{ p.id }}" title="Delete Product">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </div>
-
-                                        <!-- Delete Confirmation Modal -->
-                                        <div class="modal fade" id="deleteModal{{ p.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ p.id }}" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content text-start">
-                                                    <div class="modal-header border-bottom">
-                                                        <h5 class="modal-title fw-bold text-danger" id="deleteModalLabel{{ p.id }}">
-                                                            <i class="fa-solid fa-triangle-exclamation me-2"></i>Confirm Product Deletion
-                                                        </h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p class="mb-2">Are you sure you want to permanently delete <strong>{{ p.name }}</strong>?</p>
-                                                        <div class="alert alert-danger small mb-0">
-                                                            <i class="fa-solid fa-circle-exclamation me-1"></i> This will delete the product, all its reviews, and any related anomaly alerts. This action cannot be undone.
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer border-top">
-                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                                                        <form method="POST" action="{% url 'admin_product_delete' p.id %}">
-                                                            {% csrf_token %}
-                                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                                <i class="fa-solid fa-trash me-1"></i> Yes, Delete Permanently
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <!-- Delete Product Form with Standard Confirmation Modal -->
+                                            <form method="POST" action="{% url 'admin_product_delete' p.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2"
+                                                        data-confirm="Are you sure you want to permanently delete '{{ p.name|escapejs }}'? This will delete the product, all its reviews, and any related anomaly alerts. This action cannot be undone."
+                                                        data-confirm-title="Confirm Product Deletion"
+                                                        data-confirm-btn="Delete Product"
+                                                        title="Delete Product">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
