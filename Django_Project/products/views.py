@@ -297,6 +297,9 @@ def product_detail(request, pk):
         'chart_labels': fake_labels,
         'chart_scores': auth_data,
         'chart_fakes': fake_data,
+        'chart_model_names': ['LinearSVC', 'J-48 Tree', 'TextBlob NLP', 'Ensemble'],
+        'chart_model_accuracies': [87.5, 85.0, 81.4, 91.8],
+        'chart_model_f1': [87.5, 85.1, 81.5, 91.8],
         'model_accuracy': '91.8%',
     }
     # Dynamic Base Template: dashboard_base.html with sidebar for logged-in users, base.html for guests

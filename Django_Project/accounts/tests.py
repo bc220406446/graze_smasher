@@ -191,3 +191,28 @@ class RBACPermissionsTestCase(TestCase):
         })
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Invalid email address or password")
+
+    def test_profile_update_with_fullname(self):
+        """Profile update successfully splits Full Name and updates User."""
+        self.client.force_login(self.general_user)
+        res = self.client.post('/accounts/profile/', {
+            'full_name': 'Johnathan Alexander Doe',
+        }, follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.general_user.refresh_from_db()
+        self.assertEqual(self.general_user.first_name, 'Johnathan')
+        self.assertEqual(self.general_user.last_name, 'Alexander Doe')
+
+    def test_profile_change_password(self):
+        """Changing password from profile updates user password securely."""
+        self.client.force_login(self.general_user)
+        res = self.client.post('/accounts/profile/', {
+            'action': 'change_password',
+            'old_password': 'password123',
+            'new_password1': 'NewStrongPassword456!',
+            'new_password2': 'NewStrongPassword456!',
+        }, follow=True)
+        self.assertEqual(res.status_code, 200)
+        self.general_user.refresh_from_db()
+        self.assertTrue(self.general_user.check_password('NewStrongPassword456!'))
+

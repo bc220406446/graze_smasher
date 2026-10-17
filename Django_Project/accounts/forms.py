@@ -117,13 +117,18 @@ class EmailLoginForm(forms.Form):
 
 
 class UserProfileUpdateForm(forms.ModelForm):
-    first_name = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    last_name = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    full_name = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your full name',
+            'id': 'id_full_name'
+        }),
+        label="Full Name"
+    )
 
     class Meta:
         model = UserProfile
-        fields = ['bio']
-        widgets = {
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Tell us about yourself...'}),
-        }
+        fields = []
+

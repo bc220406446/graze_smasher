@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import UserRegistrationForm, UserProfileUpdateForm, EmailLoginForm
@@ -66,32 +66,48 @@ def profile_view(request):
     user = request.user
     profile = user.profile
     
+    password_form = PasswordChangeForm(user=user)
+    
     if request.method == 'POST':
-        form = UserProfileUpdateForm(request.POST, instance=profile)
-        if form.is_valid():
-            user.first_name = form.cleaned_data['first_name']
-            user.last_name = form.cleaned_data['last_name']
-            user.email = form.cleaned_data['email']
-            user.save()
-            form.save()
-            messages.success(request, "Your profile has been updated.")
-            return redirect('profile')
+        if 'change_password' in request.POST or request.POST.get('action') == 'change_password':
+            password_form = PasswordChangeForm(user=user, data=request.POST)
+            initial = {
+                'full_name': user.get_full_name() or user.first_name or '',
+            }
+            form = UserProfileUpdateForm(instance=profile, initial=initial)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, "Your password has been changed successfully.")
+                return redirect('profile')
+            else:
+                for field, errors in password_form.errors.items():
+                    for error in errors:
+                        messages.error(request, error)
+        else:
+            form = UserProfileUpdateForm(request.POST, instance=profile)
+            if form.is_valid():
+                full_name = form.cleaned_data['full_name'].strip()
+                name_parts = full_name.split(' ', 1)
+                user.first_name = name_parts[0]
+                user.last_name = name_parts[1] if len(name_parts) > 1 else ''
+                user.save()
+                form.save()
+                messages.success(request, "Your profile has been updated.")
+                return redirect('profile')
     else:
         initial = {
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'email': user.email
+            'full_name': user.get_full_name() or user.first_name or '',
         }
         form = UserProfileUpdateForm(instance=profile, initial=initial)
         
-    template_name = 'users/general/profile.html'
-    if user.is_superuser or profile.is_admin:
-        template_name = 'users/admin/profile.html'
-    elif profile.is_reviewer:
-        template_name = 'users/reviewer/profile.html'
+    template_name = 'users/shared/profile.html'
 
     return render(request, template_name, {
         'form': form,
-        'profile': profile
+        'password_form': password_form,
+        'profile': profile,
+        'is_admin': user.is_superuser or profile.is_admin,
+        'is_reviewer': profile.is_reviewer,
     })
 
