@@ -13,6 +13,7 @@ class Alert(models.Model):
         ('ip_burst', 'Suspicious IP Burst'),
         ('low_authenticity', 'Low Authenticity Warning'),
         ('sentiment_mismatch', 'Extreme Rating Discrepancy'),
+        ('review_classified', 'Review Classification'),
     ]
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='alerts')
@@ -45,7 +46,7 @@ class SystemConfiguration(models.Model):
     ip_max_reviews = models.IntegerField(default=5, help_text="Maximum allowed reviews per IP within velocity window (default: 5)")
     ip_window_minutes = models.IntegerField(default=60, help_text="Sliding time window for IP velocity in minutes (default: 60)")
     
-    alert_fake_ratio_threshold = models.FloatField(default=0.40, help_text="Ratio of fake reviews triggering an alert (default: 0.40)")
+    alert_fake_ratio_threshold = models.FloatField(default=0.50, help_text="Ratio of fake reviews triggering an alert (default: 0.50)")
     alert_fake_spike_threshold = models.FloatField(default=0.25, help_text="Surge in fake ratio triggering a spike alert (default: 0.25)")
     
     updated_at = models.DateTimeField(auto_now=True)

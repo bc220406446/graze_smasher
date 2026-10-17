@@ -145,17 +145,61 @@ def monitored_products_view(request):
 
 @login_required
 def user_alerts_view(request):
-    """Dedicated notification feed for security and authenticity alerts."""
+    """Dedicated notification feed for security and authenticity alerts with product-based browsing."""
     user = request.user
+    profile = getattr(user, 'profile', None)
+    is_admin = user.is_superuser or user.is_staff or (profile and profile.role == 'admin')
+    is_reviewer = profile and profile.role == 'reviewer'
+
     status = request.GET.get('status', 'all')
+    product_filter = request.GET.get('product', '').strip()
 
-    saved_product_ids = list(SavedProduct.objects.filter(user=user).values_list('product_id', flat=True))
-    created_product_ids = list(Product.objects.filter(created_by=user).values_list('id', flat=True))
-    relevant_ids = list(set(saved_product_ids + created_product_ids))
+    if is_admin:
+        # Administrators inspect all platform-wide anomaly alerts
+        alerts_qs = Alert.objects.all().select_related('product', 'user').order_by('-created_at')
+        filter_product_ids = list(Alert.objects.values_list('product_id', flat=True).distinct())
+        filter_products = list(Product.objects.filter(id__in=filter_product_ids, is_hidden=False).distinct())
+        total_alerts_count = Alert.objects.count()
+        unread_count = Alert.objects.filter(is_read=False).count()
+        role_label = "Administrator"
+        feed_subtitle = "Platform-wide anomaly alerts, 50% fake review ratio triggers, and detection notifications."
+    else:
+        # General users & Reviewers: Watchlist monitored products + user-targeted alerts
+        saved_items = SavedProduct.objects.filter(user=user).select_related('product')
+        saved_products = [item.product for item in saved_items if not item.product.is_hidden]
+        saved_product_ids = [p.id for p in saved_products]
+        created_product_ids = list(Product.objects.filter(created_by=user).values_list('id', flat=True))
+        user_alert_product_ids = list(Alert.objects.filter(user=user).values_list('product_id', flat=True).distinct())
+        relevant_ids = list(set(saved_product_ids + created_product_ids + user_alert_product_ids))
 
-    alerts_qs = Alert.objects.filter(
-        Q(user=user) | Q(product_id__in=relevant_ids)
-    ).select_related('product').order_by('-created_at')
+        alerts_qs = Alert.objects.filter(
+            Q(user=user) | Q(product_id__in=relevant_ids)
+        ).select_related('product', 'user').order_by('-created_at')
+
+        filter_products = list(Product.objects.filter(id__in=relevant_ids, is_hidden=False).distinct())
+        if not filter_products and saved_products:
+            filter_products = saved_products
+
+        total_alerts_count = Alert.objects.filter(Q(user=user) | Q(product_id__in=relevant_ids)).count()
+        unread_count = Alert.objects.filter(
+            Q(user=user) | Q(product_id__in=relevant_ids),
+            is_read=False
+        ).count()
+
+        if is_reviewer:
+            role_label = "Reviewer"
+            feed_subtitle = "ML classification feedback for your submitted reviews and monitored product anomaly alerts."
+        else:
+            role_label = "General User"
+            feed_subtitle = "Real-time fake review surges and authenticity score drop alerts across your monitored products."
+
+    # Filter by selected product if specified
+    selected_product = None
+    if product_filter.isdigit():
+        prod_id = int(product_filter)
+        if is_admin or prod_id in [p.id for p in filter_products]:
+            alerts_qs = alerts_qs.filter(product_id=prod_id)
+            selected_product = Product.objects.filter(id=prod_id).first()
 
     if status == 'unread':
         alerts_qs = alerts_qs.filter(is_read=False)
@@ -163,17 +207,20 @@ def user_alerts_view(request):
     paginator = Paginator(alerts_qs, 12)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    unread_count = Alert.objects.filter(
-        Q(user=user) | Q(product_id__in=relevant_ids),
-        is_read=False
-    ).count()
-
     context = {
         'page_obj': page_obj,
         'status': status,
+        'product_filter': product_filter,
+        'selected_product': selected_product,
+        'monitored_products': filter_products,
         'unread_count': unread_count,
+        'total_alerts_count': total_alerts_count,
+        'role_label': role_label,
+        'feed_subtitle': feed_subtitle,
+        'is_admin': is_admin,
+        'is_reviewer': is_reviewer,
     }
-    return render(request, 'users/general/user_alerts.html', context)
+    return render(request, 'users/shared/alerts.html', context)
 
 
 @login_required

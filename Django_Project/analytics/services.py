@@ -3,7 +3,10 @@ Graze Smasher Product Hunting Tool - Analytics & Alert Engine
 CS619 Final-Year Project
 
 Monitors fake-review velocity, ratio thresholds, and authenticity shifts.
-Generates system Alerts and dispatches console email notifications.
+Generates system Alerts and dispatches console email notifications according to platform rules:
+1. General User Alerts (Monitored products >= 50% fake review ratio, 24h cooldown per user per product)
+2. Reviewer Alerts (Classification feedback on every review, no cooldown)
+3. Admin Alerts (Platform-wide >= 50% fake review ratio, 24h cooldown per product)
 """
 
 import logging
@@ -16,11 +19,35 @@ from .models import Alert
 logger = logging.getLogger(__name__)
 
 
+def dispatch_reviewer_classification_alert(review):
+    """
+    Notify reviewers whenever their submitted review is classified by the ML model
+    as either Fake or Genuine.
+    Alert Message: Your Review is classified as fake/genuine
+    Send an alert for every submitted review classification.
+    No cooldown or notification limit applies to reviewer alerts.
+    """
+    if not review or not review.user:
+        return None
+    label_text = review.label.lower() if review.label else 'genuine'
+    msg = f"Your Review is classified as {label_text}"
+    return Alert.objects.create(
+        product=review.product,
+        user=review.user,
+        type='review_classified',
+        message=msg
+    )
+
+
+# Alias for backward/alternative naming compatibility
+dispatch_reviewer_alert = dispatch_reviewer_classification_alert
+
+
 def _dispatch_alert(product, alert_type, message, alerts_created, window_hours=12):
     """
-    Dispatches alerts to:
-    1. System Administrators (Admins receive alerts whenever a product submission or review submission spikes fake reviews across any product).
-    2. Users who are actively monitoring / saved this product in their watchlist (plus product creator).
+    Dispatches auxiliary heuristic alerts (e.g. IP burst, low authenticity warning) to:
+    1. System Administrators.
+    2. Users who are actively monitoring this product in their watchlist.
     Prevents duplicate alerts within window_hours per recipient.
     """
     from django.contrib.auth.models import User
@@ -28,18 +55,13 @@ def _dispatch_alert(product, alert_type, message, alerts_created, window_hours=1
 
     cutoff = timezone.now() - timedelta(hours=window_hours)
 
-    # 1. Admin users (all platform admins get notified of fake spikes anywhere)
     admin_users = list(User.objects.filter(
         Q(is_superuser=True) | Q(is_staff=True) | Q(profile__role='admin')
     ).distinct())
 
-    # 2. Monitored users (only users who saved this product in their watchlist)
     monitored_users = list(User.objects.filter(
         saved_products__product=product
     ).exclude(id__in=[u.id for u in admin_users]).distinct())
-
-    if product.created_by and product.created_by not in admin_users and product.created_by not in monitored_users:
-        monitored_users.append(product.created_by)
 
     recipients = admin_users + monitored_users
 
@@ -57,66 +79,117 @@ def _dispatch_alert(product, alert_type, message, alerts_created, window_hours=1
 
 def evaluate_product_alerts(product, trigger_review=None):
     """
-    Evaluates rolling review windows for abnormal deception patterns:
-    1. Fake Review Ratio Threshold: Flag if >= ALERT_FAKE_RATIO_THRESHOLD of recent reviews are Fake.
-    2. Fake Review Spike: Flag if recent fake ratio jumped by >= ALERT_FAKE_SPIKE_THRESHOLD vs prior window.
-    3. Critical Low Authenticity: Flag if overall product score drops below threshold (<50%).
-    4. IP Burst: Flag if current review triggered an IP velocity violation.
-    
-    Alert Recipients:
-    - Admins receive alerts across all products on the platform.
-    - Regular users receive alerts only for products in their monitored watchlist.
+    Evaluates alerts across the system according to defined rules:
+
+    1. General User Alerts:
+       - Notify users when a monitored product reaches or exceeds a 50% fake review ratio.
+       - Alert Message: Fake reviews for subject product is increase to __%
+       - Send alerts only for products the user monitors.
+       - Apply a 24-hour cooldown per user per product to prevent duplicate alerts.
+
+    2. Reviewer Alerts:
+       - Notify reviewers whenever their submitted review is classified by the ML model as either Fake or Genuine.
+       - Alert Message: Your Review is classified as fake/genuine
+       - Send an alert for every submitted review classification.
+       - No cooldown or notification limit applies to reviewer alerts.
+
+    3. Admin Alerts:
+       - Notify platform administrators whenever any product in the system reaches or exceeds a 50% fake review ratio.
+       - Alert Message: Fake reviews for subject product is increase to __%
+       - Apply a 24-hour cooldown per product for admin alerts to prevent repeated notifications.
+
+    Important:
+       - The 50% threshold applies to the fake review ratio.
+       - Do not trigger alerts for products below 50%.
     """
+    from django.contrib.auth.models import User
+    from django.db.models import Q
+
     alerts_created = []
-    window_count = getattr(settings, 'ALERT_WINDOW_COUNT', 10)
-    fake_threshold = getattr(settings, 'ALERT_FAKE_RATIO_THRESHOLD', 0.40)
-    spike_threshold = getattr(settings, 'ALERT_FAKE_SPIKE_THRESHOLD', 0.25)
 
-    all_reviews = list(product.reviews.order_by('-created_at')[: window_count * 2])
-    total_reviews_count = len(all_reviews)
+    # 1. Reviewer Alerts: Triggered on every submitted review classification (no cooldown)
+    if trigger_review and trigger_review.user:
+        rev_alert = dispatch_reviewer_classification_alert(trigger_review)
+        if rev_alert:
+            alerts_created.append(rev_alert)
 
-    if total_reviews_count == 0:
-        return alerts_created
-
-    # 1. IP Burst Alert (Direct trigger from submitted review)
+    # 2. Heuristic Alert: Suspicious IP velocity burst
     if trigger_review and trigger_review.ip_flag:
         msg = (f"Suspicious IP submission velocity detected from {trigger_review.ip_address} "
                f"on '{product.name}'. Multiple submissions within velocity window.")
         _dispatch_alert(product, 'ip_burst', msg, alerts_created, window_hours=6)
 
-    # 2. Window-based Ratio & Spike Evaluation
-    recent_window = all_reviews[:min(window_count, total_reviews_count)]
-    prior_window = all_reviews[min(window_count, total_reviews_count):]
+    # 3. Product Fake Review Ratio Evaluation
+    total_reviews = product.reviews.count()
+    fake_reviews = product.reviews.filter(label='Fake').count()
+    fake_ratio = (fake_reviews / total_reviews * 100.0) if total_reviews > 0 else 0.0
 
-    recent_fake_count = sum(1 for r in recent_window if r.label == 'Fake')
-    recent_fake_ratio = recent_fake_count / len(recent_window) if recent_window else 0.0
+    # Strict 50% threshold: only trigger ratio alerts when fake review ratio >= 50%
+    if total_reviews > 0 and fake_ratio >= 50.0:
+        pct_val = int(fake_ratio) if fake_ratio.is_integer() else round(fake_ratio, 1)
+        ratio_msg = f"Fake reviews for {product.name} is increase to {pct_val}%"
+        cooldown_24h = timezone.now() - timedelta(hours=24)
 
-    # A) Ratio Threshold Trigger
-    if len(recent_window) >= 3 and recent_fake_ratio >= fake_threshold:
-        msg = (f"Deception Alert: {round(recent_fake_ratio * 100, 1)}% of recent reviews for "
-               f"'{product.name}' are classified as Fake / Machine-Generated (Threshold: {int(fake_threshold*100)}%).")
-        _dispatch_alert(product, 'fake_spike', msg, alerts_created, window_hours=12)
+        # 3A. Admin Alerts: Notify platform administrators (24-hour cooldown per product)
+        admin_users = list(User.objects.filter(
+            Q(is_superuser=True) | Q(is_staff=True) | Q(profile__role='admin')
+        ).distinct())
 
-    # B) Spike vs Prior Window Trigger
-    if len(prior_window) >= 3:
-        prior_fake_count = sum(1 for r in prior_window if r.label == 'Fake')
-        prior_fake_ratio = prior_fake_count / len(prior_window)
-        spike_diff = recent_fake_ratio - prior_fake_ratio
+        admin_alert_exists = Alert.objects.filter(
+            product=product,
+            type='fake_spike',
+            created_at__gte=cooldown_24h
+        ).filter(Q(user__in=admin_users) | Q(user__isnull=True)).exists()
 
-        if spike_diff >= spike_threshold:
-            msg = (f"Abnormal Fake Review Spike on '{product.name}': Fake ratio surged by "
-                   f"+{round(spike_diff * 100, 1)}% compared to prior window.")
-            _dispatch_alert(product, 'fake_spike', msg, alerts_created, window_hours=12)
+        if not admin_alert_exists:
+            if admin_users:
+                for admin in admin_users:
+                    alert = Alert.objects.create(
+                        product=product,
+                        user=admin,
+                        type='fake_spike',
+                        message=ratio_msg
+                    )
+                    alerts_created.append(alert)
+            else:
+                alert = Alert.objects.create(
+                    product=product,
+                    user=None,
+                    type='fake_spike',
+                    message=ratio_msg
+                )
+                alerts_created.append(alert)
 
-    # C) Critical Authenticity Drop Trigger (< 50% for binary classification)
+        # 3B. General User Alerts: Notify users monitoring this product (24-hour cooldown per user per product)
+        monitored_users = list(User.objects.filter(
+            saved_products__product=product
+        ).exclude(id__in=[u.id for u in admin_users]).distinct())
+
+        for m_user in monitored_users:
+            user_alert_exists = Alert.objects.filter(
+                product=product,
+                user=m_user,
+                type='fake_spike',
+                created_at__gte=cooldown_24h
+            ).exists()
+            if not user_alert_exists:
+                alert = Alert.objects.create(
+                    product=product,
+                    user=m_user,
+                    type='fake_spike',
+                    message=ratio_msg
+                )
+                alerts_created.append(alert)
+
+    # 4. Critical Authenticity Drop Trigger (< 50% composite score with >= 5 reviews)
     overall_score = product.overall_authenticity_score()
     auth_threshold = getattr(settings, 'AUTHENTICITY_THRESHOLD', 50.0)
-    if total_reviews_count >= 5 and overall_score < auth_threshold:
+    if total_reviews >= 5 and overall_score < auth_threshold:
         msg = (f"Critical Authenticity Warning: Overall authenticity score for '{product.name}' "
                f"dropped to {overall_score}% (Classified as Deceptive / Fake).")
         _dispatch_alert(product, 'low_authenticity', msg, alerts_created, window_hours=24)
 
-    # 3. Optional Email Notification
+    # 5. Optional Email Notifications
     if alerts_created and getattr(settings, 'ALERT_EMAIL_NOTIFICATIONS', False):
         for alert in alerts_created:
             try:
@@ -137,4 +210,3 @@ def evaluate_product_alerts(product, trigger_review=None):
                 logger.error(f"Failed to dispatch alert email: {e}")
 
     return alerts_created
-

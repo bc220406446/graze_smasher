@@ -40,6 +40,11 @@
                     <i class="fa-solid fa-flag text-danger"></i> Flagged Content
                 </a>
             </li>
+            <li>
+                <a href="{% url 'user_alerts' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
+                    <i class="fa-solid fa-bell text-warning"></i> Anomaly Alerts
+                </a>
+            </li>
         </ul>
 
         <div class="gs-sidebar-heading mt-3">Intelligence & System</div>
@@ -107,6 +112,11 @@
             <li>
                 <a href="{% url 'reviewer_reviewed_products' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'reviewer_reviewed_products' %}active{% endif %}">
                     <i class="fa-solid fa-check-double"></i> Reviewed Products
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'user_alerts' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
+                    <i class="fa-solid fa-bell text-warning"></i> Alerts
                 </a>
             </li>
         </ul>

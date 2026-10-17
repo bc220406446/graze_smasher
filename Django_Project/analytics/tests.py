@@ -101,6 +101,113 @@ class AlertEngineTestCase(TestCase):
         self.assertEqual(len(alerts_run_2), 0)
         self.assertEqual(Alert.objects.filter(product=self.product).count(), initial_count)
 
+    def test_general_user_alert_at_50_percent_fake_ratio(self):
+        """General user monitoring a product receives an alert when fake ratio reaches/exceeds 50%."""
+        from products.models import SavedProduct
+        user = User.objects.create_user(username="mon_user", password="password123")
+        SavedProduct.objects.create(user=user, product=self.product)
+
+        # 2 Fake, 2 Genuine -> 50% fake review ratio
+        for i in range(2):
+            Review.objects.create(product=self.product, text=f"Fake {i}", rating=5, label=Review.LABEL_FAKE)
+            Review.objects.create(product=self.product, text=f"Gen {i}", rating=5, label=Review.LABEL_GENUINE)
+
+        new_alerts = evaluate_product_alerts(self.product)
+        user_alerts = [a for a in new_alerts if a.user == user]
+        self.assertEqual(len(user_alerts), 1)
+        expected_msg = f"Fake reviews for {self.product.name} is increase to 50%"
+        self.assertEqual(user_alerts[0].message, expected_msg)
+
+    def test_general_user_no_alert_below_50_percent(self):
+        """No ratio alert should be triggered if the product fake review ratio is below 50%."""
+        from products.models import SavedProduct
+        user = User.objects.create_user(username="mon_user_below", password="password123")
+        SavedProduct.objects.create(user=user, product=self.product)
+
+        # 1 Fake, 3 Genuine -> 25% fake review ratio (< 50%)
+        Review.objects.create(product=self.product, text="Fake 1", rating=5, label=Review.LABEL_FAKE)
+        for i in range(3):
+            Review.objects.create(product=self.product, text=f"Gen {i}", rating=5, label=Review.LABEL_GENUINE)
+
+        new_alerts = evaluate_product_alerts(self.product)
+        user_alerts = [a for a in new_alerts if a.user == user and a.type == 'fake_spike']
+        self.assertEqual(len(user_alerts), 0)
+
+    def test_general_user_24h_cooldown_per_user_per_product(self):
+        """24-hour cooldown prevents duplicate alerts for the same user and product."""
+        from products.models import SavedProduct
+        user1 = User.objects.create_user(username="user1", password="password123")
+        user2 = User.objects.create_user(username="user2", password="password123")
+        SavedProduct.objects.create(user=user1, product=self.product)
+        SavedProduct.objects.create(user=user2, product=self.product)
+
+        # 3 Fake out of 4 reviews -> 75% fake ratio
+        for i in range(3):
+            Review.objects.create(product=self.product, text=f"Fake {i}", rating=5, label=Review.LABEL_FAKE)
+        Review.objects.create(product=self.product, text="Gen 1", rating=5, label=Review.LABEL_GENUINE)
+
+        run1 = evaluate_product_alerts(self.product)
+        self.assertEqual(len([a for a in run1 if a.user == user1]), 1)
+        self.assertEqual(len([a for a in run1 if a.user == user2]), 1)
+
+        # Immediate second run: cooldown active
+        run2 = evaluate_product_alerts(self.product)
+        self.assertEqual(len([a for a in run2 if a.user == user1]), 0)
+        self.assertEqual(len([a for a in run2 if a.user == user2]), 0)
+
+    def test_reviewer_alert_classification_feedback_no_cooldown(self):
+        """Reviewers receive alerts for both Fake and Genuine classifications on every review."""
+        reviewer = User.objects.create_user(username="reviewer_alice", password="password123")
+        
+        # 1. Fake review submission
+        rev_fake = Review.objects.create(
+            product=self.product,
+            user=reviewer,
+            text="Best product ever wow buy now!",
+            rating=5,
+            label=Review.LABEL_FAKE
+        )
+        alerts1 = evaluate_product_alerts(self.product, trigger_review=rev_fake)
+        reviewer_fake_alerts = [a for a in alerts1 if a.user == reviewer and a.type == 'review_classified']
+        self.assertEqual(len(reviewer_fake_alerts), 1)
+        self.assertEqual(reviewer_fake_alerts[0].message, "Your Review is classified as fake")
+
+        # 2. Genuine review submission by same reviewer on another product (or even same): must fire again (no cooldown)
+        prod2 = Product.objects.create(name="Another Product", platform="Amazon")
+        rev_gen = Review.objects.create(
+            product=prod2,
+            user=reviewer,
+            text="Normal honest user experience with minor flaws.",
+            rating=4,
+            label=Review.LABEL_GENUINE
+        )
+        alerts2 = evaluate_product_alerts(prod2, trigger_review=rev_gen)
+        reviewer_gen_alerts = [a for a in alerts2 if a.user == reviewer and a.type == 'review_classified']
+        self.assertEqual(len(reviewer_gen_alerts), 1)
+        self.assertEqual(reviewer_gen_alerts[0].message, "Your Review is classified as genuine")
+
+    def test_admin_alert_at_50_percent_fake_ratio_with_cooldown(self):
+        """Platform admins receive alerts for any product reaching >= 50% fake ratio with 24h per-product cooldown."""
+        admin = User.objects.create_user(username="platform_admin", password="password123", is_staff=True)
+        admin.profile.role = 'admin'
+        admin.profile.save()
+
+        # 3 Fake out of 5 -> 60%
+        for i in range(3):
+            Review.objects.create(product=self.product, text=f"Fake {i}", rating=5, label=Review.LABEL_FAKE)
+        for i in range(2):
+            Review.objects.create(product=self.product, text=f"Gen {i}", rating=5, label=Review.LABEL_GENUINE)
+
+        run1 = evaluate_product_alerts(self.product)
+        admin_alerts_1 = [a for a in run1 if a.user == admin and a.type == 'fake_spike']
+        self.assertEqual(len(admin_alerts_1), 1)
+        self.assertEqual(admin_alerts_1[0].message, f"Fake reviews for {self.product.name} is increase to 60%")
+
+        # Immediate rerun: 24h cooldown per product prevents duplicate admin alerts
+        run2 = evaluate_product_alerts(self.product)
+        admin_alerts_2 = [a for a in run2 if a.user == admin and a.type == 'fake_spike']
+        self.assertEqual(len(admin_alerts_2), 0)
+
 
 class AnalyticsViewsTestCase(TestCase):
     """Verifies that platform-wide aggregation and analytics views respond with HTTP 200."""

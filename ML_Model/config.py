@@ -63,7 +63,7 @@ J48_FEATURE_NAMES = [
 ]
 
 # Automated Alert Thresholds & Analytics Settings
-ALERT_FAKE_RATIO_THRESHOLD = 0.40  # Alert if fake review ratio in window >= 40%
+ALERT_FAKE_RATIO_THRESHOLD = 0.50  # Alert if fake review ratio in window >= 50%
 ALERT_FAKE_SPIKE_THRESHOLD = 0.25  # Alert if fake ratio increases by >= 25% vs prior window
 ALERT_WINDOW_DAYS = 7              # Evaluation window in days
 ALERT_WINDOW_COUNT = 10            # Rolling review count window for spike checks

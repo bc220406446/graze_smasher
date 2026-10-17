@@ -9,14 +9,8 @@
     <div class="card p-4 workspace-banner">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <span class="badge {% if profile.role == 'admin' %}bg-danger{% elif profile.role == 'reviewer' %}bg-primary{% else %}bg-secondary{% endif %} px-3 py-1 mb-2">
-                    {{ profile.get_role_display }}
-                </span>
                 <h3 class="fw-bold text-dark mb-1">{{ request.user.username }}'s Profile</h3>
-                <p class="text-muted small mb-0">Update your account credentials, view role capabilities, and inspect your activity history.</p>
-            </div>
-            <div class="bg-white p-3 rounded-circle shadow-sm text-primary">
-                <i class="fa-solid fa-id-badge fs-2"></i>
+                <p class="text-muted small mb-0">View and update your account credentials.</p>
             </div>
         </div>
     </div>
@@ -65,35 +59,5 @@
             </form>
         </div>
     </div>
-
-    <!-- User Activity Summary -->
-    <div class="card shadow-sm border">
-        <div class="card-header py-3 bg-white border-bottom">
-            <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-chart-pie text-info me-2"></i>Activity & Watchlist Summary</h6>
-        </div>
-        <div class="card-body p-4">
-            <div class="row text-center g-3">
-                <div class="col-4">
-                    <div class="p-3 bg-light rounded border">
-                        <h3 class="fw-bold text-primary mb-0">{{ request.user.saved_products.count }}</h3>
-                        <small class="text-muted">Saved Products</small>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="p-3 bg-light rounded border">
-                        <h3 class="fw-bold text-success mb-0">{{ request.user.reviews.count }}</h3>
-                        <small class="text-muted">Reviews Authored</small>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="p-3 bg-light rounded border">
-                        <h3 class="fw-bold text-info mb-0">{{ request.user.date_joined|date:"M Y" }}</h3>
-                        <small class="text-muted">Member Since</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 {% endblock %}

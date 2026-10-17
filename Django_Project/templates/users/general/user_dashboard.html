@@ -127,17 +127,19 @@
                                 {% endwith %}
                             </td>
 
-                            <!-- Alerts: Displaying Total Alerts Count only (e.g. "0 alerts", "1 alert", "2 alerts") -->
+                            <!-- Alerts: Displaying Total Alerts Count only (Clickable to forward to alerts) -->
                             <td class="text-center py-3">
-                                {% if product.total_alerts_count > 0 %}
-                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 small fw-semibold">
-                                    {{ product.total_alerts_count }} alert{{ product.total_alerts_count|pluralize }}
-                                </span>
-                                {% else %}
-                                <span class="badge bg-light text-muted border px-2 py-1 small">
-                                    0 alerts
-                                </span>
-                                {% endif %}
+                                <a href="{% url 'user_alerts' %}" class="text-decoration-none">
+                                    {% if product.total_alerts_count > 0 %}
+                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 small fw-semibold">
+                                        {{ product.total_alerts_count }} alert{{ product.total_alerts_count|pluralize }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-light text-muted border px-2 py-1 small">
+                                        0 alerts
+                                    </span>
+                                    {% endif %}
+                                </a>
                             </td>
 
                             <!-- Action: View Detail and Unmonitor (Left-aligned, clean buttons without icons before titles) -->
