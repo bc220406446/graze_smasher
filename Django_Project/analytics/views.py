@@ -57,7 +57,7 @@ def user_dashboard(request):
     relevant_product_ids = list(set(saved_product_ids + created_product_ids))
 
     alerts_qs = Alert.objects.filter(
-        Q(user=user) | Q(product_id__in=relevant_product_ids)
+        Q(user=user) | Q(user__isnull=True, product_id__in=relevant_product_ids)
     ).select_related('product').order_by('-created_at')
 
     unread_alerts_count = alerts_qs.filter(is_read=False).count()
@@ -74,7 +74,7 @@ def user_dashboard(request):
 
     context = {
         'saved_products': saved_products[:6],
-        'saved_count': len(saved_products),
+        'saved_count': user_created_products.count(),
         'monitored_count': len(saved_products),
         'avg_saved_score': avg_saved_score,
         'user_created_products': user_created_products[:5],
@@ -89,17 +89,16 @@ def user_dashboard(request):
 
 @login_required
 def saved_products_view(request):
-    """Dedicated page displaying all saved products in the user's watchlist."""
+    """Dedicated page displaying products added/created by the logged-in user only."""
     user = request.user
     q = request.GET.get('q', '').strip()
 
-    saved_items = SavedProduct.objects.filter(user=user).select_related('product')
+    products_qs = Product.objects.filter(created_by=user)
     if q:
-        saved_items = saved_items.filter(
-            Q(product__name__icontains=q) | Q(product__description__icontains=q)
+        products_qs = products_qs.filter(
+            Q(name__icontains=q) | Q(description__icontains=q)
         )
-
-    products = [item.product for item in saved_items if not item.product.is_hidden]
+    products = list(products_qs.order_by('-created_at'))
 
     paginator = Paginator(products, 9)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -125,8 +124,8 @@ def monitored_products_view(request):
     # Enrich each monitored product with alert count
     enriched = []
     for p in monitored:
-        active_count = Alert.objects.filter(product=p, is_read=False).count()
-        total_count = Alert.objects.filter(product=p).count()
+        active_count = Alert.objects.filter(product=p, is_read=False).filter(Q(user=user) | Q(user__isnull=True)).count()
+        total_count = Alert.objects.filter(product=p).filter(Q(user=user) | Q(user__isnull=True)).count()
         enriched.append({
             'product': p,
             'score': p.overall_authenticity_score(),
@@ -156,16 +155,16 @@ def user_alerts_view(request):
     product_filter = request.GET.get('product', '').strip()
 
     if is_admin:
-        # Administrators inspect all platform-wide anomaly alerts
-        alerts_qs = Alert.objects.all().select_related('product', 'user').order_by('-created_at')
-        filter_product_ids = list(Alert.objects.values_list('product_id', flat=True).distinct())
+        # Administrators inspect platform-wide anomaly alerts addressed to them or unassigned
+        alerts_qs = Alert.objects.filter(Q(user=user) | Q(user__isnull=True)).select_related('product', 'user').order_by('-created_at')
+        filter_product_ids = list(alerts_qs.values_list('product_id', flat=True).distinct())
         filter_products = list(Product.objects.filter(id__in=filter_product_ids, is_hidden=False).distinct())
-        total_alerts_count = Alert.objects.count()
-        unread_count = Alert.objects.filter(is_read=False).count()
+        total_alerts_count = alerts_qs.count()
+        unread_count = alerts_qs.filter(is_read=False).count()
         role_label = "Administrator"
         feed_subtitle = "Platform-wide anomaly alerts, 50% fake review ratio triggers, and detection notifications."
     else:
-        # General users & Reviewers: Watchlist monitored products + user-targeted alerts
+        # General users & Reviewers: Alerts specifically addressed to this user (or unassigned for their monitored products)
         saved_items = SavedProduct.objects.filter(user=user).select_related('product')
         saved_products = [item.product for item in saved_items if not item.product.is_hidden]
         saved_product_ids = [p.id for p in saved_products]
@@ -174,18 +173,15 @@ def user_alerts_view(request):
         relevant_ids = list(set(saved_product_ids + created_product_ids + user_alert_product_ids))
 
         alerts_qs = Alert.objects.filter(
-            Q(user=user) | Q(product_id__in=relevant_ids)
+            Q(user=user) | Q(user__isnull=True, product_id__in=relevant_ids)
         ).select_related('product', 'user').order_by('-created_at')
 
         filter_products = list(Product.objects.filter(id__in=relevant_ids, is_hidden=False).distinct())
         if not filter_products and saved_products:
             filter_products = saved_products
 
-        total_alerts_count = Alert.objects.filter(Q(user=user) | Q(product_id__in=relevant_ids)).count()
-        unread_count = Alert.objects.filter(
-            Q(user=user) | Q(product_id__in=relevant_ids),
-            is_read=False
-        ).count()
+        total_alerts_count = alerts_qs.count()
+        unread_count = alerts_qs.filter(is_read=False).count()
 
         if is_reviewer:
             role_label = "Reviewer"
@@ -434,3 +430,27 @@ def mark_alert_read(request, alert_id):
     messages.success(request, "Alert marked as read.")
     next_url = request.META.get('HTTP_REFERER', 'user_dashboard')
     return redirect(next_url)
+
+
+@login_required
+@require_POST
+def delete_alert(request, alert_id):
+    """Deletes an alert that has already been read."""
+    user = request.user
+    profile = getattr(user, 'profile', None)
+    is_admin = user.is_superuser or user.is_staff or (profile and profile.role == 'admin')
+
+    if is_admin:
+        alert = get_object_or_404(Alert, id=alert_id)
+    else:
+        monitored_ids = list(SavedProduct.objects.filter(user=user).values_list('product_id', flat=True))
+        alert = get_object_or_404(
+            Alert,
+            Q(id=alert_id) & (Q(user=user) | Q(user__isnull=True, product_id__in=monitored_ids))
+        )
+
+    alert.delete()
+    messages.success(request, "Alert deleted successfully.")
+    next_url = request.META.get('HTTP_REFERER', 'user_alerts')
+    return redirect(next_url)
+

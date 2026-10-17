@@ -109,20 +109,6 @@
                     {% endif %}
                 </div>
 
-                <!-- Watchlist Save Toggle Button -->
-                {% if user.is_authenticated %}
-                <div class="position-absolute top-0 end-0 m-3" style="z-index: 2;">
-                    <form action="{% url 'toggle_save_product' product.pk %}" method="POST" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-light rounded-circle shadow-sm"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
-                            title="{% if product.id in saved_product_ids %}Remove from Watchlist{% else %}Add to Watchlist{% endif %}">
-                            <i class="{% if product.id in saved_product_ids %}fa-solid text-danger{% else %}fa-regular text-muted{% endif %} fa-heart"></i>
-                        </button>
-                    </form>
-                </div>
-                {% endif %}
-
                 <!-- Product Image -->
                 <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
                     <div style="height: 190px; overflow: hidden; background-color: #f1f5f9;" class="rounded-top position-relative">
@@ -139,7 +125,7 @@
                     </h5>
 
                     <p class="card-text text-muted small mb-3 flex-grow-1"
-                        style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        style="display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                         {{ product.description|default:"No specifications provided for this product." }}
                     </p>
 
@@ -154,7 +140,9 @@
                         </div>
                         <div class="progress" style="height: 6px;">
                             <div class="progress-bar {% if product.overall_authenticity_score >= 50.0 %}bg-success{% else %}bg-danger{% endif %}"
-                                role="progressbar" style="width: {{ product.overall_authenticity_score }}%;">
+                                role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                aria-valuenow="{{ product.overall_authenticity_score }}"
+                                data-authenticity-score="{{ product.overall_authenticity_score }}" style="width: 0%;">
                             </div>
                         </div>
                     </div>
@@ -223,4 +211,10 @@
     {% endif %}
 
 </div>
+<script>
+    document.querySelectorAll('[data-authenticity-score]').forEach(function (bar) {
+        const score = Math.max(0, Math.min(100, Number(bar.dataset.authenticityScore) || 0));
+        bar.style.width = score + '%';
+    });
+</script>
 {% endblock %}

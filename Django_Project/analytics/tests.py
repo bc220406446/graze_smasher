@@ -215,3 +215,28 @@ class AnalyticsViewsTestCase(TestCase):
         res = self.client.get('/dashboard/')
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Monitored Products")
+
+    def test_mark_alert_read_and_delete_alert(self):
+        """Test marking an alert as read and then deleting it."""
+        product = Product.objects.first()
+        alert = Alert.objects.create(
+            product=product,
+            user=self.user,
+            type='fake_spike',
+            message="Fake reviews for subject product is increase to 60%",
+            is_read=False
+        )
+
+        self.client.force_login(self.user)
+
+        # Mark as read
+        read_res = self.client.post(f'/alerts/{alert.id}/read/')
+        self.assertEqual(read_res.status_code, 302)
+        alert.refresh_from_db()
+        self.assertTrue(alert.is_read)
+
+        # Delete alert
+        del_res = self.client.post(f'/alerts/{alert.id}/delete/')
+        self.assertEqual(del_res.status_code, 302)
+        self.assertFalse(Alert.objects.filter(id=alert.id).exists())
+

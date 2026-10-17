@@ -5,21 +5,25 @@
 {% block dashboard_content %}
 <div class="d-flex flex-column gap-4">
 
-    <!-- Header Bar -->
+    <!-- Header Bar with Role-based Feed Title -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-2 border-bottom">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <h3 class="fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-bell text-warning me-2"></i>Security &amp; Anomaly Alerts
-                </h3>
-            </div>
-            <p class="text-muted mb-0" style="font-size: 0.92rem;">
-                {{ feed_subtitle|default:"Automated alerts triggered when abnormal fake review spikes or authenticity score drops occur." }}
+            <h4 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-bell text-warning me-2"></i>Security &amp; Anomaly Alerts
+            </h4>
+            <p class="text-muted small mb-0">
+                {% if is_admin %}
+                    Showing real-time platform anomaly alerts across all products
+                {% elif is_reviewer %}
+                    Showing review classification and security alerts
+                {% else %}
+                    Showing real-time authenticity alerts across your monitored products
+                {% endif %}
             </p>
         </div>
     </div>
 
-    <!-- Filter Bar Matching User Provided Design (Search, All Products dropdown, Status, Filter, Reset) -->
+    <!-- Filter Bar (Search area and All Products dropdown) -->
     <div class="card shadow-sm border rounded-4 p-3 bg-white">
         <form method="GET" action="{% url 'user_alerts' %}" class="row g-2 align-items-center">
             <!-- Search area with magnifying glass -->
@@ -62,7 +66,7 @@
                 </button>
             </div>
 
-            <!-- Circular Undo/Reset Button -->
+            <!-- Circular Reset Button -->
             <div class="col-auto">
                 <a href="{% url 'user_alerts' %}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center justify-content-center" title="Reset Filters">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -71,7 +75,7 @@
         </form>
     </div>
 
-    <!-- Alert Queue Section (Increased size, clear typography, no product name repetition in message) -->
+    <!-- Alert Queue Section -->
     <div class="card shadow-sm border rounded-4 overflow-hidden">
         <div class="card-body p-0">
             {% if page_obj %}
@@ -79,54 +83,58 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-4 py-3.5" style="width: 72%; font-size: 0.85rem; letter-spacing: 0.5px;">Alert Detail</th>
-                            <th class="text-start ps-3 py-3.5" style="width: 28%; font-size: 0.85rem; letter-spacing: 0.5px;">Action</th>
+                            <th class="ps-4 py-3" style="font-size: 0.85rem; width: 75%;">Alert Detail</th>
+                            <th class="text-start ps-3 py-3" style="width: 25%; white-space: nowrap; font-size: 0.85rem;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for alert in page_obj %}
                         <tr class="{% if not alert.is_read %}bg-light bg-opacity-75{% endif %}">
-                            <!-- Alert Detail (Row-wise: Product Title, Alert Message, Triggered Time) -->
-                            <td class="ps-4 py-4">
-                                <div class="d-flex flex-column gap-2">
+                            <!-- Alert Detail (Matching monitored_products font size and style) -->
+                            <td class="ps-4 py-3">
+                                <div class="d-flex flex-column gap-1">
                                     <!-- Row 1: Product Title & Badges -->
                                     <div class="d-flex align-items-center gap-2 flex-wrap">
                                         <a href="{% url 'product_detail' alert.product.pk %}"
-                                           class="fw-bold text-dark text-decoration-none" style="font-size: 1.18rem; letter-spacing: -0.2px;">
+                                           class="text-decoration-none text-dark fw-bold text-truncate d-inline-block"
+                                           style="max-width: 420px; font-size: 0.85rem;" title="{{ alert.product.name }}">
                                             {{ alert.product.name }}
                                         </a>
                                         {% if not alert.is_read %}
-                                            <span class="badge bg-warning text-dark small fw-bold px-2 py-1" style="font-size: 0.72rem;">NEW</span>
+                                            <span class="badge bg-warning text-dark small fw-bold px-1 py-0.5" style="font-size: 0.72rem;">NEW</span>
                                         {% endif %}
                                     </div>
 
-                                    <!-- Row 2: Alert Message (Prominent font size, clean text) -->
-                                    <div class="text-dark fw-medium lh-base mb-0" style="font-size: 1.05rem; color: #1e293b;">
-                                        {{ alert.message }}
-                                    </div>
-
-                                    <!-- Row 3: Triggered Time -->
-                                    <div class="text-muted d-flex align-items-center gap-1" style="font-size: 0.84rem;">
-                                        <i class="fa-regular fa-clock me-1"></i>
-                                        <span>Triggered Time: <strong>{{ alert.created_at|date:"M d, Y - H:i" }}</strong></span>
+                                    <!-- Row 2: Alert Message flexed with Triggered Time -->
+                                    <div class="d-flex align-items-center justify-content-start flex-wrap gap-2">
+                                        <p class="text-muted mb-0" style="font-size: 0.775rem; line-height: 1.35;">
+                                            {{ alert.message }}
+                                        </p>
+                                        <div class="text-muted small d-flex align-items-center gap-1 text-nowrap" style="font-size: 0.75rem;">
+                                            <i class="fa-regular fa-clock me-1 text-secondary"></i>
+                                            <span>Triggered Time: <strong>{{ alert.created_at|date:"M d, Y - H:i" }}</strong></span>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
 
-                            <!-- Action Column: View Product always, Mark as Read ONLY when unread, NO delete option -->
-                            <td class="text-start ps-3 py-4">
-                                <div class="d-inline-flex align-items-center gap-2 flex-wrap">
+                            <!-- Action Column: View Detail, Mark as Read (when unread), Delete (when read) -->
+                            <td class="text-start ps-3 py-3" style="width: 1%; white-space: nowrap;">
+                                <div class="d-inline-flex align-items-center gap-2">
                                     {% if not alert.is_read %}
                                     <form method="POST" action="{% url 'mark_alert_read' alert.id %}" class="d-inline">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-secondary px-3 py-2 fw-semibold text-nowrap" style="font-size: 0.9rem;">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary px-3 fw-semibold text-nowrap">
                                             Mark as Read
                                         </button>
                                     </form>
                                     {% else %}
-                                    <span class="badge bg-light text-muted border px-2.5 py-2 small fw-semibold" style="font-size: 0.85rem;">
-                                        <i class="fa-solid fa-check text-success me-1"></i>Read
-                                    </span>
+                                    <form method="POST" action="{% url 'delete_alert' alert.id %}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this alert?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger px-3 fw-semibold text-nowrap" title="Delete this alert">
+                                            Delete
+                                        </button>
+                                    </form>
                                     {% endif %}
                                 </div>
                             </td>

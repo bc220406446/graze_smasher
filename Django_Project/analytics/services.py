@@ -136,6 +136,11 @@ def evaluate_product_alerts(product, trigger_review=None):
         ).filter(Q(user__in=admin_users) | Q(user__isnull=True)).exists()
 
         if not admin_alert_exists:
+            # Delete previous notifications for this product with cooldown period of 24 hours
+            Alert.objects.filter(product=product, type='fake_spike').filter(
+                Q(user__in=admin_users) | Q(user__isnull=True)
+            ).delete()
+
             if admin_users:
                 for admin in admin_users:
                     alert = Alert.objects.create(
@@ -167,6 +172,9 @@ def evaluate_product_alerts(product, trigger_review=None):
                 created_at__gte=cooldown_24h
             ).exists()
             if not user_alert_exists:
+                # Delete previous notifications for this user and product with cooldown period of 24 hours
+                Alert.objects.filter(product=product, user=m_user, type='fake_spike').delete()
+
                 alert = Alert.objects.create(
                     product=product,
                     user=m_user,

@@ -297,6 +297,7 @@ def product_detail(request, pk):
         'chart_labels': fake_labels,
         'chart_scores': auth_data,
         'chart_fakes': fake_data,
+        'model_accuracy': '91.8%',
     }
     # Dynamic Base Template: dashboard_base.html with sidebar for logged-in users, base.html for guests
     base_template = 'dashboard_base.html' if request.user.is_authenticated else 'base.html'
@@ -311,10 +312,10 @@ def toggle_save_product(request, pk):
     saved = SavedProduct.objects.filter(user=request.user, product=product).first()
     if saved:
         saved.delete()
-        messages.info(request, f"Removed '{product.name}' from your watchlist.")
+        messages.info(request, f"Removed '{product.name}' from your monitored products.")
     else:
         SavedProduct.objects.create(user=request.user, product=product)
-        messages.success(request, f"Added '{product.name}' to your watchlist!")
+        messages.success(request, f"Added '{product.name}' to your monitored products!")
     
     next_url = request.META.get('HTTP_REFERER', 'product_list')
     return redirect(next_url)
