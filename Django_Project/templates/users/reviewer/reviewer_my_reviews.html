@@ -137,18 +137,16 @@
                             <!-- Classification -->
                             <td class="text-center py-3 px-1">
                                 {% if r.label == 'Genuine' %}
-                                    <span class="badge-genuine small text-nowrap"><i class="fa-solid fa-check me-1"></i>Genuine</span>
-                                {% elif r.label == 'Suspicious' %}
-                                    <span class="badge-suspicious small text-nowrap"><i class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious</span>
+                                    <span class="fw-semibold">Genuine</span>
                                 {% else %}
-                                    <span class="badge-fake small text-nowrap"><i class="fa-solid fa-ban me-1"></i>Fake</span>
+                                    <span class="fw-semibold">Fake</span>
                                 {% endif %}
                             </td>
 
                             <!-- Final Score -->
                             <td class="text-center py-3 px-1">
                                 {% with score=r.final_score|floatformat:1 %}
-                                <span class="score-pill {% if r.final_score >= 70 %}score-pill-high{% elif r.final_score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %} text-nowrap">
+                                <span class="score-pill text-nowrap">
                                     {{ score }}%
                                 </span>
                                 {% endwith %}
@@ -205,7 +203,7 @@
                         </div>
                         <div class="flex-shrink-0">
                             {% with score=r.final_score|floatformat:1 %}
-                            <span class="score-pill {% if r.final_score >= 70 %}score-pill-high{% elif r.final_score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %}">
+                            <span class="score-pill">
                                 {{ score }}%
                             </span>
                             {% endwith %}
@@ -262,7 +260,7 @@
                     <ul class="pagination pagination-sm justify-content-center mb-0">
                         {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if label_filter %}&label={{ label_filter }}{% endif %}{% if rating_filter %}&rating={{ rating_filter }}{% endif %}{% if sort_filter %}&sort={{ sort_filter }}{% endif %}">&laquo;</a>
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if label_filter %}&label={{ label_filter }}{% endif %}{% if rating_filter %}&rating={{ rating_filter }}{% endif %}{% if sort_filter %}&sort={{ sort_filter }}{% endif %}">Previous</a>
                             </li>
                         {% endif %}
                         {% for num in page_obj.paginator.page_range %}
@@ -272,7 +270,7 @@
                         {% endfor %}
                         {% if page_obj.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if label_filter %}&label={{ label_filter }}{% endif %}{% if rating_filter %}&rating={{ rating_filter }}{% endif %}{% if sort_filter %}&sort={{ sort_filter }}{% endif %}">&raquo;</a>
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if label_filter %}&label={{ label_filter }}{% endif %}{% if rating_filter %}&rating={{ rating_filter }}{% endif %}{% if sort_filter %}&sort={{ sort_filter }}{% endif %}">Next</a>
                             </li>
                         {% endif %}
                     </ul>

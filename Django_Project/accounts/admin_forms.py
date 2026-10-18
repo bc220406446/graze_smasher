@@ -131,23 +131,22 @@ class SystemConfigurationForm(forms.ModelForm):
             'weight_svm',
             'weight_j48',
             'weight_risk',
-            'genuine_threshold',
-            'suspicious_threshold',
             'ip_max_reviews',
-            'ip_window_minutes',
             'alert_fake_ratio_threshold',
-            'alert_fake_spike_threshold',
         ]
         widgets = {
             'weight_svm': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.05', 'min': '0', 'max': '1'}),
             'weight_j48': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.05', 'min': '0', 'max': '1'}),
             'weight_risk': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.05', 'min': '0', 'max': '1'}),
-            'genuine_threshold': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '0', 'max': '100'}),
-            'suspicious_threshold': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '0', 'max': '100'}),
             'ip_max_reviews': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'ip_window_minutes': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
             'alert_fake_ratio_threshold': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.05', 'min': '0', 'max': '1'}),
-            'alert_fake_spike_threshold': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.05', 'min': '0', 'max': '1'}),
+        }
+        labels = {
+            'weight_svm': 'LinearSVC Weight (Textual TF-IDF)',
+            'weight_j48': 'J-48 Weight (Behavioral / Structural)',
+            'weight_risk': 'Sentiment Mismatch Weight',
+            'ip_max_reviews': 'Max Allowed Reviews Per IP (Per Minute)',
+            'alert_fake_ratio_threshold': 'Product Fake Review Ratio Threshold',
         }
 
     def clean(self):
@@ -161,4 +160,14 @@ class SystemConfigurationForm(forms.ModelForm):
                 f"Model weights must sum exactly to 1.0 (Current sum: {total_w}). Please adjust weights."
             )
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.genuine_threshold = 50.0
+        instance.suspicious_threshold = 50.0
+        instance.ip_window_minutes = 1
+        instance.alert_fake_spike_threshold = 0.25
+        if commit:
+            instance.save()
+        return instance
 

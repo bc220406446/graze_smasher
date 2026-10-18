@@ -289,7 +289,7 @@
                             <!-- Final Score -->
                             <td class="text-center py-3">
                                 {% with score=r.final_score|floatformat:1 %}
-                                <span class="score-pill {% if r.final_score >= 70 %}score-pill-high{% elif r.final_score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %}">
+                                <span class="score-pill">
                                     {{ score }}%
                                 </span>
                                 {% endwith %}

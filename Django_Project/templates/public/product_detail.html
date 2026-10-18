@@ -320,7 +320,7 @@
                             {% endfor %}
                         </span>
                         {% if r.ip_flag %}
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle small">
+                        <span class="small">
                             <i class="fa-solid fa-triangle-exclamation me-1"></i>IP Velocity Burst
                         </span>
                         {% endif %}
@@ -330,11 +330,11 @@
                     <div class="text-end">
                         {% if r.label == 'Genuine' %}
                         <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
-                            <i class="fa-solid fa-circle-check me-1"></i>Detected Genuine ({{ r.final_score|floatformat:1 }}%)
+                            Detected Genuine ({{ r.final_score|floatformat:1 }}%)
                         </span>
                         {% else %}
                         <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
-                            <i class="fa-solid fa-ban me-1"></i>Detected Fake ({{ r.final_score|floatformat:1 }}%)
+                            Detected Fake ({{ r.final_score|floatformat:1 }}%)
                         </span>
                         {% endif %}
                     </div>

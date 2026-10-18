@@ -45,18 +45,13 @@
                     <i class="fa-solid fa-bell text-warning"></i> Anomaly Alerts
                 </a>
             </li>
-            <li>
-                <a href="{% url 'admin_analytics_reports' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_analytics_reports' %}active{% endif %}">
-                    <i class="fa-solid fa-chart-pie text-info"></i> Analytics & Reports
-                </a>
-            </li>
         </ul>
 
         <div class="gs-sidebar-heading mt-3">Account</div>
         <ul class="gs-sidebar-menu">
             <li>
                 <a href="{% url 'profile' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                    <i class="fa-solid fa-id-badge"></i> Profile
+                    <i class="fa-solid fa-id-badge"></i> Update Profile
                 </a>
             </li>
             <li>
@@ -111,7 +106,7 @@
         <ul class="gs-sidebar-menu">
             <li>
                 <a href="{% url 'profile' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                    <i class="fa-solid fa-id-badge"></i> Profile
+                    <i class="fa-solid fa-id-badge"></i> Update Profile
                 </a>
             </li>
             <li>
@@ -156,13 +151,13 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'user_alerts' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
-                    <i class="fa-solid fa-bell text-warning"></i> Alerts
+                <a href="{% url 'user_personal_analytics' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_personal_analytics' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line text-info"></i> My Reports
                 </a>
             </li>
             <li>
-                <a href="{% url 'user_personal_analytics' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_personal_analytics' %}active{% endif %}">
-                    <i class="fa-solid fa-chart-line text-info"></i> Analytics
+                <a href="{% url 'user_alerts' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
+                    <i class="fa-solid fa-bell text-warning"></i> Alerts
                 </a>
             </li>
         </ul>

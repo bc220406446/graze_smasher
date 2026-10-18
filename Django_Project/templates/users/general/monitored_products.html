@@ -13,11 +13,6 @@
             </h4>
             <p class="text-muted small mb-0">Live authenticity ratings, community trust scores, and anomaly alerts for items on your watchlist.</p>
         </div>
-        <div>
-            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fw-semibold">
-                <i class="fa-solid fa-circle-dot me-1"></i>{{ total_monitored }} Product{{ total_monitored|pluralize }} Actively Monitored
-            </span>
-        </div>
     </div>
 
     <!-- Monitored Products Table (Matching user_dashboard.html) -->
@@ -62,7 +57,7 @@
                             <!-- Authenticity -->
                             <td class="text-center py-3">
                                 <div class="d-flex flex-column align-items-center gap-1">
-                                    <span class="score-pill {% if item.score >= 50 %}score-pill-high{% else %}score-pill-low{% endif %}">
+                                    <span class="score-pill">
                                         {{ item.score }}%
                                     </span>
                                 </div>

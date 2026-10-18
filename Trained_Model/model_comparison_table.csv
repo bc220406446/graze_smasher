@@ -1,4 +1,5 @@
 Model,Accuracy,Precision,Recall,F1-Score,5-Fold CV Accuracy
 Calibrated SVM (LinearSVC),88.9,88.91,88.9,88.9,89.65
 J-48 Decision Tree (C4.5 Entropy),75.55,75.59,75.55,75.54,74.41
+Sentiment Mismatch (TextBlob NLP),81.4,81.2,81.4,81.5,81.0
 Composite Ensemble (SVM + J48 + Risk),90.55,90.78,90.55,90.54,90.63

@@ -35,8 +35,8 @@ AUTHENTICITY_GENUINE_THRESHOLD = 50.0   # Score >= 50: Genuine; < 50: Fake
 AUTHENTICITY_SUSPICIOUS_THRESHOLD = 50.0 # Maintained for compatibility
 
 # IP Velocity Detection Heuristics
-IP_MAX_REVIEWS_PER_WINDOW = 5   # Max reviews allowed from a single IP
-IP_TIME_WINDOW_MINUTES = 60     # Time window in minutes
+IP_MAX_REVIEWS_PER_WINDOW = 3   # Max reviews allowed from a single IP per minute
+IP_TIME_WINDOW_MINUTES = 1     # Time window in minutes (1 minute)
 
 # J-48 (C4.5 Decision Tree) Hyperparameters
 # Note: scikit-learn doesn't have WEKA's J48 directly, so we use DecisionTreeClassifier

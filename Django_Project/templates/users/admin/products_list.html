@@ -91,7 +91,7 @@
                                     </td>
                                     <td>
                                         {% with score=p.overall_authenticity_score %}
-                                            <span class="score-pill {% if score >= 70 %}score-pill-high{% elif score >= 40 %}score-pill-mid{% else %}score-pill-low{% endif %}">
+                                            <span class="fw-semibold">
                                                 {{ score }}%
                                             </span>
                                         {% endwith %}
@@ -150,7 +150,7 @@
                         <nav>
                             <ul class="pagination pagination-sm justify-content-center mb-0">
                                 {% if page_obj.has_previous %}
-                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if status %}&status={{ status }}{% endif %}">&laquo;</a></li>
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Previous</a></li>
                                 {% endif %}
                                 {% for num in page_obj.paginator.page_range %}
                                     <li class="page-item {% if page_obj.number == num %}active{% endif %}">
@@ -158,7 +158,7 @@
                                     </li>
                                 {% endfor %}
                                 {% if page_obj.has_next %}
-                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if status %}&status={{ status }}{% endif %}">&raquo;</a></li>
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Next</a></li>
                                 {% endif %}
                             </ul>
                         </nav>

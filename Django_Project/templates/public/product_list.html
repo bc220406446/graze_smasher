@@ -152,11 +152,11 @@
                     <a href="{% url 'product_detail' product.pk %}"
                         class="btn btn-outline-primary btn-sm w-100 fw-semibold">
                         {% if user.is_authenticated and user.profile.is_reviewer %}
-                        <i class="fa-solid fa-feather-pointed me-1"></i> Inspect & Add Review &raquo;
+                        <i class="fa-solid fa-feather-pointed me-1"></i> Inspect & Add Review
                         {% elif is_admin %}
-                        <i class="fa-solid fa-gear me-1"></i> Inspect & Manage Product &raquo;
+                        <i class="fa-solid fa-gear me-1"></i> Inspect & Manage Product
                         {% else %}
-                        Inspect Reviews & Analytics &raquo;
+                        Inspect Reviews & Analytics
                         {% endif %}
                     </a>
                 </div>
@@ -183,7 +183,7 @@
             {% if page_obj.has_previous %}
             <li class="page-item">
                 <a class="page-link"
-                    href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">&laquo;
+                    href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Previous</a>
                     Previous</a>
             </li>
             {% endif %}
@@ -203,7 +203,7 @@
             <li class="page-item">
                 <a class="page-link"
                     href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if platform %}&platform={{ platform }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Next
-                    &raquo;</a>
+                </a>
             </li>
             {% endif %}
         </ul>

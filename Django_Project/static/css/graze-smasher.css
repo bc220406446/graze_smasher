@@ -188,7 +188,6 @@ small, .small, .form-text, .text-muted {
 
 /* Technical Monospace: Geist Mono */
 .font-mono,
-.score-pill,
 .score-value,
 code,
 kbd,
@@ -593,23 +592,6 @@ pre {
     letter-spacing: -0.02em;
 }
 
-.score-pill-high {
-    background-color: var(--color-success-subtle);
-    color: var(--color-success);
-    border: 1px solid var(--color-success-border);
-}
-
-.score-pill-mid {
-    background-color: var(--color-warning-subtle);
-    color: var(--color-warning);
-    border: 1px solid var(--color-warning-border);
-}
-
-.score-pill-low {
-    background-color: var(--color-danger-subtle);
-    color: var(--color-danger);
-    border: 1px solid var(--color-danger-border);
-}
 
 /* Role Badges */
 .role-badge-admin {

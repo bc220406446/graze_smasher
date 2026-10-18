@@ -135,7 +135,7 @@
                         <nav>
                             <ul class="pagination pagination-sm justify-content-center mb-0">
                                 {% if page_obj.has_previous %}
-                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}">&laquo;</a></li>
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&q={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}">Previous</a></li>
                                 {% endif %}
                                 {% for num in page_obj.paginator.page_range %}
                                     <li class="page-item {% if page_obj.number == num %}active{% endif %}">
@@ -143,7 +143,7 @@
                                     </li>
                                 {% endfor %}
                                 {% if page_obj.has_next %}
-                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}">&raquo;</a></li>
+                                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&q={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}">Next</a></li>
                                 {% endif %}
                             </ul>
                         </nav>
