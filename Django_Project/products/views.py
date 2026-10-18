@@ -398,7 +398,7 @@ def create_product(request):
     else:
         form = ProductForm()
 
-    return render(request, 'users/shared/add_product.html', {'form': form, 'client_ip': client_ip})
+    return render(request, 'includes/add_product.html', {'form': form, 'client_ip': client_ip})
 
 
 @login_required
@@ -482,7 +482,7 @@ def edit_product(request, pk):
         'product': product,
         'existing_reviews': existing_reviews,
     }
-    return render(request, 'users/shared/edit_product.html', context)
+    return render(request, 'includes/edit_product.html', context)
 
 
 @login_required

@@ -101,7 +101,7 @@ def profile_view(request):
         }
         form = UserProfileUpdateForm(instance=profile, initial=initial)
         
-    template_name = 'users/shared/profile.html'
+    template_name = 'includes/profile.html'
 
     return render(request, template_name, {
         'form': form,

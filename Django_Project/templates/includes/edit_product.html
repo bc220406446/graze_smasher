@@ -329,7 +329,7 @@
 
             <!-- Edit Modals for each review (Shared with Role-Based Access) -->
             {% for r in existing_reviews %}
-                {% include 'users/shared/modal_edit_review.html' with r=r %}
+                {% include 'includes/modal_edit_review.html' with r=r %}
             {% endfor %}
 
             {% else %}

@@ -166,11 +166,11 @@
 </div>
 
 <!-- Shared Add User Modal Include -->
-{% include 'users/shared/modal_add_user.html' %}
+{% include 'includes/modal_add_user.html' %}
 
 <!-- Shared Edit User Modals Include -->
 {% for u in page_obj %}
-    {% include 'users/shared/modal_edit_user.html' with u=u %}
+    {% include 'includes/modal_edit_user.html' with u=u %}
 {% endfor %}
 
 {% endblock %}

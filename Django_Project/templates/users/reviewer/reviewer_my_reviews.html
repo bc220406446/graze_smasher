@@ -250,7 +250,7 @@
 
             <!-- Edit Modals for each review in current page (Shared with Role-Based Access) -->
             {% for r in page_obj %}
-                {% include 'users/shared/modal_edit_review.html' with r=r %}
+                {% include 'includes/modal_edit_review.html' with r=r %}
             {% endfor %}
 
             <!-- Pagination Controls -->

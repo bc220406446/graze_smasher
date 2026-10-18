@@ -129,7 +129,7 @@ def edit_review(request, review_id):
             return redirect(next_url)
 
     form = ReviewSubmissionForm(instance=review)
-    return render(request, 'reviews/edit_review.html', {'form': form, 'review': review})
+    return render(request, 'includes/edit_review.html', {'form': form, 'review': review})
 
 
 @require_POST

@@ -168,7 +168,7 @@ def admin_product_edit(request, product_id):
         'existing_reviews': existing_reviews,
         'is_admin_portal': True,
     }
-    return render(request, 'users/shared/edit_product.html', context)
+    return render(request, 'includes/edit_product.html', context)
 
 
 @admin_required

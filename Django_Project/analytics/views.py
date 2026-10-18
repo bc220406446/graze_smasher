@@ -228,7 +228,7 @@ def user_alerts_view(request):
         'is_admin': is_admin,
         'is_reviewer': is_reviewer,
     }
-    return render(request, 'users/shared/alerts.html', context)
+    return render(request, 'includes/alerts.html', context)
 
 
 @login_required
