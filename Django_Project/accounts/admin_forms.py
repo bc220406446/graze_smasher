@@ -115,15 +115,6 @@ class AdminEditUserForm(forms.Form):
         return self.target_user
 
 
-class UserRoleUpdateForm(forms.ModelForm):
-    class Meta:
-        model = UserProfile
-        fields = ['role']
-        widgets = {
-            'role': forms.Select(attrs={'class': 'form-select form-select-sm'}),
-        }
-
-
 class SystemConfigurationForm(forms.ModelForm):
     class Meta:
         model = SystemConfiguration
@@ -161,13 +152,4 @@ class SystemConfigurationForm(forms.ModelForm):
             )
         return cleaned_data
 
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        instance.genuine_threshold = 50.0
-        instance.suspicious_threshold = 50.0
-        instance.ip_window_minutes = 1
-        instance.alert_fake_spike_threshold = 0.25
-        if commit:
-            instance.save()
-        return instance
 

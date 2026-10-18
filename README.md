@@ -346,9 +346,7 @@ python manage.py runserver
 | `/administrator/users/<int:id>/delete/` | Delete User | Deactivate or delete user account |
 | `/administrator/reports/` | Reports Moderation | Queue of user-flagged products (Resolve / Dismiss) |
 | `/administrator/reports/<int:id>/resolve/` | Resolve Report | Mark report resolved and optionally hide product |
-| `/administrator/reviews/<int:id>/override/` | Review Moderation | Override ML label (Genuine ↔ Fake) with reason |
-| `/administrator/settings/` | ML Configuration | Adjust ML model weights and fake review ratio thresholds |
-| `/administrator/model-config/` | Model Benchmarks | Show ML model metrics and benchmark matrices |
+| `/administrator/settings/` | ML Configuration & Benchmarks | Adjust ML model weights, thresholds, and view model evaluation metrics |
 | `/administrator/alerts/` | System Alerts | All anomaly alerts triggered across all catalog items |
 | `/administrator/alerts/<int:id>/read/` | Mark Alert Read | Dismiss/mark notification as read |
 | `/administrator/alerts/<int:id>/delete/` | Delete Alert | Remove notification from feed |

@@ -3,14 +3,13 @@ Graze Smasher Product Hunting Tool - Custom Administrator Control Panel
 CS619 Final-Year Project
 
 Provides administrator features:
-- System Overview & Health Statistics
-- Product Management (CRUD, Hide/Unhide Moderation)
-- User and RBAC Role Management
-- Dual-Queue Flagged Content Moderation (User Product Flags + ML Review Flags)
-- Live Inspection of ML Model Performance & Serialization Status
+- Admin Dashboard Overview
+- Product Management
+- User Management
+- User Flagged Products
+- System Wide Alerts
+- Live Inspection of ML Model Performance
 - Real-Time Runtime Configuration of Detection Weights, Thresholds & Rules
-- Analytics & Reports
-- REST API Integration Documentation
 """
 
 import os
@@ -43,14 +42,10 @@ from ML_Model.config import (
 @admin_required
 def admin_control_panel(request):
     """Admin Dashboard overview displaying quick actions and recent alerts."""
-    total_users = User.objects.count()
-    total_products = Product.objects.count()
     recent_alerts = Alert.objects.select_related('product', 'user').order_by('-created_at')[:25]
     total_alerts_count = Alert.objects.count()
 
     context = {
-        'total_users': total_users,
-        'total_products': total_products,
         'recent_alerts': recent_alerts,
         'total_alerts_count': total_alerts_count,
     }
@@ -138,7 +133,7 @@ def admin_product_edit(request, product_id=None, pk=None):
                     svm_score=analysis['svm_score'],
                     j48_score=analysis['j48_score'],
                     sentiment=analysis['sentiment_polarity'],
-                    ip_flag=analysis['ip_flag'],
+                    ip_flag=False,
                     final_score=analysis['final_score'],
                     label=analysis['label'],
                     source='user_submission'
@@ -320,41 +315,21 @@ def admin_delete_user(request, user_id=None, id=None):
 
 
 # ==============================================================================
-# FLAGGED CONTENT MODERATION (USER PRODUCT FLAGS + ML REVIEW FLAGS)
+# USER REPORTED CONTENT MODERATION (PRODUCT FLAGS)
 # ==============================================================================
 
 @admin_required
 def admin_flagged_content_view(request):
-    """Moderation queue displaying both User-Flagged Products and ML-Flagged Reviews."""
-    tab = request.GET.get('tab', 'products')
-
-    # 1. Product Flags Queue
+    """Moderation queue displaying user-flagged product reports."""
     flag_status = request.GET.get('flag_status', 'pending')
     product_flags_qs = ProductFlag.objects.select_related('product', 'user').order_by('-created_at')
     if flag_status != 'all':
         product_flags_qs = product_flags_qs.filter(status=flag_status)
 
-    # 2. Review Flags Queue
-    label_filter = request.GET.get('label', '').strip().capitalize()
-    ip_only = request.GET.get('ip_burst', '')
-    review_flags_qs = Review.objects.select_related('product', 'user').filter(
-        Q(label='Fake') | Q(label='Suspicious') | Q(ip_flag=True)
-    ).order_by('-created_at')
-
-    if label_filter in ['Fake', 'Suspicious', 'Genuine']:
-        review_flags_qs = review_flags_qs.filter(label=label_filter)
-    if ip_only == '1':
-        review_flags_qs = review_flags_qs.filter(ip_flag=True)
-
     context = {
-        'tab': tab,
         'product_flags': product_flags_qs[:50],
         'pending_product_flags_count': ProductFlag.objects.filter(status=ProductFlag.STATUS_PENDING).count(),
         'flag_status': flag_status,
-        'review_flags': review_flags_qs[:50],
-        'total_review_flags_count': review_flags_qs.count(),
-        'label_filter': label_filter,
-        'ip_only': ip_only,
     }
     return render(request, 'users/admin/flagged_reviews.html', context)
 
@@ -375,47 +350,16 @@ def admin_resolve_product_flag(request, flag_id=None, id=None):
         flag.status = ProductFlag.STATUS_RESOLVED
         flag.product.is_hidden = True
         flag.product.save()
-        messages.success(request, f"Flag resolved. Product '{flag.product.name}' has been hidden from catalog.")
+        messages.success(request, f"Report resolved. Product '{flag.product.name}' has been hidden from catalog.")
     elif action == 'resolve':
         flag.status = ProductFlag.STATUS_RESOLVED
-        messages.success(request, f"Flag marked as resolved.")
+        messages.success(request, f"Report marked as resolved.")
     elif action == 'dismiss':
         flag.status = ProductFlag.STATUS_DISMISSED
-        messages.info(request, f"Flag dismissed.")
-    elif action == 'review':
-        flag.status = ProductFlag.STATUS_REVIEWED
-        messages.info(request, f"Flag moved to under review.")
+        messages.info(request, f"Report dismissed.")
 
     flag.save()
     return redirect('admin_flagged_content')
-
-
-@admin_required
-@require_POST
-def admin_override_review_label(request, review_id=None, id=None):
-    """Administrator manually overrides or confirms ML classification label."""
-    rid = id if id is not None else review_id
-    review = get_object_or_404(Review, id=rid)
-    new_label = request.POST.get('new_label', '').strip()
-
-    if new_label in ['Genuine', 'Suspicious', 'Fake']:
-        old_label = review.label
-        review.label = new_label
-        if new_label == 'Genuine' and review.final_score < 70.0:
-            review.final_score = 85.0
-        elif new_label == 'Fake' and review.final_score >= 40.0:
-            review.final_score = 25.0
-        review.save()
-
-        messages.success(
-            request,
-            f"Review #{review.id} label manually changed from '{old_label}' to '{new_label}'."
-        )
-    else:
-        messages.error(request, "Invalid classification label.")
-
-    next_url = request.META.get('HTTP_REFERER', 'admin_flagged_content')
-    return redirect(next_url)
 
 
 # ==============================================================================
@@ -524,99 +468,3 @@ def admin_settings_view(request):
     }
     return render(request, 'users/admin/model_metrics.html', context)
 
-
-@admin_required
-def admin_model_metrics_view(request):
-    """Inspect serialized model files, hyperparameter specifications, and evaluation benchmarks."""
-    return admin_settings_view(request)
-
-
-# ==============================================================================
-# ANALYTICS & REPORTS (ADMIN)
-# ==============================================================================
-
-@admin_required
-def admin_analytics_reports(request):
-    """
-    System-wide analytical reports for Admin:
-    - Fake review trends (timeline chart across platform)
-    - Detection accuracy (ML model comparison benchmarks)
-    - Product authenticity scores (by platform and category)
-    """
-    from datetime import timedelta
-    from django.utils import timezone
-
-    total_products = Product.objects.count()
-    total_reviews = Review.objects.count()
-
-    genuine_count = Review.objects.filter(label='Genuine').count()
-    fake_count = Review.objects.filter(label='Fake').count()
-    suspicious_count = 0
-
-    # 1. Fake Review Trends (over last 7 days platform-wide)
-    trend_labels = []
-    trend_genuine = []
-    trend_fake = []
-    now = timezone.now()
-    for i in range(6, -1, -1):
-        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
-        day_end = day_start + timedelta(days=1)
-        day_label = day_start.strftime("%b %d")
-        trend_labels.append(day_label)
-
-        day_revs = Review.objects.filter(created_at__gte=day_start, created_at__lt=day_end)
-        g_c = day_revs.filter(label='Genuine').count()
-        f_c = day_revs.filter(label='Fake').count()
-        trend_genuine.append(g_c)
-        trend_fake.append(f_c)
-
-    # 2. Detection Accuracy (Benchmark Performance)
-    model_names = ['LinearSVC (TF-IDF)', 'J-48 Decision Tree', 'TextBlob NLP', 'Ensemble Consensus']
-    model_accuracies = [87.5, 85.0, 81.4, 91.8]
-    model_f1 = [87.5, 85.1, 81.5, 91.8]
-
-    # 3. Product Authenticity metrics by Platform and Category
-    platform_data = Product.objects.values('platform').annotate(
-        count=Count('id'),
-        avg_score=Avg('reviews__final_score')
-    ).order_by('-count')
-
-    category_data = Product.objects.values('category').annotate(
-        count=Count('id'),
-        avg_score=Avg('reviews__final_score')
-    ).order_by('-count')
-
-    platform_labels = [p['platform'] for p in platform_data]
-    platform_scores = [round(float(p['avg_score'] or 0), 1) for p in platform_data]
-
-    context = {
-        'total_products': total_products,
-        'total_reviews': total_reviews,
-        'genuine_count': genuine_count,
-        'suspicious_count': suspicious_count,
-        'fake_count': fake_count,
-        'platform_data': platform_data,
-        'category_data': category_data,
-        # Visual Reports Data
-        'trend_labels': trend_labels,
-        'trend_genuine': trend_genuine,
-        'trend_fake': trend_fake,
-        'model_names': model_names,
-        'model_accuracies': model_accuracies,
-        'model_f1': model_f1,
-        'platform_labels': platform_labels,
-        'platform_scores': platform_scores,
-        'chart_labels': json.dumps(['Verified Genuine', 'Detected Fake']),
-        'chart_data': json.dumps([genuine_count, fake_count]),
-    }
-    return render(request, 'users/admin/global_analytics_reports.html', context)
-
-
-# ==============================================================================
-# API INTEGRATION
-# ==============================================================================
-
-@admin_required
-def admin_api_integration(request):
-    """Interactive documentation and testing guide for REST API endpoints."""
-    return admin_analytics_reports(request)

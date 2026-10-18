@@ -128,25 +128,15 @@ class RBACPermissionsTestCase(TestCase):
         )
         self.assertEqual(res.status_code, 404)
 
-    def test_admin_override_review_label(self):
-        """Admins can override automated ML classifications in the moderation queue."""
-        review = Review.objects.create(
-            product=self.product,
-            text="Decent watch for the price.",
-            final_score=35.0,
-            label=Review.LABEL_FAKE
-        )
-
+    def test_admin_override_review_label_removed(self):
+        """ML review moderation override endpoint has been removed and returns 404."""
         self.client.force_login(self.admin_user)
         res = self.client.post(
-            f'/administrator/reviews/{review.id}/override/',
-            {'new_label': Review.LABEL_GENUINE},
-            follow=True
+            '/administrator/reviews/999/override/',
+            {'new_label': Review.LABEL_GENUINE}
         )
-        self.assertEqual(res.status_code, 200)
-        review.refresh_from_db()
-        self.assertEqual(review.label, Review.LABEL_GENUINE)
-        self.assertGreaterEqual(review.final_score, 70.0)
+        self.assertEqual(res.status_code, 404)
+
 
 
     def test_registration_with_fullname_and_email(self):

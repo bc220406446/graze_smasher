@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from .models import UserProfile
 
@@ -131,4 +132,31 @@ class UserProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = []
+
+
+class UserPasswordChangeForm(PasswordChangeForm):
+    """
+    Password change form for the user profile page.
+    Subclasses Django's built-in PasswordChangeForm with Bootstrap styling.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['old_password'].widget.attrs.update({
+            'class': 'form-control password-input',
+            'placeholder': 'Enter current password',
+            'id': 'id_old_password',
+        })
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control password-input',
+            'placeholder': 'Create new password',
+            'id': 'id_new_password1',
+            'minlength': '6',
+        })
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control password-input',
+            'placeholder': 'Confirm new password',
+            'id': 'id_new_password2',
+            'minlength': '6',
+        })
+
 

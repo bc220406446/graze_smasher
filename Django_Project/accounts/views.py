@@ -1,9 +1,14 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import UserRegistrationForm, UserProfileUpdateForm, EmailLoginForm
+from .forms import (
+    UserRegistrationForm,
+    UserProfileUpdateForm,
+    EmailLoginForm,
+    UserPasswordChangeForm,
+)
 from .models import UserProfile
 
 
@@ -66,11 +71,11 @@ def profile_view(request):
     user = request.user
     profile = user.profile
     
-    password_form = PasswordChangeForm(user=user)
+    password_form = UserPasswordChangeForm(user=user)
     
     if request.method == 'POST':
         if 'change_password' in request.POST or request.POST.get('action') == 'change_password':
-            password_form = PasswordChangeForm(user=user, data=request.POST)
+            password_form = UserPasswordChangeForm(user=user, data=request.POST)
             initial = {
                 'full_name': user.get_full_name() or user.first_name or '',
             }
