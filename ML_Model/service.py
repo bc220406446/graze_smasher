@@ -28,7 +28,6 @@ try:
     )
     from .preprocess import preprocess_text
     from .feature_extraction import extract_numeric_features
-    from .ip_detector import check_ip_velocity
 except ImportError:
     from config import (
         SVM_MODEL_PATH,
@@ -44,7 +43,6 @@ except ImportError:
     )
     from preprocess import preprocess_text
     from feature_extraction import extract_numeric_features
-    from ip_detector import check_ip_velocity
 
 # Cached model instances
 _svm_model = None
@@ -150,22 +148,21 @@ def analyze_review(
     text: str,
     rating: int | float | None = None,
     ip: str | None = None,
-    record_ip: bool = True
+    record_ip: bool = False
 ) -> dict:
     """
     Single unified service function used across the entire application:
     1. Preprocesses text and extracts features
-    2. Runs Calibrated SVM for TF-IDF fake probability
-    3. Runs J-48 (Decision Tree) on 8 numeric features
-    4. Evaluates sentiment polarity and rating mismatch
-    5. Evaluates IP velocity rule
-    6. Calculates composite authenticity score and label
+    2. Runs Calibrated SVM for TF-IDF fake probability (50% weight)
+    3. Runs J-48 (Decision Tree) on 8 numeric features (30% weight)
+    4. Evaluates sentiment polarity and rating mismatch via TextBlob (20% weight)
+    5. Calculates composite authenticity score and label
     
     Parameters:
         text (str): Raw review text
         rating (int | float | None): Star rating (1-5) or None
-        ip (str | None): Client IP address or None
-        record_ip (bool): Whether this check registers as an IP submission
+        ip (str | None): Kept for backwards compatibility (not used in ML scoring)
+        record_ip (bool): Kept for backwards compatibility
         
     Returns:
         dict: {
@@ -173,11 +170,12 @@ def analyze_review(
             "j48_score": float,            # J-48 Fake probability [0.0, 1.0]
             "sentiment_polarity": float,   # TextBlob polarity [-1.0, 1.0]
             "sentiment_subjectivity": float,
-            "ip_flag": bool,               # True if IP exceeded velocity limit
+            "ip_flag": bool,               # False (IP velocity deprecated)
             "final_score": float,          # Authenticity score [0.0, 100.0]
-            "label": str,                  # "Genuine" | "Suspicious" | "Fake"
+            "label": str,                  # "Genuine" | "Fake"
             "cleaned_text": str,           # Lemmatized text
-            "mismatch_score": float
+            "mismatch_score": float,
+            "ip_reason": str
         }
     """
     if not isinstance(text, str) or not text.strip():
@@ -191,6 +189,7 @@ def analyze_review(
             "label": "Invalid Input",
             "cleaned_text": "",
             "mismatch_score": 0.0,
+            "ip_reason": "",
         }
         
     # 1. Load models
@@ -208,18 +207,16 @@ def analyze_review(
     features_df = pd.DataFrame([features], columns=J48_FEATURE_NAMES)
     j48_score = round(get_fake_probability(j48_model, features_df), 4)
     
-    # 5. Sentiment & IP velocity rule
+    # 5. Model 3: Sentiment & Rating Mismatch
     sentiment_polarity = round(features["sentiment_polarity"], 4)
     sentiment_subjectivity = round(features["sentiment_subjectivity"], 4)
     mismatch_score = round(features["rating_vs_sentiment_mismatch"], 4)
-    
-    ip_flag, ip_reason = check_ip_velocity(ip, record=record_ip)
     
     # 6. Composite Score & Label
     final_score, label = compute_authenticity(
         svm_fake_prob=svm_score,
         j48_fake_prob=j48_score,
-        ip_flag=ip_flag,
+        ip_flag=False,
         mismatch_score=mismatch_score
     )
     
@@ -228,11 +225,10 @@ def analyze_review(
         "j48_score": j48_score,
         "sentiment_polarity": sentiment_polarity,
         "sentiment_subjectivity": sentiment_subjectivity,
-        "ip_flag": ip_flag,
+        "ip_flag": False,
         "final_score": final_score,
         "label": label,
         "cleaned_text": cleaned_text,
         "mismatch_score": mismatch_score,
-        "ip_reason": ip_reason,
+        "ip_reason": "",
     }
-

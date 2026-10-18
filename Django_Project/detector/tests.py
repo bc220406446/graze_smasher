@@ -1,13 +1,11 @@
 """
-Unit Tests for Machine Learning Service & Heuristic Detectors
+Unit Tests for Machine Learning Service & Classification Tiers
 CS619 Final-Year Project: Graze Smasher Product Hunting Tool
 """
 
-import time
 from django.test import TestCase
 from ML_Model.feature_extraction import extract_numeric_features, compute_sentiment
 from ML_Model.config import J48_FEATURE_NAMES
-from ML_Model.ip_detector import IPVelocityTracker, generate_simulated_ips
 from ML_Model.service import analyze_review, compute_authenticity
 
 
@@ -49,61 +47,40 @@ class FeatureExtractionTestCase(TestCase):
         self.assertGreater(mismatch_5_star, mismatch_1_star)
 
 
-class IPVelocityDetectorTestCase(TestCase):
-    """Verifies sliding-window IP velocity tracking and simulated IP generator."""
+class TextBlobSentimentEngineTestCase(TestCase):
+    """Verifies TextBlob sentiment polarity analysis and rating mismatch bounds."""
 
-    def test_generate_simulated_ips(self):
-        """Generated IPs must be well-formed RFC 5737 test IP strings."""
-        ips = generate_simulated_ips(10)
-        self.assertEqual(len(ips), 10)
-        for ip in ips:
-            self.assertTrue(ip.startswith("192.0.2.") or ip.startswith("198.51.100.") or ip.startswith("203.0.113."))
+    def test_positive_sentiment_computation(self):
+        """Positive text must yield positive polarity."""
+        polarity, subjectivity = compute_sentiment("Outstanding quality and wonderful experience.")
+        self.assertGreater(polarity, 0.0)
+        self.assertGreaterEqual(subjectivity, 0.0)
+        self.assertLessEqual(subjectivity, 1.0)
 
-    def test_ip_velocity_trigger(self):
-        """Exceeding max_reviews within the window must trigger ip_flag."""
-        tracker = IPVelocityTracker(max_reviews=3, window_minutes=5)
-        test_ip = "192.0.2.99"
-
-        # 1st, 2nd, 3rd submission: OK
-        self.assertFalse(tracker.record_submission(test_ip))
-        self.assertFalse(tracker.record_submission(test_ip))
-        self.assertFalse(tracker.record_submission(test_ip))
-
-        # 4th submission within window: Flagged!
-        self.assertTrue(tracker.record_submission(test_ip))
-
-    def test_ip_window_expiration(self):
-        """Submissions outside the time window must not trigger velocity flag."""
-        tracker = IPVelocityTracker(max_reviews=2, window_minutes=0.001)
-        test_ip = "192.0.2.100"
-
-        tracker.record_submission(test_ip)
-        tracker.record_submission(test_ip)
-        time.sleep(0.1)
-        flagged = tracker.record_submission(test_ip)
-        self.assertFalse(flagged)
+    def test_negative_sentiment_computation(self):
+        """Negative text must yield negative polarity."""
+        polarity, subjectivity = compute_sentiment("Disappointing, broken, completely useless garbage.")
+        self.assertLess(polarity, 0.0)
 
 
 class CompositeScoringTestCase(TestCase):
-    """Tests the configurable weighted formula synthesizing SVM, J-48, and heuristic risk."""
+    """Tests the configurable weighted formula synthesizing SVM, J-48, and TextBlob Sentiment."""
 
     def test_high_authenticity_genuine_review(self):
-        """Low fake probabilities with clean IP should yield a high score labeled Genuine."""
+        """Low fake probabilities should yield a high score labeled Genuine."""
         score, label = compute_authenticity(
             svm_fake_prob=0.05,
             j48_fake_prob=0.10,
-            ip_flag=False,
             mismatch_score=0.1
         )
         self.assertGreaterEqual(score, 50.0)
         self.assertEqual(label, "Genuine")
 
     def test_low_authenticity_fake_review(self):
-        """High fake probabilities with an IP velocity flag should yield a low score labeled Fake."""
+        """High fake probabilities should yield a low score labeled Fake."""
         score, label = compute_authenticity(
             svm_fake_prob=0.92,
             j48_fake_prob=0.88,
-            ip_flag=True,
             mismatch_score=1.5
         )
         self.assertLess(score, 50.0)
@@ -114,7 +91,6 @@ class CompositeScoringTestCase(TestCase):
         score_gen, label_gen = compute_authenticity(
             svm_fake_prob=0.40,
             j48_fake_prob=0.40,
-            ip_flag=False,
             mismatch_score=0.1
         )
         self.assertGreaterEqual(score_gen, 50.0)
@@ -123,7 +99,6 @@ class CompositeScoringTestCase(TestCase):
         score_fake, label_fake = compute_authenticity(
             svm_fake_prob=0.70,
             j48_fake_prob=0.70,
-            ip_flag=False,
             mismatch_score=0.1
         )
         self.assertLess(score_fake, 50.0)
@@ -135,9 +110,9 @@ class AnalyzeReviewServiceTestCase(TestCase):
 
     def test_analyze_review_output_keys(self):
         """analyze_review() must return all required keys with valid data types."""
-        res = analyze_review("Excellent wireless headphones with deep bass.", rating=5, ip="198.51.100.5", record_ip=False)
+        res = analyze_review("Excellent wireless headphones with deep bass.", rating=5)
 
-        required_keys = ['svm_score', 'j48_score', 'sentiment_polarity', 'sentiment_subjectivity', 'ip_flag', 'final_score', 'label', 'cleaned_text']
+        required_keys = ['svm_score', 'j48_score', 'sentiment_polarity', 'sentiment_subjectivity', 'final_score', 'label', 'cleaned_text']
         for k in required_keys:
             self.assertIn(k, res)
 
@@ -150,6 +125,6 @@ class AnalyzeReviewServiceTestCase(TestCase):
 
     def test_analyze_review_handles_none_rating_and_ip(self):
         """Gracefully handle None for rating and IP without exceptions."""
-        res = analyze_review("Just a neutral review text without rating.", rating=None, ip=None, record_ip=False)
+        res = analyze_review("Just a neutral review text without rating.", rating=None, ip=None)
         self.assertIsNotNone(res)
         self.assertIn('final_score', res)

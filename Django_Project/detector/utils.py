@@ -26,7 +26,6 @@ from ML_Model.service import (
 )
 from ML_Model.preprocess import preprocess_text
 from ML_Model.feature_extraction import extract_numeric_features
-from ML_Model.ip_detector import check_ip_velocity, tracker as ip_tracker
 from ML_Model import config
 
 

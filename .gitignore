@@ -3,16 +3,30 @@
 # CS619 Final-Year Project
 # ==============================================================================
 
-# Byte-compiled / optimized / DLL files
+# ------------------------------------------------------------------------------
+# 1. Byte-compiled / Optimized / Python Internals
+# ------------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
 *.pyd
-
-# C extensions
 *.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+*.manifest
+*.spec
 
-# Virtual Environments
+# ------------------------------------------------------------------------------
+# 2. Virtual Environments
+# ------------------------------------------------------------------------------
 .venv/
 venv/
 env/
@@ -20,32 +34,39 @@ ENV/
 env.bak/
 venv.bak/
 
-# Django Framework
-*.log
-local_settings.py
+# ------------------------------------------------------------------------------
+# 3. Django Web Framework & Databases
+# ------------------------------------------------------------------------------
+# SQLite databases & runtime locks
 db.sqlite3
 *.sqlite3
 *.sqlite3-journal
-media/
-staticfiles/
+*.sqlite3-shm
+*.sqlite3-wal
+*.db
 
-# Jupyter Notebook Checkpoints
+# Django media & static collections (user uploads and collected static)
+media/
+*/media/
+staticfiles/
+*/staticfiles/
+
+# Local custom settings & server logs
+local_settings.py
+*.log
+runserver.log
+
+# ------------------------------------------------------------------------------
+# 4. Jupyter Notebooks & Development Checkpoints
+# ------------------------------------------------------------------------------
 .ipynb_checkpoints/
 */.ipynb_checkpoints/*
+*.nbconvert.ipynb
 
-# IDEs & Code Editors
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# Operating System Files
-.DS_Store
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-# Testing & Coverage
+# ------------------------------------------------------------------------------
+# 5. Testing, Coverage & Profiling
+# ------------------------------------------------------------------------------
+.pytest_cache/
 .coverage
 .coverage.*
 .cache
@@ -53,11 +74,43 @@ nosetests.xml
 coverage.xml
 *.cover
 *.py,cover
-.pytest_cache/
+htmlcov/
 
-# Environments & Secret Configurations
+# ------------------------------------------------------------------------------
+# 6. Environment Variables & Secrets
+# ------------------------------------------------------------------------------
 .env
 .env.*
 !.env.example
 
+# ------------------------------------------------------------------------------
+# 7. IDEs & Code Editors
+# ------------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------------------------------------------------------------
+# 8. Operating System Artifacts
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ------------------------------------------------------------------------------
+# 9. AI Assistants, Agents & Design Systems
+# ------------------------------------------------------------------------------
+.agents/
 .agent*
+.gemini/
+.cursor/
+design-system/
