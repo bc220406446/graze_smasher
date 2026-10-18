@@ -50,6 +50,15 @@
                         <i class="fa-solid fa-pen-to-square me-1"></i> Add Review
                     </button>
                     {% endif %}
+                    {% if has_active_report %}
+                    <button type="button" class="btn btn-secondary btn-sm px-3" disabled title="You have already reported this product. Your report is currently pending review.">
+                        <i class="fa-solid fa-flag me-1 text-warning"></i> Reported
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#flagProductModal">
+                        <i class="fa-solid fa-flag me-1 text-danger"></i> Report
+                    </button>
+                    {% endif %}
                 {% else %}
                     <!-- General User Role: Monitor + Report -->
                     <form action="{% url 'toggle_save_product' product.pk %}" method="POST" class="d-inline">
@@ -58,9 +67,15 @@
                             <i class="fa-solid fa-shield-halved me-1"></i> {% if is_saved %}Monitored{% else %}Monitor{% endif %}
                         </button>
                     </form>
+                    {% if has_active_report %}
+                    <button type="button" class="btn btn-secondary btn-sm px-3" disabled title="You have already reported this product. Your report is currently pending review.">
+                        <i class="fa-solid fa-flag me-1 text-warning"></i> Reported
+                    </button>
+                    {% else %}
                     <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#flagProductModal">
                         <i class="fa-solid fa-flag me-1 text-danger"></i> Report
                     </button>
+                    {% endif %}
                 {% endif %}
             {% else %}
                 <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary btn-sm px-3">
@@ -226,7 +241,7 @@
         </div>
     </div>
 
-    <!-- ML Detection Accuracy Benchmarks Graph -->
+    <!-- ML Model Detection Benchmarks Graph (From Model Metrics) -->
     <div class="row g-4 mb-4">
         <!-- Detection Accuracy Comparison Chart -->
         <div class="col-12">
@@ -234,14 +249,13 @@
                 <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-bullseye text-success me-2"></i>ML Detection Accuracy Benchmarks
+                            <i class="fa-solid fa-bullseye text-success me-2"></i>ML Model Detection Benchmarks
                         </h6>
-                        <small class="text-muted">Comparison of trained ML classifier accuracy on test set</small>
+                        <small class="text-muted">Comparative evaluation metrics on 20% unseen test split</small>
                     </div>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle small">80/20 Test Split</span>
                 </div>
                 <div class="card-body p-3">
-                    <div style="height: 260px;">
+                    <div style="height: 330px;">
                         <canvas id="userDetectionAccuracyChart"></canvas>
                     </div>
                 </div>
@@ -347,7 +361,7 @@
                     <span>J-48 Tree: <strong>{{ r.j48_score|floatformat:2 }}</strong></span>
                     <span>Sentiment Polarity: <strong>{{ r.sentiment|floatformat:2 }}</strong></span>
                     {% if r.created_at %}
-                    <span class="ms-auto"><i class="fa-regular fa-clock me-1"></i>{{ r.created_at|date:"M d, Y H:i" }}</span>
+                    <span class="ms-auto"><i class="fa-regular fa-clock me-1"></i>{{ r.created_at|date:"M d, Y" }}</span>
                     {% endif %}
                 </div>
             </div>
@@ -374,6 +388,29 @@
 <div class="modal fade" id="flagProductModal" tabindex="-1" aria-labelledby="flagModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
+            {% if has_active_report %}
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-dark" id="flagModalLabel">
+                    <i class="fa-solid fa-flag me-2 text-warning"></i> Report Under Review
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="text-warning fs-1 mb-3">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-2">Report Currently Pending Review</h6>
+                <p class="text-muted small mb-0">
+                    You have already submitted a report for <strong>{{ product.name }}</strong>. Our moderation team is actively reviewing your submission. You will be able to submit another report if needed once this report is resolved.
+                </p>
+            </div>
+            <div class="modal-footer border-top bg-light">
+                <a href="{% url 'user_my_reports' %}" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-list-check me-1"></i> View My Reports
+                </a>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+            {% else %}
             <form action="{% url 'flag_product' product.pk %}" method="POST">
                 {% csrf_token %}
                 <div class="modal-header border-bottom">
@@ -402,6 +439,7 @@
                     </button>
                 </div>
             </form>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -414,6 +452,8 @@
 {{ chart_auth_data|json_script:"authChartData" }}
 {{ chart_model_names|json_script:"userModelNames" }}
 {{ chart_model_accuracies|json_script:"userModelAccuracies" }}
+{{ chart_model_precisions|json_script:"userModelPrecisions" }}
+{{ chart_model_recalls|json_script:"userModelRecalls" }}
 {{ chart_model_f1|json_script:"userModelF1" }}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -541,11 +581,15 @@
         if (accCanvas) {
             const namesEl = document.getElementById('userModelNames');
             const accEl = document.getElementById('userModelAccuracies');
+            const precEl = document.getElementById('userModelPrecisions');
+            const recEl = document.getElementById('userModelRecalls');
             const f1El = document.getElementById('userModelF1');
 
-            const modelNames = namesEl ? JSON.parse(namesEl.textContent) : ['LinearSVC', 'J-48 Tree', 'TextBlob NLP', 'Ensemble'];
-            const modelAccuracies = accEl ? JSON.parse(accEl.textContent) : [87.5, 85.0, 81.4, 91.8];
-            const modelF1 = f1El ? JSON.parse(f1El.textContent) : [87.5, 85.1, 81.5, 91.8];
+            const modelNames = namesEl ? JSON.parse(namesEl.textContent) : ['Calibrated SVM (LinearSVC)', 'J-48 Decision Tree', 'Sentiment Mismatch (TextBlob NLP)', 'Composite Ensemble'];
+            const modelAccuracies = accEl ? JSON.parse(accEl.textContent) : [88.9, 75.6, 81.4, 90.6];
+            const modelPrecisions = precEl ? JSON.parse(precEl.textContent) : [88.9, 75.6, 81.2, 90.8];
+            const modelRecalls = recEl ? JSON.parse(recEl.textContent) : [88.9, 75.6, 81.4, 90.6];
+            const modelF1 = f1El ? JSON.parse(f1El.textContent) : [88.9, 75.5, 81.5, 90.5];
 
             new Chart(accCanvas.getContext('2d'), {
                 type: 'bar',
@@ -557,6 +601,20 @@
                             data: modelAccuracies,
                             backgroundColor: 'rgba(37, 99, 235, 0.85)',
                             borderColor: '#2563eb',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Precision (%)',
+                            data: modelPrecisions,
+                            backgroundColor: 'rgba(6, 182, 212, 0.85)',
+                            borderColor: '#06b6d4',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Recall (%)',
+                            data: modelRecalls,
+                            backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                            borderColor: '#f59e0b',
                             borderWidth: 1
                         },
                         {
@@ -573,13 +631,20 @@
                     maintainAspectRatio: false,
                     scales: {
                         y: {
-                            min: 70,
+                            min: 0,
                             max: 100,
                             ticks: { callback: v => v + '%' }
                         }
                     },
                     plugins: {
-                        legend: { position: 'top' }
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
                     }
                 }
             });

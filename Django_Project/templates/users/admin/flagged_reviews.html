@@ -69,7 +69,7 @@
                             </td>
                             <td>
                                 <span class="small fw-semibold text-dark">{{ flag.user.username }}</span><br>
-                                <small class="text-muted" style="font-size: 0.7rem;">{{ flag.created_at}}</small>
+                                <small class="text-muted" style="font-size: 0.7rem;">{{ flag.created_at |date:"M d, Y"}}</small>
                             </td>
                             <td>
                                 {% if flag.status == 'pending' %}

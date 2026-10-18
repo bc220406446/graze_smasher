@@ -154,8 +154,8 @@
                             <!-- Date Column -->
                             <td class="text-center py-3 text-nowrap">
                                 <span class="text-muted small" style="font-size: 0.8rem;"
-                                    title="{{ alert.created_at|date:'M d, Y H:i' }}">
-                                    {{ alert.created_at}}
+                                    title="{{ alert.created_at|date:'M d, Y' }}">
+                                    {{ alert.created_at |date:"M d, Y" }}
                                 </span>
                             </td>
 

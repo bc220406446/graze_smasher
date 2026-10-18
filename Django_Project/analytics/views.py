@@ -13,7 +13,7 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.db.models import Avg, Count, Q
 from django.utils import timezone
-from products.models import Product, SavedProduct
+from products.models import Product, SavedProduct, ProductFlag
 from reviews.models import Review
 from .models import Alert
 from ML_Model.config import MODEL_COMPARISON_CSV
@@ -232,86 +232,41 @@ def user_alerts_view(request):
 
 
 @login_required
-def user_personal_analytics(request):
+def user_my_reports(request):
     """
-    Personalized analytics summary for the logged-in user:
-    - Fake review trends (over time/recent sequence)
-    - Detection accuracy (ML model comparison benchmarks)
-    - Product authenticity scores (for user's saved/monitored products)
+    My Reports View in User Dashboard:
+    Displays the list of product reports submitted by the logged-in user.
+    Mirrors the admin flagged content queue layout, without moderation actions.
     """
-    from datetime import timedelta
     user = request.user
-    saved_items = SavedProduct.objects.filter(user=user).select_related('product')
-    saved_products = [item.product for item in saved_items if not item.product.is_hidden]
+    flag_status = request.GET.get('flag_status', 'all').strip().lower()
 
-    user_reviews = Review.objects.filter(user=user)
-    user_created = Product.objects.filter(created_by=user)
+    user_flags_qs = ProductFlag.objects.filter(user=user).select_related('product').order_by('-created_at')
 
-    genuine_reviews = user_reviews.filter(label='Genuine').count()
-    fake_reviews = user_reviews.filter(label='Fake').count()
+    total_reports_count = user_flags_qs.count()
+    pending_reports_count = user_flags_qs.filter(status=ProductFlag.STATUS_PENDING).count()
+    resolved_reports_count = user_flags_qs.filter(status=ProductFlag.STATUS_RESOLVED).count()
 
-    # Authenticity distribution in saved products (Strict Binary: Genuine >= 50, Fake < 50)
-    saved_genuine = sum(1 for p in saved_products if p.overall_authenticity_score() >= 50.0)
-    saved_fake = sum(1 for p in saved_products if p.overall_authenticity_score() < 50.0)
+    if flag_status == 'pending':
+        user_flags_qs = user_flags_qs.filter(status=ProductFlag.STATUS_PENDING)
+    elif flag_status == 'resolved':
+        user_flags_qs = user_flags_qs.filter(status=ProductFlag.STATUS_RESOLVED)
+    elif flag_status == 'dismissed':
+        user_flags_qs = user_flags_qs.filter(status=ProductFlag.STATUS_DISMISSED)
 
-    # 1. Fake Review Trends (over the last 7 days)
-    saved_product_ids = [p.id for p in saved_products]
-    if saved_product_ids:
-        rel_reviews = Review.objects.filter(product_id__in=saved_product_ids)
-    else:
-        rel_reviews = Review.objects.all()
-
-    trend_labels = []
-    trend_genuine = []
-    trend_fake = []
-    now = timezone.now()
-    for i in range(6, -1, -1):
-        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
-        day_end = day_start + timedelta(days=1)
-        day_label = day_start.strftime("%b %d")
-        trend_labels.append(day_label)
-
-        day_revs = rel_reviews.filter(created_at__gte=day_start, created_at__lt=day_end)
-        g_count = day_revs.filter(label='Genuine').count()
-        f_count = day_revs.filter(label='Fake').count()
-        trend_genuine.append(g_count)
-        trend_fake.append(f_count)
-
-    # 2. Detection Accuracy (ML Model Comparison)
-    model_names = ['LinearSVC', 'J-48 Tree', 'TextBlob NLP', 'Ensemble']
-    model_accuracies = [87.5, 85.0, 81.4, 91.8]
-    model_f1 = [87.5, 85.1, 81.5, 91.8]
-
-    # 3. Product Authenticity Scores
-    if saved_products:
-        auth_prod_labels = [p.name[:16] + '...' if len(p.name) > 16 else p.name for p in saved_products[:8]]
-        auth_prod_scores = [p.overall_authenticity_score() for p in saved_products[:8]]
-    else:
-        catalog_sample = Product.objects.filter(is_hidden=False)[:6]
-        auth_prod_labels = [p.name[:16] + '...' if len(p.name) > 16 else p.name for p in catalog_sample]
-        auth_prod_scores = [p.overall_authenticity_score() for p in catalog_sample]
+    paginator = Paginator(user_flags_qs, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
 
     context = {
-        'saved_count': len(saved_products),
-        'reviews_count': user_reviews.count(),
-        'created_count': user_created.count(),
-        'genuine_reviews': genuine_reviews,
-        'fake_reviews': fake_reviews,
-        'saved_genuine': saved_genuine,
-        'saved_fake': saved_fake,
-        # Visual Reports Data
-        'trend_labels': trend_labels,
-        'trend_genuine': trend_genuine,
-        'trend_fake': trend_fake,
-        'model_names': model_names,
-        'model_accuracies': model_accuracies,
-        'model_f1': model_f1,
-        'auth_prod_labels': auth_prod_labels,
-        'auth_prod_scores': auth_prod_scores,
-        'chart_labels': json.dumps(['Verified Genuine', 'Detected Fake']),
-        'chart_data': json.dumps([saved_genuine, saved_fake]),
+        'page_obj': page_obj,
+        'product_flags': page_obj,
+        'flag_status': flag_status,
+        'total_reports_count': total_reports_count,
+        'pending_reports_count': pending_reports_count,
+        'resolved_reports_count': resolved_reports_count,
     }
-    return render(request, 'users/general/user_personal_analytics.html', context)
+    return render(request, 'includes/my_reports.html', context)
+
 
 
 # ==============================================================================

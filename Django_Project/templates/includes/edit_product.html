@@ -46,17 +46,12 @@
                 </h4>
                 <p class="text-muted small mb-0">
                     Update product specifications, add or manage customer reviews, or permanently remove this item.
-                    {% if user.profile.is_admin or user.is_staff or user.is_superuser %}
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">Admin Access</span>
-                    {% else %}
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-1">Creator Access</span>
-                    {% endif %}
                 </p>
             </div>
             <div class="d-flex gap-2 align-items-center">
                 {% if is_admin_portal or user.profile.is_admin or user.is_staff or user.is_superuser %}
                     <a href="{% url 'admin_products' %}" class="btn btn-outline-secondary btn-sm px-3">
-                        &larr; Back to Products
+                       Back to Products
                     </a>
                     <form action="{% url 'admin_product_delete' product.id %}" method="POST" class="d-inline">
                         {% csrf_token %}
@@ -64,12 +59,12 @@
                                 data-confirm="Are you sure you want to permanently delete '{{ product.name|escapejs }}'? This will delete this product and all associated reviews."
                                 data-confirm-title="Confirm Delete Product"
                                 data-confirm-btn="Delete Product">
-                            <i class="fa-solid fa-trash-can me-1"></i> Delete Product
+                            Delete Product
                         </button>
                     </form>
                 {% else %}
                     <a href="{% url 'saved_products' %}" class="btn btn-outline-secondary btn-sm px-3">
-                        &larr; Back to Saved Products
+                        Back to Saved Products
                     </a>
                     <form action="{% url 'product_delete' product.pk %}" method="POST" class="d-inline">
                         {% csrf_token %}
@@ -77,7 +72,7 @@
                                 data-confirm="Are you sure you want to permanently delete '{{ product.name|escapejs }}'? This will delete this product and all associated reviews."
                                 data-confirm-title="Confirm Delete Product"
                                 data-confirm-btn="Delete Product">
-                            <i class="fa-solid fa-trash-can me-1"></i> Delete Product
+                            Delete Product
                         </button>
                     </form>
                 {% endif %}
@@ -278,11 +273,9 @@
                             <!-- Classification -->
                             <td class="text-center py-3">
                                 {% if r.label == 'Genuine' %}
-                                    <span class="badge-genuine small"><i class="fa-solid fa-check me-1"></i>Genuine</span>
-                                {% elif r.label == 'Suspicious' %}
-                                    <span class="badge-suspicious small"><i class="fa-solid fa-triangle-exclamation me-1"></i>Suspicious</span>
+                                    <span class="score-pill">Genuine</span>
                                 {% else %}
-                                    <span class="badge-fake small"><i class="fa-solid fa-ban me-1"></i>Fake</span>
+                                    <span class="score-pill">Fake</span>
                                 {% endif %}
                             </td>
 
@@ -304,7 +297,7 @@
                                             data-bs-toggle="modal"
                                             data-bs-target="#editReviewModal{{ r.pk }}"
                                             title="Edit this review">
-                                        <i class="fa-solid fa-pen-to-square me-1"></i>Edit
+                                        Edit
                                     </button>
                                     <form action="{% url 'delete_review' r.pk %}" method="POST" class="d-inline">
                                         {% csrf_token %}
@@ -316,7 +309,7 @@
                                                 data-confirm-title="Confirm Delete Review"
                                                 data-confirm-btn="Delete Review"
                                                 title="Delete this review">
-                                            <i class="fa-solid fa-trash-can me-1"></i>Delete
+                                            Delete
                                         </button>
                                     </form>
                                 </div>

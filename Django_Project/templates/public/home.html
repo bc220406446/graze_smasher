@@ -73,12 +73,8 @@
     <div class="container-fluid px-lg-5 py-4">
         <!-- Section Header -->
         <div class="text-center max-w-3xl mx-auto mb-5">
-            <span
-                class="px-3 py-1 rounded-pill fw-semibold mb-2">
-                HOW IT WORKS
-            </span>
             <h2 class="display-6 fw-bold tracking-tight mb-2" style="font-family: var(--font-display);">
-                From Raw Reviews to Machine Learning Verdicts
+                4-Step Review Verification Pipeline
             </h2>
             <p class="text-muted lead fs-6">
                 Our automated verification pipeline inspects consumer feedback through four deterministic computational
@@ -181,52 +177,20 @@
     <div class="container-fluid px-lg-5 py-4">
         <!-- Section Header -->
         <div class="text-center max-w-3xl mx-auto mb-5">
-            <span
-                class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-semibold mb-2">
-                ML BENCHMARK MATRIX
-            </span>
             <h2 class="display-6 fw-bold tracking-tight mb-2" style="font-family: var(--font-display);">
                 Machine Learning Performance Benchmarks
             </h2>
             <p class="text-muted lead fs-6">
-                Comparative evaluation across our multi-model deception detection architectures on verified e-commerce
-                review corpora.
+                Comparative evaluation metrics on 20% unseen test split
             </p>
         </div>
 
-        <!-- Empirical Matrix Table -->
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-            <div class="card-header bg-dark text-white py-3 px-4 d-flex justify-content-between align-items-center">
-                <div class="fw-semibold">
-                    <i class="fa-solid fa-table-cells me-2 text-primary"></i> Model Performance Benchmark Matrix
+        <!-- ML Model Detection Benchmarks Graph (From Model Metrics) -->
+        <div class="card shadow-sm border mb-4">
+            <div class="card-body p-3">
+                <div style="height: 330px;">
+                    <canvas id="homeDetectionAccuracyChart"></canvas>
                 </div>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-muted small text-uppercase">
-                        <tr>
-                            <th class="ps-4" style="width: 48%;">Model</th>
-                            <th class="text-center" style="width: 13%;">Accuracy</th>
-                            <th class="text-center" style="width: 13%;">Precision</th>
-                            <th class="text-center" style="width: 13%;">Recall</th>
-                            <th class="text-center" style="width: 13%;">F1-Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in ml_matrix %}
-                        <tr>
-                            <td class="ps-4">
-                                <div class="fw-bold text-dark">{{ row.name }}</div>
-                                <div class="text-muted small">{{ row.highlight }}</div>
-                            </td>
-                            <td class="text-center font-monospace fw-bold text-dark">{{ row.accuracy }}</td>
-                            <td class="text-center font-monospace">{{ row.precision }}</td>
-                            <td class="text-center font-monospace">{{ row.recall }}</td>
-                            <td class="text-center font-monospace fw-bold text-primary">{{ row.f1 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
             </div>
         </div>
 
@@ -249,4 +213,89 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+{{ model_names|json_script:"homeModelNames" }}
+{{ model_accuracies|json_script:"homeModelAccuracies" }}
+{{ model_precisions|json_script:"homeModelPrecisions" }}
+{{ model_recalls|json_script:"homeModelRecalls" }}
+{{ model_f1|json_script:"homeModelF1" }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const accCanvas = document.getElementById('homeDetectionAccuracyChart');
+    if (accCanvas) {
+        const namesEl = document.getElementById('homeModelNames');
+        const accEl = document.getElementById('homeModelAccuracies');
+        const precEl = document.getElementById('homeModelPrecisions');
+        const recEl = document.getElementById('homeModelRecalls');
+        const f1El = document.getElementById('homeModelF1');
+
+        const modelNames = namesEl ? JSON.parse(namesEl.textContent) : ['Calibrated SVM (LinearSVC)', 'J-48 Decision Tree', 'Sentiment Mismatch (TextBlob NLP)', 'Composite Ensemble'];
+        const modelAccuracies = accEl ? JSON.parse(accEl.textContent) : [88.9, 75.6, 81.4, 90.6];
+        const modelPrecisions = precEl ? JSON.parse(precEl.textContent) : [88.9, 75.6, 81.2, 90.8];
+        const modelRecalls = recEl ? JSON.parse(recEl.textContent) : [88.9, 75.6, 81.4, 90.6];
+        const modelF1 = f1El ? JSON.parse(f1El.textContent) : [88.9, 75.5, 81.5, 90.5];
+
+        new Chart(accCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: modelNames,
+                datasets: [
+                    {
+                        label: 'Accuracy (%)',
+                        data: modelAccuracies,
+                        backgroundColor: 'rgba(37, 99, 235, 0.85)',
+                        borderColor: '#2563eb',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Precision (%)',
+                        data: modelPrecisions,
+                        backgroundColor: 'rgba(6, 182, 212, 0.85)',
+                        borderColor: '#06b6d4',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Recall (%)',
+                        data: modelRecalls,
+                        backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'F1-Score (%)',
+                        data: modelF1,
+                        backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                        borderColor: '#10b981',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        ticks: { callback: v => v + '%' }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -8,8 +8,7 @@ urlpatterns = [
     path('monitored-products/', views.monitored_products_view, name='monitored_products'),
     path('alerts/', views.user_alerts_view, name='user_alerts'),
     path('admin-alerts/', views.user_alerts_view, name='admin_alerts'),
-    path('alerts-all/', views.user_alerts_view, name='alerts'),
-    path('my-analytics/', views.user_personal_analytics, name='user_personal_analytics'),
+    path('my-reports/', views.user_my_reports, name='user_my_reports'),
     
     # Reviewer Dashboard & Subpages
     path('reviewer/dashboard/', views.reviewer_dashboard, name='reviewer_dashboard'),

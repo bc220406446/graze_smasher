@@ -96,6 +96,11 @@
                 </a>
             </li>
             <li>
+                <a href="{% url 'user_my_reports' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_my_reports' %}active{% endif %}">
+                    <i class="fa-solid fa-flag text-danger"></i> My Reports
+                </a>
+            </li>
+            <li>
                 <a href="{% url 'user_alerts' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
                     <i class="fa-solid fa-bell text-warning"></i> Alerts
                 </a>
@@ -151,8 +156,8 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'user_personal_analytics' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_personal_analytics' %}active{% endif %}">
-                    <i class="fa-solid fa-chart-line text-info"></i> My Reports
+                <a href="{% url 'user_my_reports' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_my_reports' %}active{% endif %}">
+                    <i class="fa-solid fa-flag text-danger"></i> My Reports
                 </a>
             </li>
             <li>
