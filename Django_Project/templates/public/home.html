@@ -232,11 +232,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const recEl = document.getElementById('homeModelRecalls');
         const f1El = document.getElementById('homeModelF1');
 
-        const modelNames = namesEl ? JSON.parse(namesEl.textContent) : ['Calibrated SVM (LinearSVC)', 'J-48 Decision Tree', 'Sentiment Mismatch (TextBlob NLP)', 'Composite Ensemble'];
-        const modelAccuracies = accEl ? JSON.parse(accEl.textContent) : [88.9, 75.6, 81.4, 90.6];
-        const modelPrecisions = precEl ? JSON.parse(precEl.textContent) : [88.9, 75.6, 81.2, 90.8];
-        const modelRecalls = recEl ? JSON.parse(recEl.textContent) : [88.9, 75.6, 81.4, 90.6];
-        const modelF1 = f1El ? JSON.parse(f1El.textContent) : [88.9, 75.5, 81.5, 90.5];
+        const modelNames = namesEl ? JSON.parse(namesEl.textContent) : ['Calibrated SVM (LinearSVC)', 'J-48 Decision Tree (C4.5 Entropy)', 'TextBlob Sentiment Engine', 'Composite Ensemble (SVM + J48 + Sentiment)'];
+        const modelAccuracies = accEl ? JSON.parse(accEl.textContent) : [88.90, 75.55, 52.70, 90.95];
+        const modelPrecisions = precEl ? JSON.parse(precEl.textContent) : [88.91, 75.59, 57.37, 91.06];
+        const modelRecalls = recEl ? JSON.parse(recEl.textContent) : [88.90, 75.55, 52.70, 90.95];
+        const modelF1 = f1El ? JSON.parse(f1El.textContent) : [88.90, 75.54, 43.80, 90.94];
 
         new Chart(accCanvas.getContext('2d'), {
             type: 'bar',

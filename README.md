@@ -155,8 +155,8 @@ The models are trained on the peer-reviewed **Salminen et al. (2022)** dataset:
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Calibrated SVM (LinearSVC)** | 88.90% | 88.91% | 88.90% | 88.90% | **89.65%** |
 | **J-48 Decision Tree (C4.5 Entropy)** | 75.55% | 75.59% | 75.55% | 75.54% | **74.41%** |
-| **Sentiment Mismatch (TextBlob NLP)** | 81.40% | 81.20% | 81.40% | 81.50% | **81.00%** |
-| **Composite Ensemble (SVM + J48 + Sentiment)** | **90.55%** | **90.78%** | **90.55%** | **90.54%** | **90.63%** |
+| **TextBlob Sentiment Engine** | 52.70% | 57.37% | 52.70% | 43.80% | **52.32%** |
+| **Composite Ensemble (SVM + J48 + Sentiment)** | **90.95%** | **91.06%** | **90.95%** | **90.94%** | **91.02%** |
 
 *The composite ensemble combines lexical n-grams, decision-tree structural entropy, and TextBlob sentiment alignment into a unified consensus that outperforms each individual classifier.*
 

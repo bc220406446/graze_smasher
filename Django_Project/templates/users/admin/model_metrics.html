@@ -64,36 +64,32 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td class="text-start ps-3 fw-semibold">LinearSVC (Calibrated TF-IDF)</td>
-                            <td><span class="badge bg-primary px-2 py-1 font-mono">87.5%</span></td>
-                            <td class="font-mono">87.5%</td>
-                            <td class="font-mono">87.5%</td>
-                            <td class="font-mono">87.5%</td>
-                            <td class="font-mono"><strong class="text-success">86.8%</strong></td>
+                            <td class="text-start ps-3 fw-semibold">Calibrated SVM (LinearSVC)</td>
+                            <td><span class="badge bg-primary px-2 py-1 font-mono">88.90%</span></td>
+                            <td class="font-mono">88.91%</td>
+                            <td class="font-mono">88.90%</td>
+                            <td class="font-mono">88.90%</td>
                         </tr>
                         <tr>
-                            <td class="text-start ps-3 fw-semibold">J-48 (Decision Tree C4.5)</td>
-                            <td><span class="badge bg-primary px-2 py-1 font-mono">85.0%</span></td>
-                            <td class="font-mono">84.9%</td>
-                            <td class="font-mono">85.0%</td>
-                            <td class="font-mono">85.1%</td>
-                            <td class="font-mono"><strong class="text-success">84.6%</strong></td>
+                            <td class="text-start ps-3 fw-semibold">J-48 Decision Tree (C4.5 Entropy)</td>
+                            <td><span class="badge bg-primary px-2 py-1 font-mono">75.55%</span></td>
+                            <td class="font-mono">75.59%</td>
+                            <td class="font-mono">75.55%</td>
+                            <td class="font-mono">75.54%</td>
                         </tr>
                         <tr>
-                            <td class="text-start ps-3 fw-semibold">Sentiment Mismatch (TextBlob NLP)</td>
-                            <td><span class="badge bg-primary px-2 py-1 font-mono">81.4%</span></td>
-                            <td class="font-mono">81.2%</td>
-                            <td class="font-mono">81.4%</td>
-                            <td class="font-mono">81.5%</td>
-                            <td class="font-mono"><strong class="text-success">81.0%</strong></td>
+                            <td class="text-start ps-3 fw-semibold">TextBlob Sentiment Engine</td>
+                            <td><span class="badge bg-primary px-2 py-1 font-mono">52.70%</span></td>
+                            <td class="font-mono">57.37%</td>
+                            <td class="font-mono">52.70%</td>
+                            <td class="font-mono">43.80%</td>
                         </tr>
                         <tr>
-                            <td class="text-start ps-3 fw-semibold">Ensemble Consensus (SVM + J48 + Sentiment)</td>
-                            <td><span class="badge bg-success px-2 py-1 font-mono">91.8%</span></td>
-                            <td class="font-mono">91.7%</td>
-                            <td class="font-mono">91.8%</td>
-                            <td class="font-mono">91.8%</td>
-                            <td class="font-mono"><strong class="text-success">91.2%</strong></td>
+                            <td class="text-start ps-3 fw-semibold">Composite Ensemble (SVM + J48 + Sentiment)</td>
+                            <td><span class="badge bg-success px-2 py-1 font-mono">90.95%</span></td>
+                            <td class="font-mono">91.06%</td>
+                            <td class="font-mono">90.95%</td>
+                            <td class="font-mono">90.94%</td>
                         </tr>
                         {% endfor %}
                     </tbody>

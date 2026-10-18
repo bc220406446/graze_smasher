@@ -487,23 +487,28 @@ def admin_settings_view(request):
     has_sentiment = any('sentiment' in str(r.get('model', '')).lower() or 'textblob' in str(r.get('model', '')).lower() for r in ml_benchmarks)
     if not has_sentiment and ml_benchmarks:
         sentiment_entry = {
-            'model': 'Sentiment Mismatch (TextBlob NLP)',
-            'accuracy': 81.4,
-            'precision': 81.2,
-            'recall': 81.4,
-            'f1_score': 81.5,
-            'cv_accuracy': 81.0,
+            'model': 'TextBlob Sentiment Engine',
+            'accuracy': 52.70,
+            'precision': 57.37,
+            'recall': 52.70,
+            'f1_score': 43.80,
+            'cv_accuracy': 52.32,
         }
         if len(ml_benchmarks) >= 1 and 'ensemble' in str(ml_benchmarks[-1].get('model', '')).lower():
             ml_benchmarks.insert(len(ml_benchmarks) - 1, sentiment_entry)
         else:
             ml_benchmarks.append(sentiment_entry)
 
-    model_names = [r['model'] for r in ml_benchmarks] if ml_benchmarks else ['LinearSVC (TF-IDF)', 'J-48 Decision Tree', 'Sentiment Mismatch (TextBlob NLP)', 'Ensemble Consensus']
-    model_accuracies = [round(float(r['accuracy']), 1) for r in ml_benchmarks] if ml_benchmarks else [87.5, 85.0, 81.4, 91.8]
-    model_precisions = [round(float(r['precision']), 1) for r in ml_benchmarks] if ml_benchmarks else [87.5, 84.9, 81.2, 91.7]
-    model_recalls = [round(float(r['recall']), 1) for r in ml_benchmarks] if ml_benchmarks else [87.5, 85.0, 81.4, 91.8]
-    model_f1 = [round(float(r['f1_score']), 1) for r in ml_benchmarks] if ml_benchmarks else [87.5, 85.1, 81.5, 91.8]
+    model_names = [r['model'] for r in ml_benchmarks] if ml_benchmarks else [
+        'Calibrated SVM (LinearSVC)',
+        'J-48 Decision Tree (C4.5 Entropy)',
+        'TextBlob Sentiment Engine',
+        'Composite Ensemble (SVM + J48 + Sentiment)'
+    ]
+    model_accuracies = [round(float(r['accuracy']), 2) for r in ml_benchmarks] if ml_benchmarks else [88.90, 75.55, 52.70, 90.95]
+    model_precisions = [round(float(r['precision']), 2) for r in ml_benchmarks] if ml_benchmarks else [88.91, 75.59, 57.37, 91.06]
+    model_recalls = [round(float(r['recall']), 2) for r in ml_benchmarks] if ml_benchmarks else [88.90, 75.55, 52.70, 90.95]
+    model_f1 = [round(float(r['f1_score']), 2) for r in ml_benchmarks] if ml_benchmarks else [88.90, 75.54, 43.80, 90.94]
 
     context = {
         'config_form': form,
