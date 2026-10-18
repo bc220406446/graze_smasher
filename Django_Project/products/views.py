@@ -575,8 +575,15 @@ def flag_product_view(request, pk):
     scam, or inappropriate content for administrative review.
     Enforces that users cannot submit another report against the same product
     until their previous report has been resolved or dismissed.
+    Reviewers do not have permission to submit product reports.
     """
     product = get_object_or_404(Product, pk=pk)
+
+    # Disallow reviewers from reporting products
+    profile = getattr(request.user, 'profile', None)
+    if profile and profile.role == 'reviewer' and not (request.user.is_staff or request.user.is_superuser or profile.is_admin):
+        messages.error(request, "Permission denied: Reviewers do not have access to submit product reports.")
+        return redirect('product_detail', pk=product.pk)
 
     # Check for active/unresolved report submitted by this user
     active_flag = ProductFlag.objects.filter(

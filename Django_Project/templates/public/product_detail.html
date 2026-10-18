@@ -50,15 +50,6 @@
                         <i class="fa-solid fa-pen-to-square me-1"></i> Add Review
                     </button>
                     {% endif %}
-                    {% if has_active_report %}
-                    <button type="button" class="btn btn-secondary btn-sm px-3" disabled title="You have already reported this product. Your report is currently pending review.">
-                        <i class="fa-solid fa-flag me-1 text-warning"></i> Reported
-                    </button>
-                    {% else %}
-                    <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#flagProductModal">
-                        <i class="fa-solid fa-flag me-1 text-danger"></i> Report
-                    </button>
-                    {% endif %}
                 {% else %}
                     <!-- General User Role: Monitor + Report -->
                     <form action="{% url 'toggle_save_product' product.pk %}" method="POST" class="d-inline">

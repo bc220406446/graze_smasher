@@ -236,8 +236,13 @@ def user_my_reports(request):
     """
     My Reports View in User Dashboard:
     Displays the list of product reports submitted by the logged-in user.
-    Mirrors the admin flagged content queue layout, without moderation actions.
+    Accessible to General Users and Admins; Reviewers do not have access.
     """
+    profile = getattr(request.user, 'profile', None)
+    if profile and profile.role == 'reviewer' and not (request.user.is_staff or request.user.is_superuser or profile.is_admin):
+        messages.error(request, "Access restricted: Reviewers do not have access to the product reporting page.")
+        return redirect('reviewer_dashboard')
+
     user = request.user
     flag_status = request.GET.get('flag_status', 'all').strip().lower()
 

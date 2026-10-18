@@ -1,186 +1,222 @@
+{% load static %}
 <!-- Role-Aware SaaS Sidebar Navigation -->
 <div class="gs-sidebar shadow-sm">
-    
+
     {% if user.profile.role == 'admin' or user.is_superuser %}
-        <!-- ==================== ADMINISTRATOR SIDEBAR ==================== -->
-        <div class="d-flex align-items-center gap-2 px-2 py-2 mb-2 border-bottom">
-            <div class="bg-danger-subtle text-danger p-2 rounded-4">
-                <i class="fa-solid fa-shield-halved"></i>
-            </div>
-            <div>
-                <small class="text-muted d-block" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Role</small>
-                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Administrator</span>
-            </div>
+    <!-- ==================== ADMINISTRATOR SIDEBAR ==================== -->
+    <div class="d-flex align-items-center gap-2 px-2 py-2 mb-2 border-bottom">
+        <div class="flex-shrink-0">
+            <img src="{% static 'img/no profile image.jpg' %}" alt="Profile Picture" class="rounded-circle border"
+                style="width: 38px; height: 38px; object-fit: cover;">
         </div>
+        <div class="overflow-hidden">
+            <span class="fw-bold text-dark d-block text-truncate" style="font-size: 0.85rem;"
+                title="{{ user.get_full_name|default:user.username }}">
+                {{ user.get_full_name|default:"No Name" }}
+            </span>
+            <small class="text-muted d-block text-truncate"
+                style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">
+                Administrator
+            </small>
+        </div>
+    </div>
 
-        <div class="gs-sidebar-heading">Management</div>
-        <ul class="gs-sidebar-menu">
-            <li>
-                <a href="{% url 'admin_control_panel' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_control_panel' or request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                    <i class="fa-solid fa-gauge-high"></i> Overview
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin_products' %}" class="gs-sidebar-link {% if request.resolver_match.url_name in 'admin_products,admin_product_edit' %}active{% endif %}">
-                    <i class="fa-solid fa-boxes-stacked"></i> Product Management
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin_users' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
-                    <i class="fa-solid fa-users-gear"></i> User Management
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin_flagged_content' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_flagged_content' %}active{% endif %}">
-                    <i class="fa-solid fa-flag text-danger"></i> Reports Management
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'admin_settings' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
-                    <i class="fa-solid fa-sliders"></i> ML Models Management
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'user_alerts' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
-                    <i class="fa-solid fa-bell text-warning"></i> Anomaly Alerts
-                </a>
-            </li>
-        </ul>
+    <div class="gs-sidebar-heading">Management</div>
+    <ul class="gs-sidebar-menu">
+        <li>
+            <a href="{% url 'admin_control_panel' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_control_panel' or request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gauge-high"></i> Overview
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin_products' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name in 'admin_products,admin_product_edit' %}active{% endif %}">
+                <i class="fa-solid fa-boxes-stacked"></i> Product Management
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin_users' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+                <i class="fa-solid fa-users-gear"></i> User Management
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin_flagged_content' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_flagged_content' %}active{% endif %}">
+                <i class="fa-solid fa-flag text-danger"></i> Reports Management
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin_settings' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
+                <i class="fa-solid fa-sliders"></i> ML Models Management
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'user_alerts' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
+                <i class="fa-solid fa-bell text-warning"></i> Anomaly Alerts
+            </a>
+        </li>
+    </ul>
 
-        <div class="gs-sidebar-heading mt-3">Account</div>
-        <ul class="gs-sidebar-menu">
-            <li>
-                <a href="{% url 'profile' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                    <i class="fa-solid fa-id-badge"></i> Update Profile
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'logout' %}" class="gs-sidebar-link text-danger">
-                    <i class="fa-solid fa-arrow-right-from-bracket text-danger"></i> Logout
-                </a>
-            </li>
-        </ul>
+    <div class="gs-sidebar-heading mt-3">Account</div>
+    <ul class="gs-sidebar-menu">
+        <li>
+            <a href="{% url 'profile' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="fa-solid fa-id-badge"></i> Update Profile
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'logout' %}" class="gs-sidebar-link text-danger">
+                <i class="fa-solid fa-arrow-right-from-bracket text-danger"></i> Logout
+            </a>
+        </li>
+    </ul>
 
     {% elif user.profile.role == 'reviewer' %}
-        <!-- ==================== REVIEWER SIDEBAR ==================== -->
-        <div class="d-flex align-items-center gap-2 px-2 py-2 mb-2 border-bottom">
-            <div class="bg-primary-subtle text-primary p-2 rounded-3">
-                <i class="fa-solid fa-feather-pointed"></i>
-            </div>
-            <div>
-                <small class="text-muted d-block" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Role</small>
-                <span class="fw-bold text-dark" style="font-size: 0.85rem;">Reviewer</span>
-            </div>
+    <!-- ==================== REVIEWER SIDEBAR ==================== -->
+    <div class="d-flex align-items-center gap-2 px-2 py-2 mb-2 border-bottom">
+        <div class="flex-shrink-0">
+            <img src="{% static 'img/no profile image.jpg' %}" alt="Profile Picture" class="rounded-circle border"
+                style="width: 38px; height: 38px; object-fit: cover;">
         </div>
+        <div class="overflow-hidden">
+            <span class="fw-bold text-dark d-block text-truncate" style="font-size: 0.85rem;"
+                title="{{ user.get_full_name|default:user.username }}">
+                {{ user.get_full_name|default:"No Name" }}
+            </span>
+            <small class="text-muted d-block text-truncate"
+                style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">
+                Reviewer
+            </small>
+        </div>
+    </div>
 
-        <div class="gs-sidebar-heading">Reviewer Workspace</div>
-        <ul class="gs-sidebar-menu">
-            <li>
-                <a href="{% url 'reviewer_dashboard' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'reviewer_dashboard' %}active{% endif %}">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'product_list' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
-                    <i class="fa-solid fa-compass"></i> Explore Products
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'reviewer_my_reviews' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'reviewer_my_reviews' %}active{% endif %}">
-                    <i class="fa-solid fa-pen-to-square"></i> My Reviews
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'reviewer_reviewed_products' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'reviewer_reviewed_products' %}active{% endif %}">
-                    <i class="fa-solid fa-check-double"></i> Reviewed Products
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'user_my_reports' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_my_reports' %}active{% endif %}">
-                    <i class="fa-solid fa-flag text-danger"></i> My Reports
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'user_alerts' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
-                    <i class="fa-solid fa-bell text-warning"></i> Alerts
-                </a>
-            </li>
-        </ul>
+    <div class="gs-sidebar-heading">Reviewer Workspace</div>
+    <ul class="gs-sidebar-menu">
+        <li>
+            <a href="{% url 'reviewer_dashboard' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'reviewer_dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'product_list' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+                <i class="fa-solid fa-compass"></i> Explore Products
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'reviewer_my_reviews' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'reviewer_my_reviews' %}active{% endif %}">
+                <i class="fa-solid fa-pen-to-square"></i> My Reviews
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'reviewer_reviewed_products' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'reviewer_reviewed_products' %}active{% endif %}">
+                <i class="fa-solid fa-check-double"></i> Reviewed Products
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'user_alerts' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
+                <i class="fa-solid fa-bell text-warning"></i> Alerts
+            </a>
+        </li>
+    </ul>
 
-        <div class="gs-sidebar-heading mt-3">Account</div>
-        <ul class="gs-sidebar-menu">
-            <li>
-                <a href="{% url 'profile' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                    <i class="fa-solid fa-id-badge"></i> Update Profile
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'logout' %}" class="gs-sidebar-link text-danger">
-                    <i class="fa-solid fa-arrow-right-from-bracket text-danger"></i> Logout
-                </a>
-            </li>
-        </ul>
+    <div class="gs-sidebar-heading mt-3">Account</div>
+    <ul class="gs-sidebar-menu">
+        <li>
+            <a href="{% url 'profile' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="fa-solid fa-id-badge"></i> Update Profile
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'logout' %}" class="gs-sidebar-link text-danger">
+                <i class="fa-solid fa-arrow-right-from-bracket text-danger"></i> Logout
+            </a>
+        </li>
+    </ul>
 
     {% else %}
-        <!-- ==================== GENERAL USER SIDEBAR ==================== -->
-        <div class="d-flex align-items-center gap-2 px-2 py-2 mb-2 border-bottom">
-            <div class="bg-secondary-subtle text-secondary p-2 rounded-3">
-                <i class="fa-solid fa-user"></i>
-            </div>
-            <div>
-                <small class="text-muted d-block" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">Role</small>
-                <span class="fw-bold text-dark" style="font-size: 0.85rem;">General User</span>
-            </div>
+    <!-- ==================== GENERAL USER SIDEBAR ==================== -->
+    <div class="d-flex align-items-center gap-2 px-2 py-2 mb-2 border-bottom">
+        <div class="flex-shrink-0">
+            <img src="{% static 'img/no profile image.jpg' %}" alt="Profile Picture" class="rounded-circle border"
+                style="width: 38px; height: 38px; object-fit: cover;">
         </div>
+        <div class="overflow-hidden">
+            <span class="fw-bold text-dark d-block text-truncate" style="font-size: 0.85rem;"
+                title="{{ user.get_full_name|default:user.username }}">
+                {{ user.get_full_name|default:"No Name" }}
+            </span>
+            <small class="text-muted d-block text-truncate"
+                style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">
+                General User
+            </small>
+        </div>
+    </div>
 
-        <div class="gs-sidebar-heading">Navigation</div>
-        <ul class="gs-sidebar-menu">
-            <li>
-                <a href="{% url 'user_dashboard' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'product_list' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
-                    <i class="fa-solid fa-compass"></i> Explore Products
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'saved_products' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'saved_products' %}active{% endif %}">
-                    <i class="fa-solid fa-heart text-danger"></i> Saved Products
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'monitored_products' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'monitored_products' %}active{% endif %}">
-                    <i class="fa-solid fa-shield-halved text-success"></i> Monitored Products
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'user_my_reports' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_my_reports' %}active{% endif %}">
-                    <i class="fa-solid fa-flag text-danger"></i> My Reports
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'user_alerts' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
-                    <i class="fa-solid fa-bell text-warning"></i> Alerts
-                </a>
-            </li>
-        </ul>
+    <div class="gs-sidebar-heading">Navigation</div>
+    <ul class="gs-sidebar-menu">
+        <li>
+            <a href="{% url 'user_dashboard' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'product_list' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+                <i class="fa-solid fa-compass"></i> Explore Products
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'saved_products' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'saved_products' %}active{% endif %}">
+                <i class="fa-solid fa-heart text-danger"></i> Saved Products
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'monitored_products' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'monitored_products' %}active{% endif %}">
+                <i class="fa-solid fa-shield-halved text-success"></i> Monitored Products
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'user_my_reports' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_my_reports' %}active{% endif %}">
+                <i class="fa-solid fa-flag text-danger"></i> My Reports
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'user_alerts' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
+                <i class="fa-solid fa-bell text-warning"></i> Alerts
+            </a>
+        </li>
+    </ul>
 
-        <div class="gs-sidebar-heading mt-3">Account</div>
-        <ul class="gs-sidebar-menu">
-            <li>
-                <a href="{% url 'profile' %}" class="gs-sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                    <i class="fa-solid fa-id-badge"></i> Profile Settings
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'logout' %}" class="gs-sidebar-link text-danger">
-                    <i class="fa-solid fa-arrow-right-from-bracket text-danger"></i> Logout
-                </a>
-            </li>
-        </ul>
+    <div class="gs-sidebar-heading mt-3">Account</div>
+    <ul class="gs-sidebar-menu">
+        <li>
+            <a href="{% url 'profile' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="fa-solid fa-id-badge"></i> Profile Settings
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'logout' %}" class="gs-sidebar-link text-danger">
+                <i class="fa-solid fa-arrow-right-from-bracket text-danger"></i> Logout
+            </a>
+        </li>
+    </ul>
     {% endif %}
 
 </div>
-

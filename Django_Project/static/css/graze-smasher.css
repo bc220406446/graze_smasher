@@ -430,14 +430,6 @@ pre {
     background: linear-gradient(90deg, var(--color-primary), #60a5fa);
 }
 
-.workspace-banner.banner-admin::before {
-    background: linear-gradient(90deg, var(--color-danger), #f87171);
-}
-
-.workspace-banner.banner-reviewer::before {
-    background: linear-gradient(90deg, var(--color-primary), #818cf8);
-}
-
 /* ==========================================================================
    7. BUTTONS & INTERACTIVE CONTROLS
    ========================================================================== */
