@@ -290,6 +290,7 @@
 
                             <!-- Action (Edit, Delete) -->
                             <td class="text-center py-3 pe-4">
+                                {% if r.user == user or user.profile.is_admin or user.is_staff or user.is_superuser %}
                                 <div class="d-inline-flex align-items-center justify-content-center gap-1">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-primary px-2 py-1 fw-semibold text-nowrap"
@@ -313,6 +314,9 @@
                                         </button>
                                     </form>
                                 </div>
+                                {% else %}
+                                <span class="badge bg-light text-muted border small">Reviewer Submission</span>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

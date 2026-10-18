@@ -40,6 +40,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'products'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -96,11 +97,29 @@ class SavedProduct(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'saved_products'
         unique_together = ('user', 'product')
         ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user.username} saved {self.product.name}"
+
+
+class MonitoredProduct(models.Model):
+    """
+    Catalog items monitored by users for fake review surges and authenticity score alerts.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='monitored_products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='monitored_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'monitored_products'
+        unique_together = ('user', 'product')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} monitors {self.product.name}"
 
 
 class ProductFlag(models.Model):
@@ -144,6 +163,7 @@ class ProductFlag(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        db_table = 'reported_products'
         ordering = ['-created_at']
 
     def __str__(self):

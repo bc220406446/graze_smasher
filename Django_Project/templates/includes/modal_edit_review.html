@@ -4,7 +4,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             {% if user.is_authenticated and r.user == user or user.profile.is_admin or user.is_staff or user.is_superuser %}
-                <!-- Role Allowed: Author or Administrator -->
+                <!-- Role Allowed: Review Author or Administrator -->
                 <form action="{% url 'edit_review' r.pk %}" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">

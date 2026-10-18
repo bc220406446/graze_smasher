@@ -43,38 +43,6 @@ def dispatch_reviewer_classification_alert(review):
 dispatch_reviewer_alert = dispatch_reviewer_classification_alert
 
 
-def _dispatch_alert(product, alert_type, message, alerts_created, window_hours=12):
-    """
-    Dispatches auxiliary heuristic alerts (e.g. IP burst, low authenticity warning) to:
-    1. System Administrators.
-    2. Users who are actively monitoring this product in their watchlist.
-    Prevents duplicate alerts within window_hours per recipient.
-    """
-    from django.contrib.auth.models import User
-    from django.db.models import Q
-
-    cutoff = timezone.now() - timedelta(hours=window_hours)
-
-    admin_users = list(User.objects.filter(
-        Q(is_superuser=True) | Q(is_staff=True) | Q(profile__role='admin')
-    ).distinct())
-
-    monitored_users = list(User.objects.filter(
-        saved_products__product=product
-    ).exclude(id__in=[u.id for u in admin_users]).distinct())
-
-    recipients = admin_users + monitored_users
-
-    if not recipients:
-        if not Alert.objects.filter(product=product, user__isnull=True, type=alert_type, created_at__gte=cutoff).exists():
-            alert = Alert.objects.create(product=product, user=None, type=alert_type, message=message)
-            alerts_created.append(alert)
-        return
-
-    for recipient in recipients:
-        if not Alert.objects.filter(product=product, user=recipient, type=alert_type, created_at__gte=cutoff).exists():
-            alert = Alert.objects.create(product=product, user=recipient, type=alert_type, message=message)
-            alerts_created.append(alert)
 
 
 def evaluate_product_alerts(product, trigger_review=None):

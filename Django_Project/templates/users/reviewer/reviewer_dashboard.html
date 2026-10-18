@@ -132,17 +132,9 @@
                                 <span class="px-2 py-1 small fw-semibold">
                                     Fake Review Spike
                                 </span>
-                                {% elif alert.type == 'ip_burst' %}
-                                <span class="small fw-semibold">
-                                    Suspicious IP Burst
-                                </span>
-                                {% elif alert.type == 'low_authenticity' %}
+                                {% elif alert.type == 'review_classified' %}
                                 <span class="px-2 py-1 small fw-semibold">
-                                    Low Authenticity
-                                </span>
-                                {% elif alert.type == 'sentiment_mismatch' %}
-                                <span class="px-2 py-1 small fw-semibold">
-                                    Rating Discrepancy
+                                    Review Classification
                                 </span>
                                 {% else %}
                                 <span class="px-2 py-1 small fw-semibold">

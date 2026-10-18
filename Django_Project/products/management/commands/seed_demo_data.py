@@ -1,23 +1,27 @@
 """
-Management command to seed demo products, user accounts, and reviews
-from the Salminen et al. fake reviews dataset.
+Management command to seed demo products, user accounts, and reviews.
+Follows exact user specifications:
+- 1 Admin (admin@gs.com / Test@123)
+- 3 Users (user1@gs.com, user2@gs.com, user3@gs.com / Test@123), each with 3 saved products
+- 3 Reviewers (reviewer1@gs.com, reviewer2@gs.com, reviewer3@gs.com / Test@123), each reviewing 3-4 products
+- Each product has at least 10-20 reviews evaluated by the ML pipeline
+- No alerts created
 """
 
 import os
 import pandas as pd
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from django.conf import settings
 from accounts.models import UserProfile
-from products.models import Product, SavedProduct
-from reviews.models import Review
+from products.models import Product, SavedProduct, MonitoredProduct
+from reviews.models import Review, ReviewerReviewedProduct
 from analytics.models import Alert
 from detector.utils import analyze_review
 from ML_Model.config import DATASET_PATH
 
 
 class Command(BaseCommand):
-    help = "Seeds demo users, sample products, and reviews analyzed via the ML pipeline."
+    help = "Seeds users, reviewers, admin, products, and ML-scored reviews per project requirements."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -27,42 +31,95 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.NOTICE("=== Starting Graze Smasher Demo Seeding ==="))
+        self.stdout.write(self.style.NOTICE("=== Starting Graze Smasher Clean Seeding ==="))
 
-        if options['clear']:
-            self.stdout.write("Clearing existing database records...")
-            Review.objects.all().delete()
-            Alert.objects.all().delete()
-            SavedProduct.objects.all().delete()
-            Product.objects.all().delete()
-            User.objects.filter(username__in=['admin', 'reviewer', 'user']).delete()
-            self.stdout.write(self.style.SUCCESS("Existing demo records cleared."))
+        # Clear existing records
+        self.stdout.write("Clearing existing database records...")
+        Alert.objects.all().delete()
+        ReviewerReviewedProduct.objects.all().delete()
+        Review.objects.all().delete()
+        SavedProduct.objects.all().delete()
+        MonitoredProduct.objects.all().delete()
+        Product.objects.all().delete()
+        User.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS("Database completely wiped for fresh seed."))
 
-        # 1. Create Demo Users
-        self.stdout.write("Creating demo user accounts...")
-        users = {}
-        demo_user_configs = [
-            ('admin', 'admin@grazesmasher.com', 'admin123', UserProfile.ROLE_ADMIN, True, True),
-            ('reviewer', 'reviewer@grazesmasher.com', 'reviewer123', UserProfile.ROLE_REVIEWER, False, False),
-            ('user', 'user@grazesmasher.com', 'user123', UserProfile.ROLE_GENERAL, False, False),
+        PASSWORD = "Test@123"
+
+        # 1. Create Admin
+        self.stdout.write("Creating administrator account...")
+        admin_user = User.objects.create(
+            username="admin@gs.com",
+            email="admin@gs.com",
+            first_name="System",
+            last_name="Administrator",
+            is_staff=True,
+            is_superuser=True
+        )
+        admin_user.set_password(PASSWORD)
+        admin_user.save()
+        admin_profile, _ = UserProfile.objects.get_or_create(user=admin_user)
+        admin_profile.role = UserProfile.ROLE_ADMIN
+        admin_profile.save()
+        self.stdout.write(f" + Admin: admin@gs.com (System Administrator) | Password: {PASSWORD}")
+
+        # 2. Create 3 General Users
+        self.stdout.write("\nCreating 3 General User accounts...")
+        general_users_data = [
+            ("user1@gs.com", "Alex Johnson"),
+            ("user2@gs.com", "Sarah Miller"),
+            ("user3@gs.com", "David Wilson"),
         ]
-
-        for username, email, password, role, is_staff, is_super in demo_user_configs:
-            u, created = User.objects.get_or_create(username=username, defaults={'email': email})
-            u.set_password(password)
-            u.is_staff = is_staff
-            u.is_superuser = is_super
+        users = []
+        for email, full_name in general_users_data:
+            name_parts = full_name.split(' ', 1)
+            u = User.objects.create(
+                username=email,
+                email=email,
+                first_name=name_parts[0],
+                last_name=name_parts[1] if len(name_parts) > 1 else '',
+                is_staff=False,
+                is_superuser=False
+            )
+            u.set_password(PASSWORD)
             u.save()
-
             profile, _ = UserProfile.objects.get_or_create(user=u)
-            profile.role = role
+            profile.role = UserProfile.ROLE_GENERAL
             profile.save()
-            users[username] = u
-            status_text = "created" if created else "updated"
-            self.stdout.write(f" - User '{username}' ({role}): {status_text} (Password: {password})")
+            users.append(u)
+            self.stdout.write(f" + User: {email} ({full_name}) | Password: {PASSWORD}")
 
-        # 2. Define Sample Products
+        # 3. Create 3 Reviewers
+        self.stdout.write("\nCreating 3 Reviewer accounts...")
+        reviewers_data = [
+            ("reviewer1@gs.com", "Elena Rostova"),
+            ("reviewer2@gs.com", "Marcus Vance"),
+            ("reviewer3@gs.com", "Chloe Bennett"),
+        ]
+        reviewers = []
+        for email, full_name in reviewers_data:
+            name_parts = full_name.split(' ', 1)
+            u = User.objects.create(
+                username=email,
+                email=email,
+                first_name=name_parts[0],
+                last_name=name_parts[1] if len(name_parts) > 1 else '',
+                is_staff=False,
+                is_superuser=False
+            )
+            u.set_password(PASSWORD)
+            u.save()
+            profile, _ = UserProfile.objects.get_or_create(user=u)
+            profile.role = UserProfile.ROLE_REVIEWER
+            profile.save()
+            reviewers.append(u)
+            self.stdout.write(f" + Reviewer: {email} ({full_name}) | Password: {PASSWORD}")
+
+        # 4. Define 9 Sample Products across Categories
+        # 3 products created by User 1, 3 products by User 2, 3 products by User 3
+        self.stdout.write("\nCreating 9 sample catalog products (3 per user)...")
         demo_products_data = [
+            # User 1's Products (Indices 0, 1, 2)
             {
                 "name": "Sony WH-1000XM5 Wireless Noise Canceling Headphones",
                 "description": "Industry-leading noise canceling with Auto NC Optimizer, crystal clear hands-free calling with 4 beamforming microphones, and 30-hour battery life.",
@@ -71,6 +128,7 @@ class Command(BaseCommand):
                 "source_url": "https://www.amazon.com/dp/B09XS7JWHH",
                 "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
                 "dataset_cat": "Electronics_5",
+                "creator": users[0],
             },
             {
                 "name": "Apple AirPods Pro (2nd Gen) with MagSafe Case USB-C",
@@ -80,7 +138,20 @@ class Command(BaseCommand):
                 "source_url": "https://www.ebay.com/itm/apple-airpods-pro-2",
                 "image_url": "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=800&auto=format&fit=crop&q=80",
                 "dataset_cat": "Electronics_5",
+                "creator": users[0],
             },
+            {
+                "name": "Logitech MX Master 3S Wireless Performance Mouse",
+                "description": "Quiet clicks and 8K DPI any-surface tracking, MagSpeed electromagnetic scrolling, ergonomic silhouette designed for all-day comfort.",
+                "category": "Electronics",
+                "platform": "Amazon",
+                "source_url": "https://www.amazon.com/dp/B09HM94VDS",
+                "image_url": "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&auto=format&fit=crop&q=80",
+                "dataset_cat": "Electronics_5",
+                "creator": users[0],
+            },
+
+            # User 2's Products (Indices 3, 4, 5)
             {
                 "name": "Ninja AF101 Air Fryer 4-Quart Capacity",
                 "description": "Crisp and roast with up to 75% less fat than traditional frying methods. Features wide temperature range from 105 to 400 degrees Fahrenheit.",
@@ -89,6 +160,7 @@ class Command(BaseCommand):
                 "source_url": "https://www.amazon.com/dp/B07FDJMC9Q",
                 "image_url": "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=800&auto=format&fit=crop&q=80",
                 "dataset_cat": "Home_and_Kitchen_5",
+                "creator": users[1],
             },
             {
                 "name": "Instant Pot Duo 7-in-1 Electric Pressure Cooker 6-Qt",
@@ -98,7 +170,20 @@ class Command(BaseCommand):
                 "source_url": "https://www.walmart.com/ip/instant-pot-duo",
                 "image_url": "https://images.unsplash.com/photo-1544233726-9f1d2b27be8b?w=800&auto=format&fit=crop&q=80",
                 "dataset_cat": "Home_and_Kitchen_5",
+                "creator": users[1],
             },
+            {
+                "name": "Keurig K-Mini Single Serve Coffee Maker",
+                "description": "Less than 5 inches wide, fits anywhere. Brews any cup size between 6-12oz with Keurig K-Cup pods for fast and fresh coffee.",
+                "category": "Home_and_Kitchen",
+                "platform": "Amazon",
+                "source_url": "https://www.amazon.com/dp/B07FL258DN",
+                "image_url": "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=800&auto=format&fit=crop&q=80",
+                "dataset_cat": "Home_and_Kitchen_5",
+                "creator": users[1],
+            },
+
+            # User 3's Products (Indices 6, 7, 8)
             {
                 "name": "Fitbit Charge 6 Advanced Fitness Tracker",
                 "description": "Fitness tracking band with Google apps, Heart Rate on gym equipment, 40+ exercise modes, built-in GPS, and 7-day battery life.",
@@ -107,6 +192,7 @@ class Command(BaseCommand):
                 "source_url": "https://www.amazon.com/dp/B0CC625X35",
                 "image_url": "https://images.unsplash.com/photo-1576243345690-4e4b79b63288?w=800&auto=format&fit=crop&q=80",
                 "dataset_cat": "Sports_and_Outdoors_5",
+                "creator": users[2],
             },
             {
                 "name": "Hydro Flask 32 oz Wide Mouth Stainless Steel Bottle",
@@ -116,48 +202,75 @@ class Command(BaseCommand):
                 "source_url": "https://www.amazon.com/dp/B07NVV3L7H",
                 "image_url": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800&auto=format&fit=crop&q=80",
                 "dataset_cat": "Sports_and_Outdoors_5",
+                "creator": users[2],
+            },
+            {
+                "name": "Coleman Sundome 4-Person Camping Tent",
+                "description": "WeatherTec system with patented welded floors and inverted seams to keep you dry. Strong frame tested to withstand 35+ mph winds.",
+                "category": "Sports_and_Outdoors",
+                "platform": "Walmart",
+                "source_url": "https://www.walmart.com/ip/coleman-sundome-tent",
+                "image_url": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&auto=format&fit=crop&q=80",
+                "dataset_cat": "Sports_and_Outdoors_5",
+                "creator": users[2],
             },
         ]
 
-        # 3. Load dataset
-        self.stdout.write(f"Reading reviews from dataset at: {DATASET_PATH}")
-        df = pd.read_csv(DATASET_PATH)
-
-        # 4. Create products and populate reviews
         products = []
         for p_data in demo_products_data:
             cat_key = p_data.pop("dataset_cat")
-            product, _ = Product.objects.get_or_create(
+            creator = p_data.pop("creator")
+            product = Product.objects.create(
                 name=p_data["name"],
-                defaults={
-                    **p_data,
-                    "created_by": users["admin"]
-                }
+                description=p_data["description"],
+                category=p_data["category"],
+                platform=p_data["platform"],
+                source_url=p_data["source_url"],
+                image_url=p_data["image_url"],
+                created_by=creator,
             )
-            products.append((product, cat_key))
-            self.stdout.write(f" - Configured product: {product.name} (ID: {product.id})")
+            products.append((product, cat_key, creator))
+            self.stdout.write(f" + Product: '{product.name}' (Created by: {creator.email})")
 
-        # Select representative reviews per category (balanced genuine and fake)
+        # 5. Populate Reviews (15 reviews per product, balanced Genuine & Fake)
+        self.stdout.write("\nLoading dataset and analyzing reviews via ML pipeline...")
+        df = pd.read_csv(DATASET_PATH)
+
+        # Reviewer assignments across the 9 products (each reviewer evaluates 4 products):
+        # Reviewer 1 (Elena) -> Products 0, 1, 3, 6 (4 products)
+        # Reviewer 2 (Marcus) -> Products 1, 4, 5, 7 (4 products)
+        # Reviewer 3 (Chloe) -> Products 2, 4, 7, 8 (4 products)
+        reviewer_product_map = {
+            reviewers[0]: [0, 1, 3, 6],
+            reviewers[1]: [1, 4, 5, 7],
+            reviewers[2]: [2, 4, 7, 8],
+        }
+
         total_seeded_reviews = 0
-        self.stdout.write("\nAnalyzing and inserting reviews via ML pipeline...")
-
-        for product, cat_key in products:
-            # Filter dataset reviews for this category
+        for prod_idx, (product, cat_key, creator) in enumerate(products):
             cat_df = df[df['category'] == cat_key]
             if len(cat_df) < 15:
-                cat_df = df # fallback
-                
-            # Sample 8 Fake (CG) and 7 Genuine (OR) reviews
-            cg_sample = cat_df[cat_df['label'] == 'CG'].head(8)
-            or_sample = cat_df[cat_df['label'] == 'OR'].head(7)
-            sample_df = pd.concat([cg_sample, or_sample]).sample(frac=1, random_state=42)
+                cat_df = df
 
-            for _, row in sample_df.iterrows():
+            # 15 reviews per product (8 Genuine, 7 Fake)
+            cg_sample = cat_df[cat_df['label'] == 'CG'].head(7)
+            or_sample = cat_df[cat_df['label'] == 'OR'].head(8)
+            sample_df = pd.concat([or_sample, cg_sample]).sample(frac=1, random_state=42 + prod_idx)
+
+            # Check if any reviewer is assigned to this product
+            reviewers_for_this_prod = [r for r, assigned in reviewer_product_map.items() if prod_idx in assigned]
+
+            for rev_idx, (_, row) in enumerate(sample_df.iterrows()):
                 review_text = str(row['text_']).strip()
                 rating_val = int(float(row.get('rating', 5.0)))
-                ip_val = str(row.get('simulated_ip', '203.0.113.1'))
+                ip_val = f"192.168.1.{10 + (total_seeded_reviews % 50)}"
 
-                # Run through unified analyze_review
+                # Assign reviewer for the first review(s) assigned to them, otherwise product creator
+                if rev_idx < len(reviewers_for_this_prod):
+                    assigned_user = reviewers_for_this_prod[rev_idx]
+                else:
+                    assigned_user = creator
+
                 analysis = analyze_review(
                     text=review_text,
                     rating=rating_val,
@@ -167,7 +280,7 @@ class Command(BaseCommand):
 
                 Review.objects.create(
                     product=product,
-                    user=users['reviewer'] if total_seeded_reviews % 2 == 0 else None,
+                    user=assigned_user,
                     text=review_text,
                     rating=rating_val,
                     ip_address=ip_val,
@@ -177,30 +290,53 @@ class Command(BaseCommand):
                     ip_flag=analysis['ip_flag'],
                     final_score=analysis['final_score'],
                     label=analysis['label'],
-                    source='dataset_seed'
+                    source='user_submission' if assigned_user else 'dataset_seed'
                 )
+
+                if assigned_user:
+                    ReviewerReviewedProduct.objects.get_or_create(
+                        user=assigned_user,
+                        product=product
+                    )
+
                 total_seeded_reviews += 1
 
-            # Trigger sample alert for products with fake reviews
-            if product.fake_reviews_count() > 0:
-                Alert.objects.create(
-                    product=product,
-                    type='fake_spike',
-                    message=f"Authenticity warning: {product.fake_reviews_count()} computer-generated reviews detected on '{product.name}'.",
-                    user=users['admin']
-                )
-
             self.stdout.write(
-                f"   -> Seeded {product.reviews.count()} reviews for '{product.name}' "
-                f"(Authenticity Score: {product.overall_authenticity_score()}%, Label: {product.authenticity_label()})"
+                f"   -> {product.name}: {product.reviews.count()} reviews seeded "
+                f"(Score: {product.overall_authenticity_score()}%, Label: {product.authenticity_label()})"
             )
 
-        # 5. Save product into demo user's watchlist
-        SavedProduct.objects.get_or_create(user=users['user'], product=products[0][0])
-        SavedProduct.objects.get_or_create(user=users['user'], product=products[2][0])
-        self.stdout.write(f"\nAdded 2 sample products to '{users['user'].username}' watchlist.")
+        # 6. Assign Saved Products: Each user saves ONLY the 3 products they created!
+        self.stdout.write("\nAssigning saved products (each user saves ONLY their 3 created products)...")
+        user_saved_map = [
+            (users[0], [0, 1, 2]),  # User 1 saves their 3 created products
+            (users[1], [3, 4, 5]),  # User 2 saves their 3 created products
+            (users[2], [6, 7, 8]),  # User 3 saves their 3 created products
+        ]
 
+        for u, p_indices in user_saved_map:
+            for p_idx in p_indices:
+                prod = products[p_idx][0]
+                SavedProduct.objects.get_or_create(user=u, product=prod)
+                MonitoredProduct.objects.get_or_create(user=u, product=prod)
+            saved_count = SavedProduct.objects.filter(user=u).count()
+            created_count = Product.objects.filter(created_by=u).count()
+            self.stdout.write(f" + User '{u.email}': {created_count} created products, {saved_count} saved products.")
+
+        # 7. Reviewer Reviewed Product Summary
+        self.stdout.write("\nReviewer Reviewed Products Summary:")
+        for r in reviewers:
+            rev_prods_count = ReviewerReviewedProduct.objects.filter(user=r).count()
+            self.stdout.write(f" + Reviewer '{r.email}' has reviewed {rev_prods_count} products.")
+
+        # 8. Ensure NO ALERTS ARE RUN
+        Alert.objects.all().delete()
         self.stdout.write(self.style.SUCCESS(
-            f"\n=== Demo seeding complete! Seeded {len(products)} products with {total_seeded_reviews} reviews. ==="
+            f"\n=== Seed successfully completed! ==="
+            f"\nUsers: 1 Admin, 3 General Users, 3 Reviewers (All password: {PASSWORD})"
+            f"\nProducts: {len(products)} products (3 per general user, exactly 1:1 saved by its creator)"
+            f"\nReviews: {total_seeded_reviews} total reviews ({15} per product)"
+            f"\nAlerts: {Alert.objects.count()} (Alerts service skipped as requested)"
         ))
+
 

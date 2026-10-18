@@ -10,9 +10,6 @@ class Alert(models.Model):
     """
     ALERT_TYPES = [
         ('fake_spike', 'Fake Review Spike'),
-        ('ip_burst', 'Suspicious IP Burst'),
-        ('low_authenticity', 'Low Authenticity Warning'),
-        ('sentiment_mismatch', 'Extreme Rating Discrepancy'),
         ('review_classified', 'Review Classification'),
     ]
 
@@ -25,6 +22,7 @@ class Alert(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'alerts'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -50,6 +48,9 @@ class SystemConfiguration(models.Model):
     alert_fake_spike_threshold = models.FloatField(default=0.25, help_text="Surge in fake ratio triggering a spike alert (default: 0.25)")
     
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'ml_model_configurations'
 
     def __str__(self):
         return f"System Detection Configuration (Updated: {self.updated_at.strftime('%Y-%m-%d %H:%M')})"

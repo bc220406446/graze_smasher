@@ -34,6 +34,7 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = 'reviews_with_analysis'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -50,4 +51,21 @@ class Review(models.Model):
     @property
     def is_genuine(self):
         return self.label == self.LABEL_GENUINE
+
+
+class ReviewerReviewedProduct(models.Model):
+    """
+    Minimalist table tracking products that a specific reviewer has evaluated.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviewed_products_rel')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviewed_by_reviewers')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'reviewer_reviewed_products'
+        unique_together = ('user', 'product')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} reviewed {self.product.name}"
 

@@ -84,14 +84,22 @@ def submit_review(request, product_id):
 
 @login_required
 def edit_review(request, review_id):
-    """Allows author or admin to update a review and recalculates ML scores."""
+    """Allows review author or admin to update a review and recalculates ML scores."""
     review = get_object_or_404(Review, pk=review_id)
     profile = getattr(request.user, 'profile', None)
     is_admin = request.user.is_superuser or request.user.is_staff or (profile and profile.is_admin)
 
     if review.user != request.user and not is_admin:
         messages.error(request, "Permission denied: You can only edit your own reviews.")
-        return redirect('reviewer_dashboard')
+        next_url = request.POST.get('next') or request.GET.get('next')
+        if not next_url:
+            if profile and profile.is_reviewer:
+                next_url = 'reviewer_dashboard'
+            elif is_admin:
+                next_url = 'admin_dashboard'
+            else:
+                next_url = 'user_dashboard'
+        return redirect(next_url)
 
     if request.method == 'POST':
         form = ReviewSubmissionForm(request.POST, instance=review)
@@ -121,11 +129,25 @@ def edit_review(request, review_id):
                 f"Review updated and re-analyzed! Classification: {analysis['label']} "
                 f"(Authenticity Score: {analysis['final_score']}%)"
             )
-            next_url = request.POST.get('next') or 'reviewer_dashboard'
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if not next_url:
+                if profile and profile.is_reviewer:
+                    next_url = 'reviewer_dashboard'
+                elif is_admin:
+                    next_url = 'admin_dashboard'
+                else:
+                    next_url = 'user_dashboard'
             return redirect(next_url)
         else:
             messages.error(request, "Please provide valid review details.")
-            next_url = request.POST.get('next') or 'reviewer_dashboard'
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if not next_url:
+                if profile and profile.is_reviewer:
+                    next_url = 'reviewer_dashboard'
+                elif is_admin:
+                    next_url = 'admin_dashboard'
+                else:
+                    next_url = 'user_dashboard'
             return redirect(next_url)
 
     form = ReviewSubmissionForm(instance=review)
@@ -135,19 +157,34 @@ def edit_review(request, review_id):
 @require_POST
 @login_required
 def delete_review(request, review_id):
-    """Allows author or admin to delete a review."""
+    """Allows review author or admin to delete a review."""
     review = get_object_or_404(Review, pk=review_id)
     profile = getattr(request.user, 'profile', None)
     is_admin = request.user.is_superuser or request.user.is_staff or (profile and profile.is_admin)
 
     if review.user != request.user and not is_admin:
         messages.error(request, "Permission denied: You can only delete your own reviews.")
-        return redirect('reviewer_dashboard')
+        next_url = request.POST.get('next') or request.GET.get('next')
+        if not next_url:
+            if profile and profile.is_reviewer:
+                next_url = 'reviewer_dashboard'
+            elif is_admin:
+                next_url = 'admin_dashboard'
+            else:
+                next_url = 'user_dashboard'
+        return redirect(next_url)
 
     product_name = review.product.name
     review.delete()
     messages.success(request, f"Review for '{product_name}' has been deleted.")
-    next_url = request.POST.get('next') or 'reviewer_dashboard'
+    next_url = request.POST.get('next') or request.GET.get('next')
+    if not next_url:
+        if profile and profile.is_reviewer:
+            next_url = 'reviewer_dashboard'
+        elif is_admin:
+            next_url = 'admin_dashboard'
+        else:
+            next_url = 'user_dashboard'
     return redirect(next_url)
 
 
