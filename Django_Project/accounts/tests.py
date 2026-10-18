@@ -37,20 +37,20 @@ class RBACPermissionsTestCase(TestCase):
 
     def test_anonymous_redirect_on_protected_views(self):
         """Anonymous users attempting to create a product must be redirected to login."""
-        res = self.client.get('/products/create/')
+        res = self.client.get('/user/add-product/')
         self.assertEqual(res.status_code, 302)
-        self.assertIn('/accounts/login/', res.headers.get('Location'))
+        self.assertIn('/account/login/', res.headers.get('Location'))
 
     def test_general_user_can_access_product_creation(self):
         """General users are permitted to access product creation with manual reviews."""
         self.client.force_login(self.general_user)
-        res = self.client.get('/products/create/')
+        res = self.client.get('/user/add-product/')
         self.assertEqual(res.status_code, 200)
 
     def test_reviewer_cannot_create_product(self):
         """Reviewers cannot create new products; they are redirected to their reviewer workspace."""
         self.client.force_login(self.reviewer_user)
-        res = self.client.get('/products/create/')
+        res = self.client.get('/user/add-product/')
         self.assertEqual(res.status_code, 302)
         self.assertIn('/reviewer/dashboard/', res.headers.get('Location'))
 
@@ -72,30 +72,30 @@ class RBACPermissionsTestCase(TestCase):
     def test_non_admin_cannot_access_admin_panel(self):
         """Neither General Users nor Reviewers can access the Admin Control Panel."""
         self.client.force_login(self.general_user)
-        res = self.client.get('/accounts/admin-panel/')
+        res = self.client.get('/administrator/dashboard/')
         self.assertEqual(res.status_code, 302)
 
         self.client.force_login(self.reviewer_user)
-        res = self.client.get('/accounts/admin-panel/')
+        res = self.client.get('/administrator/dashboard/')
         self.assertEqual(res.status_code, 302)
 
     def test_admin_can_access_admin_panel_and_routes(self):
         """Admins have full access to Admin Control Panel and product management."""
         self.client.force_login(self.admin_user)
-        res = self.client.get('/accounts/admin-panel/')
+        res = self.client.get('/administrator/dashboard/')
         self.assertEqual(res.status_code, 200)
 
-        res_prods = self.client.get('/accounts/admin-panel/products/')
+        res_prods = self.client.get('/administrator/products/')
         self.assertEqual(res_prods.status_code, 200)
 
-        res_flags = self.client.get('/accounts/admin-panel/flagged/')
+        res_flags = self.client.get('/administrator/reports/')
         self.assertEqual(res_flags.status_code, 200)
 
     def test_user_can_flag_product_and_admin_resolve(self):
         """General user can flag a product and admin can resolve the report."""
         self.client.force_login(self.general_user)
         res = self.client.post(
-            f'/products/{self.product.id}/flag/',
+            f'/user/product/{self.product.id}/report/',
             {
                 'category': ProductFlag.CATEGORY_MISLEADING,
                 'details': 'Deceptive advertisement and fake product photos.'
@@ -109,7 +109,7 @@ class RBACPermissionsTestCase(TestCase):
         # Admin resolves flag and hides product
         self.client.force_login(self.admin_user)
         res_resolve = self.client.post(
-            f'/accounts/admin-panel/flags/{flag.id}/resolve/',
+            f'/administrator/reports/{flag.id}/resolve/',
             {'action': 'resolve_and_hide', 'admin_notes': 'Verified deceptive listing.'},
             follow=True
         )
@@ -119,17 +119,14 @@ class RBACPermissionsTestCase(TestCase):
         self.product.refresh_from_db()
         self.assertTrue(self.product.is_hidden)
 
-    def test_admin_update_user_role(self):
-        """Admins can promote General Users to Reviewers."""
+    def test_role_switcher_url_is_deleted(self):
+        """Role switcher endpoint has been deleted per requirements."""
         self.client.force_login(self.admin_user)
         res = self.client.post(
-            f'/accounts/admin-panel/users/{self.general_user.id}/role/',
-            {'role': UserProfile.ROLE_REVIEWER},
-            follow=True
+            f'/administrator/users/{self.general_user.id}/role/',
+            {'role': UserProfile.ROLE_REVIEWER}
         )
-        self.assertEqual(res.status_code, 200)
-        self.general_user.profile.refresh_from_db()
-        self.assertEqual(self.general_user.profile.role, UserProfile.ROLE_REVIEWER)
+        self.assertEqual(res.status_code, 404)
 
     def test_admin_override_review_label(self):
         """Admins can override automated ML classifications in the moderation queue."""
@@ -142,8 +139,8 @@ class RBACPermissionsTestCase(TestCase):
 
         self.client.force_login(self.admin_user)
         res = self.client.post(
-            f'/accounts/admin-panel/reviews/{review.id}/override/',
-            {'new_label': Review.LABEL_GENUINE, 'notes': 'Verified manual review'},
+            f'/administrator/reviews/{review.id}/override/',
+            {'new_label': Review.LABEL_GENUINE},
             follow=True
         )
         self.assertEqual(res.status_code, 200)
@@ -151,9 +148,10 @@ class RBACPermissionsTestCase(TestCase):
         self.assertEqual(review.label, Review.LABEL_GENUINE)
         self.assertGreaterEqual(review.final_score, 70.0)
 
+
     def test_registration_with_fullname_and_email(self):
         """User registers using Full Name, Email, Role, and matching Passwords (no username)."""
-        res = self.client.post('/accounts/register/', {
+        res = self.client.post('/account/register/', {
             'full_name': 'Jane Doe',
             'email': 'jane.doe@example.com',
             'role': UserProfile.ROLE_REVIEWER,
@@ -175,7 +173,7 @@ class RBACPermissionsTestCase(TestCase):
             email='user_login@example.com',
             password='UserPass123!'
         )
-        res = self.client.post('/accounts/login/', {
+        res = self.client.post('/account/login/', {
             'email': 'user_login@example.com',
             'password': 'UserPass123!'
         }, follow=True)
@@ -185,7 +183,7 @@ class RBACPermissionsTestCase(TestCase):
 
     def test_email_login_invalid_credentials(self):
         """Invalid email or password returns an error message."""
-        res = self.client.post('/accounts/login/', {
+        res = self.client.post('/account/login/', {
             'email': 'nonexistent@example.com',
             'password': 'WrongPassword123'
         })
@@ -195,7 +193,7 @@ class RBACPermissionsTestCase(TestCase):
     def test_profile_update_with_fullname(self):
         """Profile update successfully splits Full Name and updates User."""
         self.client.force_login(self.general_user)
-        res = self.client.post('/accounts/profile/', {
+        res = self.client.post('/user/profile/', {
             'full_name': 'Johnathan Alexander Doe',
         }, follow=True)
         self.assertEqual(res.status_code, 200)
@@ -206,7 +204,7 @@ class RBACPermissionsTestCase(TestCase):
     def test_profile_change_password(self):
         """Changing password from profile updates user password securely."""
         self.client.force_login(self.general_user)
-        res = self.client.post('/accounts/profile/', {
+        res = self.client.post('/user/profile/', {
             'action': 'change_password',
             'old_password': 'password123',
             'new_password1': 'NewStrongPassword456!',
@@ -219,7 +217,7 @@ class RBACPermissionsTestCase(TestCase):
     def test_admin_users_view_excludes_admins(self):
         """User management list must only show General Users & Reviewers, excluding Admins & Superusers."""
         self.client.force_login(self.admin_user)
-        res = self.client.get('/accounts/admin-panel/users/')
+        res = self.client.get('/administrator/users/')
         self.assertEqual(res.status_code, 200)
         page_users = res.context['page_obj'].object_list
         self.assertIn(self.general_user, page_users)
@@ -229,7 +227,7 @@ class RBACPermissionsTestCase(TestCase):
     def test_admin_add_user_success(self):
         """Admin can create a new Reviewer or General User account."""
         self.client.force_login(self.admin_user)
-        res = self.client.post('/accounts/admin-panel/users/add/', {
+        res = self.client.post('/administrator/users/add/', {
             'full_name': 'New Reviewer Agent',
             'email': 'new_reviewer@example.com',
             'role': UserProfile.ROLE_REVIEWER,
@@ -249,7 +247,7 @@ class RBACPermissionsTestCase(TestCase):
         self.client.force_login(self.admin_user)
         original_role = self.general_user.profile.role
 
-        res = self.client.post(f'/accounts/admin-panel/users/{self.general_user.id}/edit/', {
+        res = self.client.post(f'/administrator/users/{self.general_user.id}/edit/', {
             'full_name': 'Updated General User',
             'email': 'updated_gen@example.com',
             'new_password': 'BrandNewPassword123!',
@@ -274,14 +272,14 @@ class RBACPermissionsTestCase(TestCase):
             password='password123'
         )
         user_id = user_to_delete.id
-        res = self.client.post(f'/accounts/admin-panel/users/{user_id}/delete/', follow=True)
+        res = self.client.post(f'/administrator/users/{user_id}/delete/', follow=True)
         self.assertEqual(res.status_code, 200)
         self.assertFalse(User.objects.filter(id=user_id).exists())
 
     def test_admin_cannot_delete_admin_account(self):
         """Administrator accounts cannot be deleted through this interface."""
         self.client.force_login(self.admin_user)
-        res = self.client.post(f'/accounts/admin-panel/users/{self.admin_user.id}/delete/', follow=True)
+        res = self.client.post(f'/administrator/users/{self.admin_user.id}/delete/', follow=True)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(User.objects.filter(id=self.admin_user.id).exists())
 

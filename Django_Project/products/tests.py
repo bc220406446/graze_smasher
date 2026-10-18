@@ -71,7 +71,7 @@ class ProductModelAndViewsTestCase(TestCase):
 
     def test_product_detail_view(self):
         """Product detail view displays product data and reviews."""
-        res = self.client.get(f'/products/{self.product.id}/')
+        res = self.client.get(f'/product/{self.product.id}/')
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Smart LED Desk Lamp")
 
@@ -79,7 +79,7 @@ class ProductModelAndViewsTestCase(TestCase):
         """Authenticated Reviewers can post reviews, triggering ML analysis."""
         self.client.force_login(self.user)
         res = self.client.post(
-            f'/products/{self.product.id}/review/',
+            f'/reviewer/product/{self.product.id}/review/',
             {
                 'rating': '5',
                 'text': 'The flexible neck allows easy positioning for reading.'
@@ -97,18 +97,18 @@ class ProductModelAndViewsTestCase(TestCase):
     def test_watchlist_toggle(self):
         """Users can toggle products in their watchlist."""
         self.client.force_login(self.user)
-        res = self.client.get(f'/products/{self.product.id}/save/', follow=True)
+        res = self.client.get(f'/user/product/{self.product.id}/monitor-toggle/', follow=True)
         self.assertEqual(res.status_code, 200)
         self.assertTrue(SavedProduct.objects.filter(user=self.user, product=self.product).exists())
 
         # Toggle again to remove
-        res = self.client.get(f'/products/{self.product.id}/save/', follow=True)
+        res = self.client.get(f'/user/product/{self.product.id}/monitor-toggle/', follow=True)
         self.assertEqual(res.status_code, 200)
         self.assertFalse(SavedProduct.objects.filter(user=self.user, product=self.product).exists())
 
     def test_privacy_policy_view(self):
         """Privacy and Data policy view renders 200 OK with key disclosure sections."""
-        res = self.client.get('/privacy/')
+        res = self.client.get('/policy/')
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Privacy &amp; Data Policy")
         self.assertContains(res, "Ethical Data Privacy &amp; Zero IP Sharing")
@@ -119,7 +119,7 @@ class ProductModelAndViewsTestCase(TestCase):
         self.client.force_login(self.user)
         # First submission succeeds
         res1 = self.client.post(
-            f'/products/{self.product.id}/review/',
+            f'/reviewer/product/{self.product.id}/review/',
             {
                 'rating': '5',
                 'text': 'First review submitted by reviewer.'
@@ -133,7 +133,7 @@ class ProductModelAndViewsTestCase(TestCase):
 
         # Second submission by same reviewer is blocked
         res2 = self.client.post(
-            f'/products/{self.product.id}/review/',
+            f'/reviewer/product/{self.product.id}/review/',
             {
                 'rating': '4',
                 'text': 'Attempted second review on the same product.'
@@ -159,14 +159,14 @@ class ProductModelAndViewsTestCase(TestCase):
         self.client.login(username="gen_user", password="password123")
         
         # 1. Saved products page displays Edit and Delete buttons
-        res = self.client.get('/saved-products/')
+        res = self.client.get('/user/saved-products/')
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "My Custom Mechanical Keyboard")
         self.assertContains(res, "Edit")
         self.assertContains(res, "Delete")
 
         # 2. Edit product view GET
-        edit_url = f'/products/{user_product.id}/edit/'
+        edit_url = f'/user/edit-product/{user_product.id}/'
         res_edit_get = self.client.get(edit_url)
         self.assertEqual(res_edit_get.status_code, 200)
         self.assertContains(res_edit_get, "Edit Product:")
@@ -200,7 +200,7 @@ class ProductModelAndViewsTestCase(TestCase):
         self.assertEqual(user_product.name, 'Updated Mechanical Keyboard Pro')
 
         # 5. Unauthorized user cannot delete
-        delete_url = f'/products/{user_product.id}/delete/'
+        delete_url = f'/user/delete-product/{user_product.id}/'
         res_unauth_del = self.client.post(delete_url, follow=True)
         self.assertTrue(Product.objects.filter(id=user_product.id).exists())
 

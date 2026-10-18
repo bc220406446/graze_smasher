@@ -22,7 +22,7 @@ def get_client_ip(request):
 
 @require_POST
 @reviewer_required
-def submit_review(request, product_id):
+def submit_review(request, product_id=None, pk=None):
     """
     Handles reviewer review submission:
     1. Enforces single review per product limit for Reviewers
@@ -31,7 +31,8 @@ def submit_review(request, product_id):
     4. Persists Review record with multi-tier ML scores and labels
     5. Automatically generates an Alert if suspicious activity or fake content is detected
     """
-    product = get_object_or_404(Product, pk=product_id)
+    pid = pk if pk is not None else product_id
+    product = get_object_or_404(Product, pk=pid)
 
     # Reviewers are strictly limited to one review per product
     profile = getattr(request.user, 'profile', None)
@@ -83,9 +84,10 @@ def submit_review(request, product_id):
 
 
 @login_required
-def edit_review(request, review_id):
+def edit_review(request, review_id=None, id=None):
     """Allows review author or admin to update a review and recalculates ML scores."""
-    review = get_object_or_404(Review, pk=review_id)
+    rid = id if id is not None else review_id
+    review = get_object_or_404(Review, pk=rid)
     profile = getattr(request.user, 'profile', None)
     is_admin = request.user.is_superuser or request.user.is_staff or (profile and profile.is_admin)
 
@@ -156,9 +158,10 @@ def edit_review(request, review_id):
 
 @require_POST
 @login_required
-def delete_review(request, review_id):
+def delete_review(request, review_id=None, id=None):
     """Allows review author or admin to delete a review."""
-    review = get_object_or_404(Review, pk=review_id)
+    rid = id if id is not None else review_id
+    review = get_object_or_404(Review, pk=rid)
     profile = getattr(request.user, 'profile', None)
     is_admin = request.user.is_superuser or request.user.is_staff or (profile and profile.is_admin)
 

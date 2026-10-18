@@ -18,14 +18,14 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"platform\": \"Amazon\",\n  \"name\": \"Anker Soundcore 2 Portable Bluetooth Speaker\",\n  \"url\": \"https://www.amazon.com/dp/B01MTB55WH\",\n  \"category\": \"Electronics\",\n  \"description\": \"12W portable speaker with BassUp technology and 24h battery life.\",\n  \"image_url\": \"https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800\",\n  \"reviews\": [\n    {\n      \"text\": \"Battery lasts all weekend and the sound clarity is exceptional for its size.\",\n      \"rating\": 5,\n      \"ip\": \"203.0.113.41\"\n    },\n    {\n      \"text\": \"the sound is amazing. The bass is great and you can hear the highs and lows through the speaker. The mic is nice, but the\",\n      \"rating\": 5,\n      \"ip\": \"198.51.100.11\"\n    }\n  ]\n}"
+          "raw": "{\n  \"platform\": \"Amazon\",\n  \"name\": \"Anker Soundcore 2 Portable Bluetooth Speaker\",\n  \"url\": \"https://www.amazon.com/dp/B01MTB55WH\",\n  \"category\": \"Electronics\",\n  \"description\": \"12W portable speaker with BassUp technology and 24h battery life.\",\n  \"image_url\": \"https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800\",\n  \"reviews\": [\n    {\n      \"text\": \"Battery lasts all weekend and the sound clarity is exceptional for its size.\",\n      \"rating\": 5\n    },\n    {\n      \"text\": \"the sound is amazing. The bass is great and you can hear the highs and lows through the speaker. The mic is nice, but the\",\n      \"rating\": 5\n    }\n  ]\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/products/",
           "host": ["{{base_url}}"],
           "path": ["api", "products", ""]
         },
-        "description": "Allows external e-commerce platforms to ingest a product along with customer reviews. Each review is analyzed via Calibrated SVM + J-48 + Heuristics."
+        "description": "Allows external e-commerce platforms to ingest a product along with customer reviews. Each review is evaluated via Calibrated SVM + J-48 Decision Tree + Sentiment Analysis in real time."
       }
     },
     {
@@ -40,14 +40,14 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"product_id\": 1,\n  \"text\": \"BUY CHEAP PHONES NOW!!! GO TO SPAM LINK AND RECEIVE FREE OFFERS IMMEDIATELY!!!\",\n  \"rating\": 5,\n  \"ip\": \"198.51.100.11\"\n}"
+          "raw": "{\n  \"product_id\": 1,\n  \"text\": \"BUY CHEAP PHONES NOW!!! GO TO SPAM LINK AND RECEIVE FREE OFFERS IMMEDIATELY!!!\",\n  \"rating\": 5\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/reviews/",
           "host": ["{{base_url}}"],
           "path": ["api", "reviews", ""]
         },
-        "description": "Submits an individual customer review to an existing product. Analyzes textual and behavioral patterns in real time."
+        "description": "Submits an individual customer review to an existing product. Evaluates text and star rating through the ML ensemble in real time."
       }
     },
     {

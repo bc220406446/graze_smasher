@@ -4,7 +4,7 @@ CS619 Final-Year Project
 
 Demonstrates how third-party e-commerce platforms (Amazon, eBay, Shopify, etc.)
 integrate with the Graze Smasher REST API to submit products and reviews for
-real-time machine learning authenticity analysis.
+real-time machine learning authenticity analysis (Calibrated LinearSVC + J-48 Decision Tree + Sentiment Analysis).
 
 Usage:
     python scripts/simulate_external_platform.py [--host http://127.0.0.1:8000]
@@ -58,53 +58,43 @@ def run_simulation(base_url):
         "reviews": [
             {
                 "text": "I purchased this speaker for our patio barbecues. Battery lasts all weekend and the sound clarity is exceptional for its size.",
-                "rating": 5,
-                "ip": "203.0.113.41"
+                "rating": 5
             },
             {
                 "text": "the sound is amazing. The bass is great and you can hear the highs and lows through the speaker. The mic is nice, but the",
-                "rating": 5,
-                "ip": "198.51.100.11"
+                "rating": 5
             },
             {
                 "text": "Pairing via Bluetooth took less than five seconds. Sturdy rubberized casing and withstands splashes easily.",
-                "rating": 4,
-                "ip": "203.0.113.42"
+                "rating": 4
             },
             {
                 "text": "Great product! I highly recommend this set!I love these containers. They work well and look great.",
-                "rating": 5,
-                "ip": "198.51.100.22"
+                "rating": 5
             },
             {
                 "text": "Sound distorted heavily once volume exceeded 70 percent. Disappointed with the build quality.",
-                "rating": 2,
-                "ip": "203.0.113.43"
+                "rating": 2
             },
             {
                 "text": "I am very happy to say that I am very pleased with this product. I have used it for two years and it",
-                "rating": 5,
-                "ip": "198.51.100.11"
+                "rating": 5
             },
             {
                 "text": "Excellent value for thirty dollars. Connects seamlessly with both my laptop and iPhone.",
-                "rating": 5,
-                "ip": "203.0.113.44"
+                "rating": 5
             },
             {
                 "text": "the product did not work, it was just a static image. If you have a larger screen, you have to open the screen protector and then the screen protector",
-                "rating": 1,
-                "ip": "198.51.100.33"
+                "rating": 1
             },
             {
                 "text": "Compact lightweight and charges via Micro USB. Perfect companion for camping trips.",
-                "rating": 5,
-                "ip": "203.0.113.45"
+                "rating": 5
             },
             {
                 "text": "Pro it seems comfortable. Cons; first, it doesn't feel comfortable. Second, the handle has a slight clunk. Third, the lid is a bit too short.",
-                "rating": 3,
-                "ip": "198.51.100.11"
+                "rating": 3
             }
         ]
     }
@@ -126,7 +116,7 @@ def run_simulation(base_url):
     first_rev = response_data["reviews"][0]
     print(f"    - Text: '{first_rev['text'][:60]}...'")
     print(f"    - Classification: {first_rev['label']} (Score: {first_rev['final_score']}%)")
-    print(f"    - Model Signals: SVM Fake={first_rev['svm_score']} | J48 Fake={first_rev['j48_score']} | Polarity={first_rev['sentiment']}")
+    print(f"    - Model Signals: SVM Fake={first_rev['svm_score']} | J48 Fake={first_rev['j48_score']} | Sentiment Polarity={first_rev['sentiment']}")
 
     # -------------------------------------------------------------
     # Step 2: POST /api/reviews/ (Add One Real-time Review)
@@ -135,8 +125,7 @@ def run_simulation(base_url):
     single_review_payload = {
         "product_id": product_id,
         "text": "BUY CHEAP PHONES NOW!!! GO TO SPAM LINK AND RECEIVE FREE OFFERS IMMEDIATELY!!! BEST DEAL EVER!",
-        "rating": 5,
-        "ip": "198.51.100.11"
+        "rating": 5
     }
 
     status_code, review_res = make_request(f"{base_url}/api/reviews/", method="POST", payload=single_review_payload)
@@ -144,12 +133,12 @@ def run_simulation(base_url):
     if status_code == 201:
         rev = review_res["review"]
         print(f" -> Real-time Analysis Result:")
-        print(f"    - Assigned Label:       {rev['label']}")
-        print(f"    - Review Authenticity:  {rev['final_score']}%")
-        print(f"    - SVM Fake Probability: {rev['svm_score']}")
-        print(f"    - J-48 Fake Probability:{rev['j48_score']}")
-        print(f"    - IP Velocity Flagged:  {rev['ip_flag']}")
-        print(f"    - Updated Product Score:{review_res['product_authenticity_score']}% ({review_res['product_authenticity_label']})")
+        print(f"    - Assigned Label:          {rev['label']}")
+        print(f"    - Review Authenticity:     {rev['final_score']}%")
+        print(f"    - SVM Fake Probability:    {rev['svm_score']}")
+        print(f"    - J-48 Fake Probability:   {rev['j48_score']}")
+        print(f"    - Sentiment Polarity:      {rev['sentiment']}")
+        print(f"    - Updated Product Score:   {review_res['product_authenticity_score']}% ({review_res['product_authenticity_label']})")
     else:
         print(f"[FAIL] Review submission error: {review_res}")
 

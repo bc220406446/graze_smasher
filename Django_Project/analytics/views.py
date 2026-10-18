@@ -417,9 +417,10 @@ def suspicious_products_discovery(request):
 
 @login_required
 @require_POST
-def mark_alert_read(request, alert_id):
+def mark_alert_read(request, alert_id=None, id=None):
     """Marks an alert as read."""
-    alert = get_object_or_404(Alert, id=alert_id)
+    aid = id if id is not None else alert_id
+    alert = get_object_or_404(Alert, id=aid)
     alert.is_read = True
     alert.save()
     messages.success(request, "Alert marked as read.")
@@ -429,19 +430,20 @@ def mark_alert_read(request, alert_id):
 
 @login_required
 @require_POST
-def delete_alert(request, alert_id):
+def delete_alert(request, alert_id=None, id=None):
     """Deletes an alert that has already been read."""
+    aid = id if id is not None else alert_id
     user = request.user
     profile = getattr(user, 'profile', None)
     is_admin = user.is_superuser or user.is_staff or (profile and profile.role == 'admin')
 
     if is_admin:
-        alert = get_object_or_404(Alert, id=alert_id)
+        alert = get_object_or_404(Alert, id=aid)
     else:
         monitored_ids = list(SavedProduct.objects.filter(user=user).values_list('product_id', flat=True))
         alert = get_object_or_404(
             Alert,
-            Q(id=alert_id) & (Q(user=user) | Q(user__isnull=True, product_id__in=monitored_ids))
+            Q(id=aid) & (Q(user=user) | Q(user__isnull=True, product_id__in=monitored_ids))
         )
 
     alert.delete()

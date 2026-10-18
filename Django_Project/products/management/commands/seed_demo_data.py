@@ -16,6 +16,7 @@ from accounts.models import UserProfile
 from products.models import Product, SavedProduct, MonitoredProduct
 from reviews.models import Review, ReviewerReviewedProduct
 from analytics.models import Alert
+from analytics.services import evaluate_product_alerts
 from detector.utils import analyze_review
 from ML_Model.config import DATASET_PATH
 
@@ -232,8 +233,25 @@ class Command(BaseCommand):
             products.append((product, cat_key, creator))
             self.stdout.write(f" + Product: '{product.name}' (Created by: {creator.email})")
 
-        # 5. Populate Reviews (15 reviews per product, balanced Genuine & Fake)
-        self.stdout.write("\nLoading dataset and analyzing reviews via ML pipeline...")
+        # 5. Assign Saved & Monitored Products: Each user saves ONLY the 3 products they created!
+        self.stdout.write("\nAssigning saved/monitored products (each user monitors their 3 created products)...")
+        user_saved_map = [
+            (users[0], [0, 1, 2]),  # User 1 monitors their 3 created products
+            (users[1], [3, 4, 5]),  # User 2 monitors their 3 created products
+            (users[2], [6, 7, 8]),  # User 3 monitors their 3 created products
+        ]
+
+        for u, p_indices in user_saved_map:
+            for p_idx in p_indices:
+                prod = products[p_idx][0]
+                SavedProduct.objects.get_or_create(user=u, product=prod)
+                MonitoredProduct.objects.get_or_create(user=u, product=prod)
+            saved_count = SavedProduct.objects.filter(user=u).count()
+            created_count = Product.objects.filter(created_by=u).count()
+            self.stdout.write(f" + User '{u.email}': {created_count} created products, {saved_count} monitored products.")
+
+        # 6. Populate Reviews & Evaluate Alerts in Parallel
+        self.stdout.write("\nLoading dataset, analyzing reviews via ML pipeline, and evaluating alerts...")
         df = pd.read_csv(DATASET_PATH)
 
         # Reviewer assignments across the 9 products (each reviewer evaluates 4 products):
@@ -246,15 +264,30 @@ class Command(BaseCommand):
             reviewers[2]: [2, 4, 7, 8],
         }
 
+        # Targeted fake count per product (Products 1, 3, 7 have >= 50% fake ratio to demonstrate alerts)
+        fake_distribution = {
+            0: 3,  # 3 Fake / 12 Genuine (20.0% fake)
+            1: 9,  # 9 Fake / 6 Genuine (60.0% fake -> Alert triggered for User 1 & Admin)
+            2: 4,  # 4 Fake / 11 Genuine (26.7% fake)
+            3: 10, # 10 Fake / 5 Genuine (66.7% fake -> Alert triggered for User 2 & Admin)
+            4: 2,  # 2 Fake / 13 Genuine (13.3% fake)
+            5: 6,  # 6 Fake / 9 Genuine (40.0% fake)
+            6: 4,  # 4 Fake / 11 Genuine (26.7% fake)
+            7: 8,  # 8 Fake / 7 Genuine (53.3% fake -> Alert triggered for User 3 & Admin)
+            8: 3,  # 3 Fake / 12 Genuine (20.0% fake)
+        }
+
         total_seeded_reviews = 0
         for prod_idx, (product, cat_key, creator) in enumerate(products):
             cat_df = df[df['category'] == cat_key]
             if len(cat_df) < 15:
                 cat_df = df
 
-            # 15 reviews per product (8 Genuine, 7 Fake)
-            cg_sample = cat_df[cat_df['label'] == 'CG'].head(7)
-            or_sample = cat_df[cat_df['label'] == 'OR'].head(8)
+            fake_count = fake_distribution.get(prod_idx, 7)
+            genuine_count = 15 - fake_count
+
+            cg_sample = cat_df[cat_df['label'] == 'CG'].head(fake_count)
+            or_sample = cat_df[cat_df['label'] == 'OR'].head(genuine_count)
             sample_df = pd.concat([or_sample, cg_sample]).sample(frac=1, random_state=42 + prod_idx)
 
             # Check if any reviewer is assigned to this product
@@ -278,7 +311,7 @@ class Command(BaseCommand):
                     record_ip=False
                 )
 
-                Review.objects.create(
+                rev = Review.objects.create(
                     product=product,
                     user=assigned_user,
                     text=review_text,
@@ -298,45 +331,42 @@ class Command(BaseCommand):
                         user=assigned_user,
                         product=product
                     )
+                    # Parallel alert trigger: Reviewer receives classification feedback alert
+                    if assigned_user in reviewers:
+                        evaluate_product_alerts(product=product, trigger_review=rev)
 
                 total_seeded_reviews += 1
+
+            # Parallel alert trigger: Evaluate product fake ratio spike (triggers for monitored users & admin if >= 50%)
+            evaluate_product_alerts(product=product)
 
             self.stdout.write(
                 f"   -> {product.name}: {product.reviews.count()} reviews seeded "
                 f"(Score: {product.overall_authenticity_score()}%, Label: {product.authenticity_label()})"
             )
 
-        # 6. Assign Saved Products: Each user saves ONLY the 3 products they created!
-        self.stdout.write("\nAssigning saved products (each user saves ONLY their 3 created products)...")
-        user_saved_map = [
-            (users[0], [0, 1, 2]),  # User 1 saves their 3 created products
-            (users[1], [3, 4, 5]),  # User 2 saves their 3 created products
-            (users[2], [6, 7, 8]),  # User 3 saves their 3 created products
-        ]
-
-        for u, p_indices in user_saved_map:
-            for p_idx in p_indices:
-                prod = products[p_idx][0]
-                SavedProduct.objects.get_or_create(user=u, product=prod)
-                MonitoredProduct.objects.get_or_create(user=u, product=prod)
-            saved_count = SavedProduct.objects.filter(user=u).count()
-            created_count = Product.objects.filter(created_by=u).count()
-            self.stdout.write(f" + User '{u.email}': {created_count} created products, {saved_count} saved products.")
-
         # 7. Reviewer Reviewed Product Summary
         self.stdout.write("\nReviewer Reviewed Products Summary:")
         for r in reviewers:
             rev_prods_count = ReviewerReviewedProduct.objects.filter(user=r).count()
-            self.stdout.write(f" + Reviewer '{r.email}' has reviewed {rev_prods_count} products.")
+            r_alerts_count = Alert.objects.filter(user=r).count()
+            self.stdout.write(f" + Reviewer '{r.email}': {rev_prods_count} products reviewed, {r_alerts_count} classification alerts.")
 
-        # 8. Ensure NO ALERTS ARE RUN
-        Alert.objects.all().delete()
+        # 8. Alert Statistics Summary
+        total_alerts = Alert.objects.count()
+        gen_alerts = Alert.objects.filter(user__in=users).count()
+        rev_alerts = Alert.objects.filter(user__in=reviewers).count()
+        adm_alerts = Alert.objects.filter(user=admin_user).count()
+
         self.stdout.write(self.style.SUCCESS(
-            f"\n=== Seed successfully completed! ==="
+            f"\n=== Seed successfully completed with Parallel Alerts! ==="
             f"\nUsers: 1 Admin, 3 General Users, 3 Reviewers (All password: {PASSWORD})"
             f"\nProducts: {len(products)} products (3 per general user, exactly 1:1 saved by its creator)"
             f"\nReviews: {total_seeded_reviews} total reviews ({15} per product)"
-            f"\nAlerts: {Alert.objects.count()} (Alerts service skipped as requested)"
+            f"\nAlerts Generated: {total_alerts} total"
+            f"\n  - General User Alerts: {gen_alerts} (Monitored fake spikes >= 50%)"
+            f"\n  - Reviewer Alerts: {rev_alerts} (Live ML classification feedback)"
+            f"\n  - Administrator Alerts: {adm_alerts} (System-wide fake surges)"
         ))
 
 

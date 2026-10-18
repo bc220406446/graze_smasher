@@ -97,12 +97,13 @@ def admin_products_list(request):
 
 
 @admin_required
-def admin_product_edit(request, product_id):
+def admin_product_edit(request, product_id=None, pk=None):
     """
     Admin view to edit product details, add new reviews, manipulate existing reviews,
     and toggle hidden/moderation state.
     """
-    product = get_object_or_404(Product, id=product_id)
+    pid = pk if pk is not None else product_id
+    product = get_object_or_404(Product, id=pid)
 
     if request.method == 'POST':
         form = ProductAdminForm(request.POST, request.FILES, instance=product)
@@ -173,9 +174,10 @@ def admin_product_edit(request, product_id):
 
 @admin_required
 @require_POST
-def admin_product_delete(request, product_id):
+def admin_product_delete(request, product_id=None, pk=None):
     """Deletes a product from the database."""
-    product = get_object_or_404(Product, id=product_id)
+    pid = pk if pk is not None else product_id
+    product = get_object_or_404(Product, id=pid)
     name = product.name
     product.delete()
     messages.success(request, f"Product '{name}' and all associated reviews deleted.")
@@ -184,9 +186,10 @@ def admin_product_delete(request, product_id):
 
 @admin_required
 @require_POST
-def admin_toggle_hide_product(request, product_id):
+def admin_toggle_hide_product(request, product_id=None, pk=None):
     """Quick toggle to hide/unhide a product for moderation."""
-    product = get_object_or_404(Product, id=product_id)
+    pid = pk if pk is not None else product_id
+    product = get_object_or_404(Product, id=pid)
     product.is_hidden = not product.is_hidden
     product.save()
 
@@ -267,12 +270,13 @@ def admin_add_user(request):
 
 @admin_required
 @require_POST
-def admin_edit_user(request, user_id):
+def admin_edit_user(request, user_id=None, id=None):
     """
     Updates a user's Full Name, Email, Active status, or resets password.
     Role is fixed to prevent workflow conflict between General Users and Reviewers.
     """
-    target_user = get_object_or_404(User, id=user_id)
+    uid = id if id is not None else user_id
+    target_user = get_object_or_404(User, id=uid)
     if target_user.is_superuser or target_user.is_staff or (getattr(target_user, 'profile', None) and target_user.profile.is_admin):
         messages.error(request, "Permission denied: Administrator accounts cannot be modified here.")
         return redirect('admin_users')
@@ -294,9 +298,10 @@ def admin_edit_user(request, user_id):
 
 @admin_required
 @require_POST
-def admin_delete_user(request, user_id):
+def admin_delete_user(request, user_id=None, id=None):
     """Safely deletes a General User or Reviewer account and cascades cleanup."""
-    target_user = get_object_or_404(User, id=user_id)
+    uid = id if id is not None else user_id
+    target_user = get_object_or_404(User, id=uid)
     if target_user.is_superuser or target_user.is_staff or (getattr(target_user, 'profile', None) and target_user.profile.is_admin):
         messages.error(request, "Permission denied: Administrator accounts cannot be deleted.")
         return redirect('admin_users')
@@ -311,30 +316,7 @@ def admin_delete_user(request, user_id):
     return redirect('admin_users')
 
 
-@admin_required
-@require_POST
-def admin_update_user_role(request, user_id):
-    """Updates the role of a user (retained for backward compatibility and API/test support)."""
-    target_user = get_object_or_404(User, id=user_id)
-    new_role = request.POST.get('role', '').strip()
 
-    if new_role in [UserProfile.ROLE_GENERAL, UserProfile.ROLE_REVIEWER, UserProfile.ROLE_ADMIN]:
-        profile = target_user.profile
-        profile.role = new_role
-        profile.save()
-
-        # Update staff status if promoted to admin
-        if new_role == UserProfile.ROLE_ADMIN:
-            target_user.is_staff = True
-        elif not target_user.is_superuser:
-            target_user.is_staff = False
-        target_user.save()
-
-        messages.success(request, f"Updated role for '{target_user.username}' to {profile.get_role_display()}.")
-    else:
-        messages.error(request, "Invalid role specified.")
-
-    return redirect('admin_users')
 
 
 # ==============================================================================
@@ -379,9 +361,10 @@ def admin_flagged_content_view(request):
 
 @admin_required
 @require_POST
-def admin_resolve_product_flag(request, flag_id):
+def admin_resolve_product_flag(request, flag_id=None, id=None):
     """Resolves or dismisses a user-flagged product report."""
-    flag = get_object_or_404(ProductFlag, id=flag_id)
+    fid = id if id is not None else flag_id
+    flag = get_object_or_404(ProductFlag, id=fid)
     action = request.POST.get('action', '').strip()
     admin_notes = request.POST.get('admin_notes', '').strip()
 
@@ -409,9 +392,10 @@ def admin_resolve_product_flag(request, flag_id):
 
 @admin_required
 @require_POST
-def admin_override_review_label(request, review_id):
+def admin_override_review_label(request, review_id=None, id=None):
     """Administrator manually overrides or confirms ML classification label."""
-    review = get_object_or_404(Review, id=review_id)
+    rid = id if id is not None else review_id
+    review = get_object_or_404(Review, id=rid)
     new_label = request.POST.get('new_label', '').strip()
 
     if new_label in ['Genuine', 'Suspicious', 'Fake']:

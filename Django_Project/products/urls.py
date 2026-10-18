@@ -1,15 +1,16 @@
 from django.urls import path
+from django.views.generic import RedirectView
 from . import views
 
 urlpatterns = [
+    # 1. Public URLs (Guests & Unauthenticated Users)
     path('', views.home_view, name='home'),
     path('explore/', views.product_list, name='product_list'),
+    path('product/<int:pk>/', views.product_detail, name='product_detail'),
+    path('policy/', views.privacy_policy_view, name='privacy_policy'),
+
+    # Backward compatibility aliases
+    path('privacy/', views.privacy_policy_view),
     path('home/', views.home_view, name='home_alt'),
-    path('products/<int:pk>/', views.product_detail, name='product_detail'),
-    path('products/create/', views.create_product, name='product_create'),
-    path('products/<int:pk>/edit/', views.edit_product, name='product_edit'),
-    path('products/<int:pk>/delete/', views.delete_product, name='product_delete'),
-    path('products/<int:pk>/save/', views.toggle_save_product, name='toggle_save_product'),
-    path('products/<int:pk>/flag/', views.flag_product_view, name='flag_product'),
-    path('privacy/', views.privacy_policy_view, name='privacy_policy'),
+    path('products/<int:pk>/', RedirectView.as_view(url='/product/%(pk)s/', permanent=False)),
 ]

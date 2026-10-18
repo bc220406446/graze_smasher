@@ -192,32 +192,38 @@ class AnalyticsViewsTestCase(TestCase):
         Review.objects.create(product=p1, text="Bad", rating=1, final_score=20.0, label="Fake")
         Review.objects.create(product=p2, text="OK", rating=3, final_score=50.0, label="Genuine")
 
-    def test_analytics_overview_view(self):
-        """GET /analytics/ redirects to /explore/."""
-        res = self.client.get('/analytics/')
-        self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, '/explore/')
+    def test_user_explore_view(self):
+        """GET /user/explore/ returns 200 OK for catalog browsing."""
+        self.client.force_login(self.user)
+        res = self.client.get('/user/explore/')
+        self.assertEqual(res.status_code, 200)
 
-    def test_suspicious_discovery_view(self):
-        """GET /suspicious-products/ redirects to /explore/."""
-        res = self.client.get('/suspicious-products/')
-        self.assertEqual(res.status_code, 302)
-        self.assertRedirects(res, '/explore/')
+    def test_reviewer_explore_view(self):
+        """GET /reviewer/explore/ returns 200 OK for product evaluation."""
+        self.client.force_login(self.user)
+        res = self.client.get('/reviewer/explore/')
+        self.assertEqual(res.status_code, 200)
+
+    def test_deleted_admin_pages_return_404(self):
+        """Verify deleted pages (/administrator/analytics/ and /administrator/suspicious-products/) are gone."""
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get('/administrator/analytics/').status_code, 404)
+        self.assertEqual(self.client.get('/administrator/suspicious-products/').status_code, 404)
 
     def test_user_dashboard_requires_login(self):
-        """GET /dashboard/ redirects anonymous visitors to login."""
-        res = self.client.get('/dashboard/')
+        """GET /user/dashboard/ redirects anonymous visitors to login."""
+        res = self.client.get('/user/dashboard/')
         self.assertEqual(res.status_code, 302)
 
     def test_user_dashboard_authenticated(self):
-        """GET /dashboard/ returns 200 OK for logged-in users."""
+        """GET /user/dashboard/ returns 200 OK for logged-in users."""
         self.client.force_login(self.user)
-        res = self.client.get('/dashboard/')
+        res = self.client.get('/user/dashboard/')
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Recent System Alerts")
 
     def test_mark_alert_read_and_delete_alert(self):
-        """Test marking an alert as read and then deleting it."""
+        """Test marking an alert as read and then deleting it via user alert endpoints."""
         product = Product.objects.first()
         alert = Alert.objects.create(
             product=product,
@@ -230,13 +236,13 @@ class AnalyticsViewsTestCase(TestCase):
         self.client.force_login(self.user)
 
         # Mark as read
-        read_res = self.client.post(f'/alerts/{alert.id}/read/')
+        read_res = self.client.post(f'/user/alerts/{alert.id}/read/')
         self.assertEqual(read_res.status_code, 302)
         alert.refresh_from_db()
         self.assertTrue(alert.is_read)
 
         # Delete alert
-        del_res = self.client.post(f'/alerts/{alert.id}/delete/')
+        del_res = self.client.post(f'/user/alerts/{alert.id}/delete/')
         self.assertEqual(del_res.status_code, 302)
         self.assertFalse(Alert.objects.filter(id=alert.id).exists())
 
