@@ -1,6 +1,6 @@
 """
-Graze Smasher Product Hunting Tool - REST API Serializers
-CS619 Final-Year Project
+REST API Serializers
+
 """
 
 from rest_framework import serializers

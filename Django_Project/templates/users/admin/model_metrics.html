@@ -172,17 +172,17 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Detection Thresholds & Heuristics -->
+                <!-- Section 2: Detection Thresholds & Rate Limiting -->
                 <h6 class="fw-bold text-primary mb-3">
-                    <i class="fa-solid fa-shield-halved me-1"></i> 2. Detection Thresholds &amp; Anomaly Rules
+                    <i class="fa-solid fa-shield-halved me-1"></i> 2. Detection Thresholds &amp; Rate Limiting
                 </h6>
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold" for="{{ config_form.ip_max_reviews.id_for_label }}">
-                            Max Allowed Reviews Per IP (Per Minute)
+                            Max Allowed Reviews Per IP (Rate Limiting)
                         </label>
                         {{ config_form.ip_max_reviews }}
-                        <div class="form-text small" style="font-size: 0.70rem;">Maximum allowed submissions from a single IP per minute before triggering a velocity flag (Default: 3)</div>
+                        <div class="form-text small" style="font-size: 0.70rem;">Maximum allowed submissions from a single IP per minute to prevent spam / throttling (Default: 3)</div>
                         {% if config_form.ip_max_reviews.errors %}
                         <div class="text-danger small">{{ config_form.ip_max_reviews.errors.0 }}</div>
                         {% endif %}

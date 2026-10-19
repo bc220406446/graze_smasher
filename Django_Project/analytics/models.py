@@ -5,8 +5,7 @@ from products.models import Product
 
 class Alert(models.Model):
     """
-    Automated notification triggered when abnormal fake review surges,
-    suspicious IP velocity bursts, or critical drops in authenticity occur.
+    Automated notification triggered when abnormal fake review surges occur on monitored or catalog products, or when a review is classified.
     """
     ALERT_TYPES = [
         ('fake_spike', 'Fake Review Spike'),
@@ -32,18 +31,19 @@ class Alert(models.Model):
 class SystemConfiguration(models.Model):
     """
     Singleton model providing runtime-editable detection weights, thresholds,
-    and velocity rules without requiring application restarts.
+    and alert rules without requiring application restarts.
     """
     weight_svm = models.FloatField(default=0.50, help_text="Weight for SVM fake probability (default: 0.50)")
     weight_j48 = models.FloatField(default=0.30, help_text="Weight for J-48 decision tree fake probability (default: 0.30)")
-    weight_risk = models.FloatField(default=0.20, help_text="Weight for heuristic/IP risk (default: 0.20)")
+    weight_risk = models.FloatField(default=0.20, help_text="Weight for TextBlob sentiment mismatch risk (default: 0.20)")
     
     genuine_threshold = models.FloatField(default=50.0, help_text="Score >= threshold is classified as Genuine (default: 50.0)")
     suspicious_threshold = models.FloatField(default=50.0, help_text="Binary threshold (default: 50.0)")
     
+    # Per-IP review submission rate limiting
     ip_max_reviews = models.IntegerField(default=3, help_text="Maximum allowed reviews per IP within velocity window (default: 3)")
     ip_window_minutes = models.IntegerField(default=1, help_text="Sliding time window for IP velocity in minutes (default: 1)")
-    
+
     alert_fake_ratio_threshold = models.FloatField(default=0.50, help_text="Ratio of fake reviews triggering an alert (default: 0.50)")
     alert_fake_spike_threshold = models.FloatField(default=0.25, help_text="Surge in fake ratio triggering a spike alert (default: 0.25)")
     

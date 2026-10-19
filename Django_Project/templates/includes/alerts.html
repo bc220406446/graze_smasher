@@ -25,7 +25,7 @@
 
     <!-- Filter Bar (Search area and All Products dropdown) -->
     <div class="card shadow-sm border rounded-4 p-3 bg-white">
-        <form method="GET" action="{% url 'user_alerts' %}" class="row g-2 align-items-center">
+        <form method="GET" action="" class="row g-2 align-items-center">
             <!-- Search area with magnifying glass -->
             <div class="col-12 col-md-5">
                 <div class="input-group">
@@ -68,7 +68,7 @@
 
             <!-- Circular Reset Button -->
             <div class="col-auto">
-                <a href="{% url 'user_alerts' %}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center justify-content-center" title="Reset Filters">
+                <a href="{{ request.path }}" class="btn btn-outline-secondary px-3 d-inline-flex align-items-center justify-content-center" title="Reset Filters">
                     <i class="fa-solid fa-rotate-left"></i>
                 </a>
             </div>

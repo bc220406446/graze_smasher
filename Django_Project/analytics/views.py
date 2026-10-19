@@ -1,22 +1,13 @@
-"""
-Graze Smasher Product Hunting Tool - Analytics, Dashboards & Alerts Views
-CS619 Final-Year Project
-"""
-
-import os
 import json
-import pandas as pd
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.contrib import messages
-from django.db.models import Avg, Count, Q
-from django.utils import timezone
+from django.db.models import Count, Q
 from products.models import Product, SavedProduct, ProductFlag
 from reviews.models import Review
 from .models import Alert
-from ML_Model.config import MODEL_COMPARISON_CSV
 from accounts.decorators import reviewer_required
 
 
@@ -28,62 +19,24 @@ from accounts.decorators import reviewer_required
 def user_dashboard(request):
     """
     General User Dashboard:
-    - Welcome message & prominent 'Add Product' button
-    - Summary cards: Saved products, monitored products, recent alerts, created products
-    - Saved & monitored products with current authenticity scores and status badges
-    - Recent notifications / alerts and analysis activity
-    - Authenticity trend chart where historical data exists
+    - Quick actions to add and view catalog/monitored products
+    - Recent security and authenticity alerts for user's monitored products
     """
     user = request.user
 
-    # 1. Saved Products
-    saved_items = SavedProduct.objects.filter(user=user).select_related('product')
-    saved_products = [item.product for item in saved_items if not item.product.is_hidden]
-
-    # Calculate average authenticity score of saved items
-    if saved_products:
-        avg_saved_score = round(
-            sum(p.overall_authenticity_score() for p in saved_products) / len(saved_products), 1
-        )
-    else:
-        avg_saved_score = 0.0
-
-    # 2. Products submitted by this user
-    user_created_products = Product.objects.filter(created_by=user).order_by('-created_at')
-
-    # 3. Alerts for saved or created products
-    saved_product_ids = [p.id for p in saved_products]
-    created_product_ids = list(user_created_products.values_list('id', flat=True))
+    # Fetch IDs of products saved or created by this user
+    saved_product_ids = list(SavedProduct.objects.filter(user=user).values_list('product_id', flat=True))
+    created_product_ids = list(Product.objects.filter(created_by=user).values_list('id', flat=True))
     relevant_product_ids = list(set(saved_product_ids + created_product_ids))
 
+    # Relevant alerts for this user or their monitored/created products
     alerts_qs = Alert.objects.filter(
         Q(user=user) | Q(user__isnull=True, product_id__in=relevant_product_ids)
     ).select_related('product').order_by('-created_at')
 
-    unread_alerts_count = alerts_qs.filter(is_read=False).count()
-    recent_alerts = alerts_qs[:8]
-
-    # Attach active alert count to each saved product
-    for p in saved_products:
-        p.active_alerts_count = alerts_qs.filter(product_id=p.id, is_read=False).count()
-        p.total_alerts_count = alerts_qs.filter(product_id=p.id).count()
-
-    # 4. Chart data for authenticity scores of saved products
-    chart_labels = [p.name[:18] + '...' if len(p.name) > 18 else p.name for p in saved_products[:7]]
-    chart_scores = [p.overall_authenticity_score() for p in saved_products[:7]]
-
     context = {
-        'saved_products': saved_products[:6],
-        'saved_count': user_created_products.count(),
-        'monitored_count': len(saved_products),
-        'avg_saved_score': avg_saved_score,
-        'user_created_products': user_created_products[:5],
-        'created_count': user_created_products.count(),
-        'recent_alerts': recent_alerts,
-        'unread_alerts_count': unread_alerts_count,
+        'recent_alerts': alerts_qs[:8],
         'total_alerts_count': alerts_qs.count(),
-        'chart_labels': json.dumps(chart_labels),
-        'chart_scores': json.dumps(chart_scores),
     }
     return render(request, 'users/general/user_dashboard.html', context)
 
@@ -156,19 +109,13 @@ def user_alerts_view(request):
     product_filter = request.GET.get('product', '').strip()
 
     if is_admin:
-        # Administrators inspect platform-wide anomaly alerts addressed to them or unassigned
+        # Administrators inspect platform-wide anomaly alerts
         alerts_qs = Alert.objects.filter(Q(user=user) | Q(user__isnull=True)).select_related('product', 'user').order_by('-created_at')
         filter_product_ids = list(alerts_qs.values_list('product_id', flat=True).distinct())
         filter_products = list(Product.objects.filter(id__in=filter_product_ids, is_hidden=False).distinct())
-        total_alerts_count = alerts_qs.count()
-        unread_count = alerts_qs.filter(is_read=False).count()
-        role_label = "Administrator"
-        feed_subtitle = "Platform-wide anomaly alerts, 50% fake review ratio triggers, and detection notifications."
     else:
-        # General users & Reviewers: Alerts specifically addressed to this user (or unassigned for their monitored products)
-        saved_items = SavedProduct.objects.filter(user=user).select_related('product')
-        saved_products = [item.product for item in saved_items if not item.product.is_hidden]
-        saved_product_ids = [p.id for p in saved_products]
+        # General users & Reviewers: Alerts specifically addressed to this user or their monitored/created products
+        saved_product_ids = list(SavedProduct.objects.filter(user=user).values_list('product_id', flat=True))
         created_product_ids = list(Product.objects.filter(created_by=user).values_list('id', flat=True))
         user_alert_product_ids = list(Alert.objects.filter(user=user).values_list('product_id', flat=True).distinct())
         relevant_ids = list(set(saved_product_ids + created_product_ids + user_alert_product_ids))
@@ -178,18 +125,9 @@ def user_alerts_view(request):
         ).select_related('product', 'user').order_by('-created_at')
 
         filter_products = list(Product.objects.filter(id__in=relevant_ids, is_hidden=False).distinct())
-        if not filter_products and saved_products:
-            filter_products = saved_products
 
-        total_alerts_count = alerts_qs.count()
-        unread_count = alerts_qs.filter(is_read=False).count()
-
-        if is_reviewer:
-            role_label = "Reviewer"
-            feed_subtitle = "ML classification feedback for your submitted reviews and monitored product anomaly alerts."
-        else:
-            role_label = "General User"
-            feed_subtitle = "Real-time fake review surges and authenticity score drop alerts across your monitored products."
+    total_alerts_count = alerts_qs.count()
+    unread_count = alerts_qs.filter(is_read=False).count()
 
     # Filter by keyword search (product name or alert message)
     if q:
@@ -215,7 +153,6 @@ def user_alerts_view(request):
 
     context = {
         'page_obj': page_obj,
-        'recent_alerts': page_obj,
         'q': q,
         'status': status,
         'product_filter': product_filter,
@@ -223,8 +160,6 @@ def user_alerts_view(request):
         'monitored_products': filter_products,
         'unread_count': unread_count,
         'total_alerts_count': total_alerts_count,
-        'role_label': role_label,
-        'feed_subtitle': feed_subtitle,
         'is_admin': is_admin,
         'is_reviewer': is_reviewer,
     }
@@ -282,10 +217,10 @@ def user_my_reports(request):
 def reviewer_dashboard(request):
     """
     Dedicated Reviewer Workspace:
-    - Total reviews submitted by the reviewer
+    - Reviewer Dashboard Overview
     - Recently submitted reviews with ML predictions
     - Products reviewed count
-    - Review submission activity chart
+    - Review submission alerts
     """
     user = request.user
     reviewer_reviews = Review.objects.filter(user=user).select_related('product').order_by('-created_at')
@@ -402,18 +337,8 @@ def reviewer_reviewed_products(request):
 
 
 # ==============================================================================
-# GLOBAL PLATFORM ANALYTICS & ALERTS
+# ALERT ACTIONS (MARK READ & DELETE)
 # ==============================================================================
-
-def analytics_overview(request):
-    """Legacy public analytics overview redirected to product catalog."""
-    return redirect('product_list')
-
-
-def suspicious_products_discovery(request):
-    """Legacy public suspicious products discovery redirected to product catalog."""
-    return redirect('product_list')
-
 
 @login_required
 @require_POST

@@ -34,7 +34,7 @@ AUTHENTICITY_THRESHOLD = 50.0
 AUTHENTICITY_GENUINE_THRESHOLD = 50.0   # Score >= 50: Genuine; < 50: Fake
 AUTHENTICITY_SUSPICIOUS_THRESHOLD = 50.0 # Maintained for compatibility
 
-# Backwards compatibility aliases (IP heuristics deprecated)
+# Review Submission Rate Limiting (Spam & Throttling Protection)
 IP_MAX_REVIEWS_PER_WINDOW = 3
 IP_TIME_WINDOW_MINUTES = 1
 
