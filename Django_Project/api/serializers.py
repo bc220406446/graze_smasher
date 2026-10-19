@@ -12,7 +12,6 @@ class ReviewItemInputSerializer(serializers.Serializer):
     """Input schema for individual reviews within an external product batch."""
     text = serializers.CharField(required=True, min_length=3)
     rating = serializers.IntegerField(required=False, default=5, min_value=1, max_value=5)
-    ip = serializers.CharField(required=False, allow_blank=True, default=None)
 
 
 class ProductIngestSerializer(serializers.Serializer):
@@ -31,7 +30,6 @@ class SingleReviewCreateSerializer(serializers.Serializer):
     product_id = serializers.IntegerField(required=True)
     text = serializers.CharField(required=True, min_length=3)
     rating = serializers.IntegerField(required=False, default=5, min_value=1, max_value=5)
-    ip = serializers.CharField(required=False, allow_blank=True, default=None)
 
 
 class ReviewOutputSerializer(serializers.ModelSerializer):
@@ -46,7 +44,6 @@ class ReviewOutputSerializer(serializers.ModelSerializer):
             'svm_score',
             'j48_score',
             'sentiment',
-            'ip_flag',
             'final_score',
             'label',
             'source',
@@ -63,7 +60,6 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     community_trust_rating = serializers.FloatField(read_only=True)
     genuine_reviews_count = serializers.IntegerField(read_only=True)
     fake_reviews_count = serializers.IntegerField(read_only=True)
-    suspicious_reviews_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Product
@@ -85,5 +81,4 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'community_trust_rating',
             'genuine_reviews_count',
             'fake_reviews_count',
-            'suspicious_reviews_count',
         ]

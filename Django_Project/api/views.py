@@ -1,7 +1,4 @@
 """
-Graze Smasher Product Hunting Tool - REST API Views
-CS619 Final-Year Project
-
 Provides third-party integration endpoints for receiving external product feeds
 and review batches, analyzing authenticity in real time, and retrieving stats.
 """
@@ -98,20 +95,18 @@ class ProductListCreateAPIView(APIView):
         for r_item in reviews_data:
             text = r_item['text']
             rating = r_item.get('rating', 5)
-            ip_val = r_item.get('ip')
-
             # Execute unified ML analysis service
-            analysis = analyze_review(text=text, rating=rating, ip=ip_val, record_ip=True)
+            analysis = analyze_review(text=text, rating=rating, ip=None, record_ip=False)
 
             review = Review.objects.create(
                 product=product,
                 text=text,
                 rating=rating,
-                ip_address=ip_val,
+                ip_address=None,
                 svm_score=analysis['svm_score'],
                 j48_score=analysis['j48_score'],
                 sentiment=analysis['sentiment_polarity'],
-                ip_flag=analysis['ip_flag'],
+                ip_flag=False,
                 final_score=analysis['final_score'],
                 label=analysis['label'],
                 source='external_api'
@@ -179,10 +174,9 @@ class SingleReviewCreateAPIView(APIView):
 
         text = data['text']
         rating = data.get('rating', 5)
-        ip_addr = data.get('ip')
 
         # Execute unified ML analysis service
-        analysis = analyze_review(text=text, rating=rating, ip=ip_addr, record_ip=True)
+        analysis = analyze_review(text=text, rating=rating, ip=None, record_ip=False)
 
         user = request.user if request.user.is_authenticated else None
 
@@ -191,11 +185,11 @@ class SingleReviewCreateAPIView(APIView):
             user=user,
             text=text,
             rating=rating,
-            ip_address=ip_addr,
+            ip_address=None,
             svm_score=analysis['svm_score'],
             j48_score=analysis['j48_score'],
             sentiment=analysis['sentiment_polarity'],
-            ip_flag=analysis['ip_flag'],
+            ip_flag=False,
             final_score=analysis['final_score'],
             label=analysis['label'],
             source='api'
