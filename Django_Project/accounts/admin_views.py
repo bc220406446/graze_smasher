@@ -122,18 +122,16 @@ def admin_product_edit(request, product_id=None, pk=None):
                 except (ValueError, TypeError):
                     rating_val = 5
 
-                analysis = analyze_review(text=cleaned_text, rating=rating_val, ip=None, record_ip=False)
+                analysis = analyze_review(text=cleaned_text, rating=rating_val)
 
                 rev = Review.objects.create(
                     product=product,
                     user=request.user,
                     text=cleaned_text,
                     rating=rating_val,
-                    ip_address=None,
                     svm_score=analysis['svm_score'],
                     j48_score=analysis['j48_score'],
                     sentiment=analysis['sentiment_polarity'],
-                    ip_flag=False,
                     final_score=analysis['final_score'],
                     label=analysis['label'],
                     source='user_submission'

@@ -306,9 +306,7 @@ class Command(BaseCommand):
 
                 analysis = analyze_review(
                     text=review_text,
-                    rating=rating_val,
-                    ip=ip_val,
-                    record_ip=False
+                    rating=rating_val
                 )
 
                 rev = Review.objects.create(
@@ -316,11 +314,9 @@ class Command(BaseCommand):
                     user=assigned_user,
                     text=review_text,
                     rating=rating_val,
-                    ip_address=ip_val,
                     svm_score=analysis['svm_score'],
                     j48_score=analysis['j48_score'],
                     sentiment=analysis['sentiment_polarity'],
-                    ip_flag=False,
                     final_score=analysis['final_score'],
                     label=analysis['label'],
                     source='user_submission' if assigned_user else 'dataset_seed'

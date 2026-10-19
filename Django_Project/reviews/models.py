@@ -20,13 +20,11 @@ class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviews')
     text = models.TextField()
     rating = models.IntegerField(default=5)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
     
     # ML Multi-Tier Inference Scores
     svm_score = models.FloatField(default=0.0, help_text="Calibrated SVM fake probability [0.0 - 1.0]")
     j48_score = models.FloatField(default=0.0, help_text="J-48 decision tree fake probability [0.0 - 1.0]")
     sentiment = models.FloatField(default=0.0, help_text="TextBlob sentiment polarity [-1.0 - 1.0]")
-    ip_flag = models.BooleanField(default=False, help_text="True if submission exceeded velocity threshold")
     final_score = models.FloatField(default=0.0, help_text="Composite authenticity score [0.0 - 100.0, higher = genuine]")
     label = models.CharField(max_length=20, choices=LABEL_CHOICES, default=LABEL_GENUINE)
     
@@ -43,10 +41,6 @@ class Review(models.Model):
     @property
     def is_fake(self):
         return self.label == self.LABEL_FAKE
-
-    @property
-    def is_suspicious(self):
-        return False
 
     @property
     def is_genuine(self):

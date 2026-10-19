@@ -96,17 +96,15 @@ class ProductListCreateAPIView(APIView):
             text = r_item['text']
             rating = r_item.get('rating', 5)
             # Execute unified ML analysis service
-            analysis = analyze_review(text=text, rating=rating, ip=None, record_ip=False)
+            analysis = analyze_review(text=text, rating=rating)
 
             review = Review.objects.create(
                 product=product,
                 text=text,
                 rating=rating,
-                ip_address=None,
                 svm_score=analysis['svm_score'],
                 j48_score=analysis['j48_score'],
                 sentiment=analysis['sentiment_polarity'],
-                ip_flag=False,
                 final_score=analysis['final_score'],
                 label=analysis['label'],
                 source='external_api'
@@ -176,7 +174,7 @@ class SingleReviewCreateAPIView(APIView):
         rating = data.get('rating', 5)
 
         # Execute unified ML analysis service
-        analysis = analyze_review(text=text, rating=rating, ip=None, record_ip=False)
+        analysis = analyze_review(text=text, rating=rating)
 
         user = request.user if request.user.is_authenticated else None
 
@@ -185,11 +183,9 @@ class SingleReviewCreateAPIView(APIView):
             user=user,
             text=text,
             rating=rating,
-            ip_address=None,
             svm_score=analysis['svm_score'],
             j48_score=analysis['j48_score'],
             sentiment=analysis['sentiment_polarity'],
-            ip_flag=False,
             final_score=analysis['final_score'],
             label=analysis['label'],
             source='api'

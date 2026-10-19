@@ -10,7 +10,6 @@ from django.contrib import messages
 from .models import Product, SavedProduct, ProductFlag
 from .forms import ProductForm, ProductFlagForm
 from reviews.models import Review
-from reviews.views import get_client_ip
 from ML_Model.service import analyze_review
 from analytics.services import evaluate_product_alerts
 from accounts.decorators import product_creator_required
@@ -396,8 +395,6 @@ def create_product(request):
     Supports entering manual reviews one by one during submission, which are
     instantly evaluated by the ML classification pipeline.
     """
-    client_ip = get_client_ip(request)
-
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
@@ -408,7 +405,6 @@ def create_product(request):
             # Process manual reviews entered one by one
             review_texts = request.POST.getlist('review_text[]')
             review_ratings = request.POST.getlist('review_rating[]')
-            review_ips = request.POST.getlist('review_ip[]')
 
             created_reviews_count = 0
             analyzed_summary = []
@@ -427,18 +423,16 @@ def create_product(request):
                     rating_val = 5
 
                 # Execute ML Analysis Pipeline (100% text-based ML scoring)
-                analysis = analyze_review(text=cleaned_text, rating=rating_val, ip=None, record_ip=False)
+                analysis = analyze_review(text=cleaned_text, rating=rating_val)
 
                 rev = Review.objects.create(
                     product=product,
                     user=request.user,
                     text=cleaned_text,
                     rating=rating_val,
-                    ip_address=None,  # Zero IP storage
                     svm_score=analysis['svm_score'],
                     j48_score=analysis['j48_score'],
                     sentiment=analysis['sentiment_polarity'],
-                    ip_flag=False,
                     final_score=analysis['final_score'],
                     label=analysis['label'],
                     source='user_submission'
@@ -463,7 +457,7 @@ def create_product(request):
     else:
         form = ProductForm()
 
-    return render(request, 'includes/add_product.html', {'form': form, 'client_ip': client_ip})
+    return render(request, 'includes/add_product.html', {'form': form})
 
 
 @login_required
@@ -506,18 +500,16 @@ def edit_product(request, pk):
                 except (ValueError, TypeError):
                     rating_val = 5
 
-                analysis = analyze_review(text=cleaned_text, rating=rating_val, ip=None, record_ip=False)
+                analysis = analyze_review(text=cleaned_text, rating=rating_val)
 
                 rev = Review.objects.create(
                     product=product,
                     user=request.user,
                     text=cleaned_text,
                     rating=rating_val,
-                    ip_address=None,
                     svm_score=analysis['svm_score'],
                     j48_score=analysis['j48_score'],
                     sentiment=analysis['sentiment_polarity'],
-                    ip_flag=False,
                     final_score=analysis['final_score'],
                     label=analysis['label'],
                     source='user_submission'

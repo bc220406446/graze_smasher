@@ -10,26 +10,15 @@ from .models import Review
 from .forms import ReviewSubmissionForm
 
 
-def get_client_ip(request):
-    """Safely extracts real client IP address from HTTP request headers."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR', '127.0.0.1')
-    return ip
-
-
 @require_POST
 @reviewer_required
 def submit_review(request, product_id=None, pk=None):
     """
     Handles reviewer review submission:
     1. Enforces single review per product limit for Reviewers
-    2. Zero IP address storage for user privacy compliance
-    3. Calls unified 100% text-based ML analyze_review() pipeline (SVM + J-48 + Sentiment)
-    4. Persists Review record with multi-tier ML scores and labels
-    5. Automatically generates an Alert if suspicious activity or fake content is detected
+    2. Calls unified 100% text-based ML analyze_review() pipeline (SVM + J-48 + Sentiment)
+    3. Persists Review record with multi-tier ML scores and labels
+    4. Automatically generates an Alert if suspicious activity or fake content is detected
     """
     pid = pk if pk is not None else product_id
     product = get_object_or_404(Product, pk=pid)
@@ -50,19 +39,17 @@ def submit_review(request, product_id=None, pk=None):
         text = form.cleaned_data['text']
         rating = int(form.cleaned_data['rating'])
 
-        # Execute unified ML analysis service (100% text-based scoring, no IP retention)
-        analysis = analyze_review(text=text, rating=rating, ip=None, record_ip=False)
+        # Execute unified ML analysis service (100% text-based scoring)
+        analysis = analyze_review(text=text, rating=rating)
 
         review = Review.objects.create(
             product=product,
             user=request.user,
             text=text,
             rating=rating,
-            ip_address=None,  # Zero IP storage
             svm_score=analysis['svm_score'],
             j48_score=analysis['j48_score'],
             sentiment=analysis['sentiment_polarity'],
-            ip_flag=False,
             final_score=analysis['final_score'],
             label=analysis['label'],
             source='user_submission'
@@ -110,14 +97,13 @@ def edit_review(request, review_id=None, id=None):
             rating = int(form.cleaned_data['rating'])
 
             # Run ML detector pipeline on updated review text and rating
-            analysis = analyze_review(text=text, rating=rating, ip=None, record_ip=False)
+            analysis = analyze_review(text=text, rating=rating)
 
             review.text = text
             review.rating = rating
             review.svm_score = analysis['svm_score']
             review.j48_score = analysis['j48_score']
             review.sentiment = analysis['sentiment_polarity']
-            review.ip_flag = False
             review.final_score = analysis['final_score']
             review.label = analysis['label']
             review.save()

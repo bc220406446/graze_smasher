@@ -129,7 +129,7 @@ class ProductModelAndViewsTestCase(TestCase):
         self.assertEqual(res1.status_code, 200)
         self.assertEqual(Review.objects.filter(product=self.product, user=self.user).count(), 1)
         latest_rev = Review.objects.filter(product=self.product, user=self.user).first()
-        self.assertIsNone(latest_rev.ip_address)  # Zero IP storage
+        self.assertIsNotNone(latest_rev)
 
         # Second submission by same reviewer is blocked
         res2 = self.client.post(
