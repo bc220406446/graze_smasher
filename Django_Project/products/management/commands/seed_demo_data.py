@@ -17,7 +17,7 @@ from products.models import Product, SavedProduct, MonitoredProduct
 from reviews.models import Review, ReviewerReviewedProduct
 from analytics.models import Alert
 from analytics.services import evaluate_product_alerts
-from detector.utils import analyze_review
+from ML_Model.service import analyze_review
 from ML_Model.config import DATASET_PATH
 
 

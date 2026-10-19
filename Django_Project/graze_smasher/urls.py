@@ -29,9 +29,8 @@ urlpatterns = [
     # 6. Django Core Admin (/admin/)
     path('admin/', admin.site.urls),
 
-    # 7. Programmatic APIs & ML Inference (/api/ & /detector/)
+    # 7. Programmatic REST APIs (/api/)
     path('api/', include('api.urls')),
-    path('detector/', include('detector.urls')),
 
     # Backward compatibility redirects
     path('admin/dashboard/', RedirectView.as_view(url='/administrator/dashboard/', permanent=False), name='admin_dashboard_redirect'),

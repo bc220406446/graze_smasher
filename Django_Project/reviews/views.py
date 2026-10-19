@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 from products.models import Product
 from analytics.models import Alert
 from accounts.decorators import reviewer_required
-from detector.utils import analyze_review
+from ML_Model.service import analyze_review
 from .models import Review
 from .forms import ReviewSubmissionForm
 

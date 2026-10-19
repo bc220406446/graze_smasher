@@ -12,7 +12,7 @@ from django.db.models import Q
 from products.models import Product
 from reviews.models import Review
 from analytics.services import evaluate_product_alerts
-from detector.utils import analyze_review
+from ML_Model.service import analyze_review
 from .serializers import (
     ProductIngestSerializer,
     SingleReviewCreateSerializer,

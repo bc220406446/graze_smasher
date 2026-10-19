@@ -11,7 +11,7 @@ from .models import Product, SavedProduct, ProductFlag
 from .forms import ProductForm, ProductFlagForm
 from reviews.models import Review
 from reviews.views import get_client_ip
-from detector.utils import analyze_review
+from ML_Model.service import analyze_review
 from analytics.services import evaluate_product_alerts
 from accounts.decorators import product_creator_required
 from ML_Model.config import MODEL_COMPARISON_CSV

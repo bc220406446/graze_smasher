@@ -27,7 +27,7 @@ from .admin_forms import SystemConfigurationForm, AdminAddUserForm, AdminEditUse
 from reviews.models import Review
 from products.models import Product, ProductFlag
 from products.forms import ProductAdminForm
-from detector.utils import analyze_review
+from ML_Model.service import analyze_review
 from analytics.services import evaluate_product_alerts
 from analytics.models import Alert, SystemConfiguration
 from ML_Model.config import (

@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'reviews.apps.ReviewsConfig',
     'analytics.apps.AnalyticsConfig',
     'api.apps.ApiConfig',
-    'detector.apps.DetectorConfig',
 ]
 
 REST_FRAMEWORK = {
