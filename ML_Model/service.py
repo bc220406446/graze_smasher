@@ -23,7 +23,6 @@ try:
         WEIGHT_SENTIMENT,
         WEIGHT_RISK,
         AUTHENTICITY_GENUINE_THRESHOLD,
-        AUTHENTICITY_SUSPICIOUS_THRESHOLD,
         J48_FEATURE_NAMES,
     )
     from .preprocess import preprocess_text
@@ -38,7 +37,6 @@ except ImportError:
         WEIGHT_SENTIMENT,
         WEIGHT_RISK,
         AUTHENTICITY_GENUINE_THRESHOLD,
-        AUTHENTICITY_SUSPICIOUS_THRESHOLD,
         J48_FEATURE_NAMES,
     )
     from preprocess import preprocess_text

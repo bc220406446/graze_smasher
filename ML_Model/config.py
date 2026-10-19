@@ -28,11 +28,12 @@ WEIGHT_J48 = 0.30
 WEIGHT_SENTIMENT = 0.20
 WEIGHT_RISK = WEIGHT_SENTIMENT  # Backwards compatibility alias
 
-# Classification Thresholds (Authenticity Score 0 - 100, higher = more genuine)
+# Binary Classification Threshold (Authenticity Score 0 - 100, higher = more genuine)
 # Strict Binary Classification (matching dataset OR vs CG):
-AUTHENTICITY_THRESHOLD = 50.0
-AUTHENTICITY_GENUINE_THRESHOLD = 50.0   # Score >= 50: Genuine; < 50: Fake
-AUTHENTICITY_SUSPICIOUS_THRESHOLD = 50.0 # Maintained for compatibility
+# Score >= 50.0: Genuine | Score < 50.0: Fake
+AUTHENTICITY_GENUINE_THRESHOLD = 50.0
+
+
 
 # Review Submission Rate Limiting (Spam & Throttling Protection)
 IP_MAX_REVIEWS_PER_WINDOW = 3
@@ -63,8 +64,6 @@ J48_FEATURE_NAMES = [
 ]
 
 # Automated Alert Thresholds & Analytics Settings
-ALERT_FAKE_RATIO_THRESHOLD = 0.50  # Alert if fake review ratio in window >= 50%
-ALERT_FAKE_SPIKE_THRESHOLD = 0.25  # Alert if fake ratio increases by >= 25% vs prior window
-ALERT_WINDOW_DAYS = 7              # Evaluation window in days
-ALERT_WINDOW_COUNT = 10            # Rolling review count window for spike checks
-ALERT_EMAIL_NOTIFICATIONS = True   # Dispatch console email notifications upon alert
+ALERT_FAKE_RATIO_THRESHOLD = 0.50  # Alert triggered when product fake review ratio >= 50%
+ALERT_COOLDOWN_HOURS = 24          # Suppression cooldown for product ratio alerts (hours); reviewer alerts have no cooldown
+

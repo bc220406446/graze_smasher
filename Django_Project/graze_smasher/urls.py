@@ -1,13 +1,11 @@
 """
 URL Configuration for Graze Smasher.
-CS619 Final-Year Project
 """
 
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import RedirectView
 
 urlpatterns = [
     # 1. Public URLs (Guests & Unauthenticated Users)
@@ -31,17 +29,6 @@ urlpatterns = [
 
     # 7. Programmatic REST APIs (/api/)
     path('api/', include('api.urls')),
-
-    # Backward compatibility redirects
-    path('admin/dashboard/', RedirectView.as_view(url='/administrator/dashboard/', permanent=False), name='admin_dashboard_redirect'),
-    path('admin-panel/', RedirectView.as_view(url='/administrator/dashboard/', permanent=False)),
-    path('accounts/admin-panel/', RedirectView.as_view(url='/administrator/dashboard/', permanent=False)),
-    path('accounts/admin-panel/dashboard/', RedirectView.as_view(url='/administrator/dashboard/', permanent=False)),
-    path('accounts/admin-panel/products/', RedirectView.as_view(url='/administrator/products/', permanent=False)),
-    path('accounts/admin-panel/users/', RedirectView.as_view(url='/administrator/users/', permanent=False)),
-    path('accounts/admin-panel/flagged/', RedirectView.as_view(url='/administrator/reports/', permanent=False)),
-    path('accounts/admin-panel/settings/', RedirectView.as_view(url='/administrator/settings/', permanent=False)),
-    path('accounts/admin-panel/models/', RedirectView.as_view(url='/administrator/model-config/', permanent=False)),
 ]
 
 if settings.DEBUG:

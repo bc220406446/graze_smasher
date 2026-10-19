@@ -150,7 +150,7 @@ class ProductReviewsAPIView(APIView):
         reviews_qs = product.reviews.all().order_by('-created_at')
 
         label = request.GET.get('label', '').strip().capitalize()
-        if label in ['Genuine', 'Suspicious', 'Fake']:
+        if label in ['Genuine', 'Fake']:
             reviews_qs = reviews_qs.filter(label=label)
 
         paginator = self.pagination_class()

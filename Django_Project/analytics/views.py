@@ -286,7 +286,7 @@ def reviewer_my_reviews(request):
         reviews_qs = reviews_qs.filter(
             Q(text__icontains=q) | Q(product__name__icontains=q)
         )
-    if label_filter in ['Genuine', 'Fake', 'Suspicious']:
+    if label_filter in ['Genuine', 'Fake']:
         reviews_qs = reviews_qs.filter(label=label_filter)
     if rating_filter.isdigit():
         reviews_qs = reviews_qs.filter(rating=int(rating_filter))
