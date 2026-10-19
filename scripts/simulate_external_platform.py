@@ -158,7 +158,6 @@ def run_simulation(base_url):
         print(f"    - Authenticity Status:      {detail_res['authenticity_label']}")
         print(f"    - Genuine Count:            {detail_res['genuine_reviews_count']}")
         print(f"    - Fake Count:               {detail_res['fake_reviews_count']}")
-        print(f"    - Suspicious Count:         {detail_res['suspicious_reviews_count']}")
 
     print("\n" + "=" * 70)
     print("   SIMULATION COMPLETED SUCCESSFULLY! REST API FULLY OPERATIONAL.")

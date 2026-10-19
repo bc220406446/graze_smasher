@@ -339,10 +339,6 @@ def admin_resolve_product_flag(request, flag_id=None, id=None):
     fid = id if id is not None else flag_id
     flag = get_object_or_404(ProductFlag, id=fid)
     action = request.POST.get('action', '').strip()
-    admin_notes = request.POST.get('admin_notes', '').strip()
-
-    if admin_notes:
-        flag.admin_notes = admin_notes
 
     if action == 'resolve_and_hide':
         flag.status = ProductFlag.STATUS_RESOLVED

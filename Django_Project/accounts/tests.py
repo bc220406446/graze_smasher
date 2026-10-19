@@ -110,7 +110,7 @@ class RBACPermissionsTestCase(TestCase):
         self.client.force_login(self.admin_user)
         res_resolve = self.client.post(
             f'/administrator/reports/{flag.id}/resolve/',
-            {'action': 'resolve_and_hide', 'admin_notes': 'Verified deceptive listing.'},
+            {'action': 'resolve_and_hide'},
             follow=True
         )
         self.assertEqual(res_resolve.status_code, 200)

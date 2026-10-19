@@ -272,11 +272,9 @@ def product_detail(request, pk):
 
     genuine_count = product.genuine_reviews_count()
     fake_count = product.fake_reviews_count()
-    suspicious_count = 0
 
     fake_pct = round((fake_count / total_reviews * 100), 1) if total_reviews > 0 else 0.0
     genuine_pct = round((genuine_count / total_reviews * 100), 1) if total_reviews > 0 else 0.0
-    suspicious_pct = 0.0
 
     is_saved = False
     user_flag = None
@@ -341,10 +339,8 @@ def product_detail(request, pk):
         'overall_label': overall_label,
         'genuine_count': genuine_count,
         'fake_count': fake_count,
-        'suspicious_count': suspicious_count,
         'fake_pct': fake_pct,
         'genuine_pct': genuine_pct,
-        'suspicious_pct': suspicious_pct,
         'trust_rating': product.community_trust_rating(),
         'is_saved': is_saved,
         'user_flag': user_flag,
@@ -463,7 +459,7 @@ def create_product(request):
 @login_required
 def edit_product(request, pk):
     """
-    Allows product creators (or staff/admin) to edit any detail of their product.
+    Allows product creators (or admin) to edit any detail of their product.
     Updates name, description, category, platform, source_url, image_url, and uploaded image.
     """
     product = get_object_or_404(Product, pk=pk)

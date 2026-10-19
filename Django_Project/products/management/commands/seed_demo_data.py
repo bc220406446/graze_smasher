@@ -296,7 +296,6 @@ class Command(BaseCommand):
             for rev_idx, (_, row) in enumerate(sample_df.iterrows()):
                 review_text = str(row['text_']).strip()
                 rating_val = int(float(row.get('rating', 5.0)))
-                ip_val = f"192.168.1.{10 + (total_seeded_reviews % 50)}"
 
                 # Assign reviewer for the first review(s) assigned to them, otherwise product creator
                 if rev_idx < len(reviewers_for_this_prod):

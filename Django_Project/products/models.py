@@ -79,9 +79,6 @@ class Product(models.Model):
     def fake_reviews_count(self) -> int:
         return self.reviews.filter(label='Fake').count()
 
-    def suspicious_reviews_count(self) -> int:
-        return self.reviews.filter(label='Suspicious').count()
-
     def community_trust_rating(self) -> float:
         """Trust rating computed exclusively from verified genuine customer reviews."""
         genuine_avg = self.reviews.filter(label='Genuine').aggregate(avg_r=Avg('rating'))['avg_r']
@@ -158,7 +155,6 @@ class ProductFlag(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default=CATEGORY_OTHER)
     details = models.TextField(blank=True, default='')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
-    admin_notes = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
