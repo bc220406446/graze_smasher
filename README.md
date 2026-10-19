@@ -37,7 +37,7 @@ Graze Smasher is an enterprise-grade academic research and software engineering 
 * **Unified Single-Point Inference Service**:
   * Single service function `analyze_review(text, rating)` caches loaded model artifacts in memory with thread-safe locking and is used uniformly across the web GUI, REST API, seed loader, and automated test suite.
 * **Dynamic Runtime Detection Configuration**:
-  * Ensemble weights and classification thresholds (`Genuine >= 70%`, `Suspicious 40-69%`, `Fake < 40%`) are persisted via a database singleton (`SystemConfiguration`) and can be adjusted live in the Admin Panel without restarting the server.
+  * Ensemble weights and classification thresholds (`Genuine >= 50%`, `Fake < 50%`) are persisted via a database singleton (`SystemConfiguration`) and can be adjusted live in the Admin Panel without restarting the server.
 * **Full-Featured E-Commerce Catalog & Product Hunting**:
   * Multi-attribute filtering (category, platform, authenticity status), full-text search, and pagination.
   * **Community Trust Rating**: Star rating calculated exclusively from verified genuine reviews, shielding shoppers from manipulated 5-star ratings.
@@ -419,7 +419,7 @@ curl -X POST http://127.0.0.1:8000/api/products/ \
     "name": "Sony WH-1000XM5 Wireless Headphones",
     "platform": "Amazon",
     "overall_authenticity_score": 67.8,
-    "authenticity_label": "Suspicious",
+    "authenticity_label": "Genuiune",
     "community_trust_rating": 5.0,
     "review_count": 2,
     "genuine_reviews_count": 1,
@@ -525,7 +525,7 @@ In accordance with academic standards, the following known limitations apply to 
 2. **Sarcasm & Context-Dependent Nuances**:
    * While TextBlob sentiment polarity analysis and star rating discrepancy effectively detect overt rating contradictions, nuanced linguistic sarcasm or ironic praise can remain difficult for rule-based lexicon systems without larger contextual transformer models.
 3. **Probabilistic Nature of Machine Learning**:
-   * Classification outputs represent statistical likelihoods, not definitive legal proofs of fraud. To protect genuine consumers from unfair misclassification, Graze Smasher implements a three-tier system (`Genuine`, `Suspicious`, `Fake`) along with an Administrator Moderation Queue for human-in-the-loop review.
+   * Classification outputs represent statistical likelihoods, not definitive legal proofs of fraud. To protect genuine consumers from unfair misclassification, Graze Smasher implements a two-tier system (`Genuine`, `Fake`) along with an Administrator Moderation Queue for human-in-the-loop review.
 
 ---
 

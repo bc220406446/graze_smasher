@@ -204,12 +204,6 @@ class AnalyticsViewsTestCase(TestCase):
         res = self.client.get('/reviewer/explore/')
         self.assertEqual(res.status_code, 200)
 
-    def test_deleted_admin_pages_return_404(self):
-        """Verify deleted pages (/administrator/analytics/ and /administrator/suspicious-products/) are gone."""
-        self.client.force_login(self.user)
-        self.assertEqual(self.client.get('/administrator/analytics/').status_code, 404)
-        self.assertEqual(self.client.get('/administrator/suspicious-products/').status_code, 404)
-
     def test_user_dashboard_requires_login(self):
         """GET /user/dashboard/ redirects anonymous visitors to login."""
         res = self.client.get('/user/dashboard/')

@@ -18,7 +18,7 @@ def submit_review(request, product_id=None, pk=None):
     1. Enforces single review per product limit for Reviewers
     2. Calls unified 100% text-based ML analyze_review() pipeline (SVM + J-48 + Sentiment)
     3. Persists Review record with multi-tier ML scores and labels
-    4. Automatically generates an Alert if suspicious activity or fake content is detected
+    4. Automatically generates an Alert if fake content is detected
     """
     pid = pk if pk is not None else product_id
     product = get_object_or_404(Product, pk=pid)

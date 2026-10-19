@@ -54,7 +54,7 @@ class ProductListCreateAPIView(APIView):
 
         # Filter by authenticity status
         auth_status = request.GET.get('status', '').strip().lower()
-        if auth_status in ['genuine', 'suspicious', 'fake']:
+        if auth_status in ['genuine', 'fake']:
             filtered_ids = [
                 p.id for p in queryset if p.authenticity_label().lower() == auth_status
             ]

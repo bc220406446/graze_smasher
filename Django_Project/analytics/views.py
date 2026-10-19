@@ -228,7 +228,6 @@ def reviewer_dashboard(request):
     total_submitted = reviewer_reviews.count()
     genuine_count = reviewer_reviews.filter(label='Genuine').count()
     fake_count = reviewer_reviews.filter(label='Fake').count()
-    suspicious_count = 0
 
     # Unique products reviewed
     reviewed_product_ids = reviewer_reviews.values_list('product_id', flat=True).distinct()

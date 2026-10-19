@@ -26,7 +26,7 @@ def build_notebook():
             "1. **Calibrated Support Vector Machine (LinearSVC)** analyzing lexical n-gram TF-IDF representations.\n"
             "2. **J-48 (C4.5 Decision Tree equivalent)** trained on 8 behavioral, structural, and syntactic features.\n"
             "3. **TextBlob Lexical Sentiment & Rating Mismatch** detecting deceptive opinion manipulation.\n"
-            "4. **Weighted Composite Authenticity Score (0 - 100)** categorizing reviews into *Genuine*, *Suspicious*, or *Fake*.\n\n"
+            "4. **Weighted Composite Authenticity Score (0 - 100)** categorizing reviews into *Genuine* or *Fake*.\n\n"
             "> **Privacy-First Design**: The system evaluates text semantics and star rating consistency directly, "
             "without requiring invasive client IP tracking."
         ),
@@ -173,9 +173,8 @@ def build_notebook():
             "### Composite Consensus Ensemble Scoring:\n"
             "$$\\text{Fake Risk} = 0.50 \\times P_{\\text{SVM}}(\\text{Fake}) + 0.30 \\times P_{\\text{J48}}(\\text{Fake}) + 0.20 \\times \\text{mismatch\\_risk}$$\n"
             "$$\\text{Authenticity Score} = (1.0 - \\text{Fake Risk}) \\times 100$$\n\n"
-            "- **Score $\\ge 70$**: Genuine\n"
-            "- **$40 \\le$ Score $< 70$**: Suspicious\n"
-            "- **Score $< 40$**: Fake"
+            "- **Score $\\ge 50$**: Genuine\n"
+            "- **Score $< 50$**: Fake"
         ),
         nbf.v4.new_code_cell(
             "fake_idx = list(svm_calibrated.classes_).index('Fake')\n"

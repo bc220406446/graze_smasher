@@ -38,7 +38,6 @@ class SystemConfiguration(models.Model):
     weight_risk = models.FloatField(default=0.20, help_text="Weight for TextBlob sentiment mismatch risk (default: 0.20)")
     
     genuine_threshold = models.FloatField(default=50.0, help_text="Score >= threshold is classified as Genuine (default: 50.0)")
-    suspicious_threshold = models.FloatField(default=50.0, help_text="Binary threshold (default: 50.0)")
     
     # Per-IP review submission rate limiting
     ip_max_reviews = models.IntegerField(default=3, help_text="Maximum allowed reviews per IP within velocity window (default: 3)")
