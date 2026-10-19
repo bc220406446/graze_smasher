@@ -1,5 +1,6 @@
-import pandas as pd
 import os
+from pathlib import Path
+import pandas as pd
 
 def download_and_prepare():
     url = "https://raw.githubusercontent.com/SayamAlt/Fake-Reviews-Detection/main/fake%20reviews%20dataset.csv"
@@ -15,13 +16,17 @@ def download_and_prepare():
     or_subset = df[df['label'] == 'OR'].head(5000)
     
     balanced_df = pd.concat([cg_subset, or_subset]).sample(frac=1, random_state=42).reset_index(drop=True)
+    
+    # Retain strictly the 4 authentic text/rating/category/label columns (no simulated_ip)
+    cols_to_keep = ['category', 'rating', 'label', 'text_']
+    balanced_df = balanced_df[[c for c in cols_to_keep if c in balanced_df.columns]]
+    
     print("Balanced dataset shape:", balanced_df.shape)
     print("Balanced class distribution:\n", balanced_df['label'].value_counts())
     
-    # Save dataset
-    out_dir = r"E:\CS619\Graze\Prototype\graze_smasher\Dataset"
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, "fake_reviews_dataset.csv")
+    # Save dataset to local Dataset folder
+    out_dir = Path(__file__).resolve().parent
+    out_path = out_dir / "fake_reviews_dataset.csv"
     balanced_df.to_csv(out_path, index=False)
     print(f"Dataset successfully saved to: {out_path}")
     
