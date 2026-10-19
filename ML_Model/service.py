@@ -105,8 +105,9 @@ def get_fake_probability(model, X) -> float:
 def compute_authenticity(
     svm_fake_prob: float,
     j48_fake_prob: float,
-    ip_flag: bool = False,
-    mismatch_score: float = 0.0
+    mismatch_score: float = 0.0,
+    *args,
+    **kwargs
 ) -> tuple[float, str]:
     """
     Computes the composite authenticity score (0 - 100, higher = more genuine)
@@ -145,8 +146,8 @@ def compute_authenticity(
 def analyze_review(
     text: str,
     rating: int | float | None = None,
-    ip: str | None = None,
-    record_ip: bool = False
+    *args,
+    **kwargs
 ) -> dict:
     """
     Single unified service function used across the entire application:
@@ -159,8 +160,6 @@ def analyze_review(
     Parameters:
         text (str): Raw review text
         rating (int | float | None): Star rating (1-5) or None
-        ip (str | None): Kept for backwards compatibility (not used in ML scoring)
-        record_ip (bool): Kept for backwards compatibility
         
     Returns:
         dict: {
@@ -168,12 +167,10 @@ def analyze_review(
             "j48_score": float,            # J-48 Fake probability [0.0, 1.0]
             "sentiment_polarity": float,   # TextBlob polarity [-1.0, 1.0]
             "sentiment_subjectivity": float,
-            "ip_flag": bool,               # False (IP velocity deprecated)
             "final_score": float,          # Authenticity score [0.0, 100.0]
             "label": str,                  # "Genuine" | "Fake"
             "cleaned_text": str,           # Lemmatized text
-            "mismatch_score": float,
-            "ip_reason": str
+            "mismatch_score": float
         }
     """
     if not isinstance(text, str) or not text.strip():
@@ -182,12 +179,10 @@ def analyze_review(
             "j48_score": 0.0,
             "sentiment_polarity": 0.0,
             "sentiment_subjectivity": 0.0,
-            "ip_flag": False,
             "final_score": 0.0,
             "label": "Invalid Input",
             "cleaned_text": "",
             "mismatch_score": 0.0,
-            "ip_reason": "",
         }
         
     # 1. Load models
@@ -214,7 +209,6 @@ def analyze_review(
     final_score, label = compute_authenticity(
         svm_fake_prob=svm_score,
         j48_fake_prob=j48_score,
-        ip_flag=False,
         mismatch_score=mismatch_score
     )
     
@@ -223,10 +217,8 @@ def analyze_review(
         "j48_score": j48_score,
         "sentiment_polarity": sentiment_polarity,
         "sentiment_subjectivity": sentiment_subjectivity,
-        "ip_flag": False,
         "final_score": final_score,
         "label": label,
         "cleaned_text": cleaned_text,
         "mismatch_score": mismatch_score,
-        "ip_reason": "",
     }

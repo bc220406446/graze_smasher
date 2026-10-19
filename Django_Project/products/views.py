@@ -438,7 +438,7 @@ def create_product(request):
                     svm_score=analysis['svm_score'],
                     j48_score=analysis['j48_score'],
                     sentiment=analysis['sentiment_polarity'],
-                    ip_flag=analysis['ip_flag'],
+                    ip_flag=False,
                     final_score=analysis['final_score'],
                     label=analysis['label'],
                     source='user_submission'
@@ -517,7 +517,7 @@ def edit_product(request, pk):
                     svm_score=analysis['svm_score'],
                     j48_score=analysis['j48_score'],
                     sentiment=analysis['sentiment_polarity'],
-                    ip_flag=analysis['ip_flag'],
+                    ip_flag=False,
                     final_score=analysis['final_score'],
                     label=analysis['label'],
                     source='user_submission'

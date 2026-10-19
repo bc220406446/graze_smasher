@@ -62,7 +62,7 @@ def submit_review(request, product_id=None, pk=None):
             svm_score=analysis['svm_score'],
             j48_score=analysis['j48_score'],
             sentiment=analysis['sentiment_polarity'],
-            ip_flag=analysis['ip_flag'],
+            ip_flag=False,
             final_score=analysis['final_score'],
             label=analysis['label'],
             source='user_submission'
@@ -117,7 +117,7 @@ def edit_review(request, review_id=None, id=None):
             review.svm_score = analysis['svm_score']
             review.j48_score = analysis['j48_score']
             review.sentiment = analysis['sentiment_polarity']
-            review.ip_flag = analysis['ip_flag']
+            review.ip_flag = False
             review.final_score = analysis['final_score']
             review.label = analysis['label']
             review.save()
