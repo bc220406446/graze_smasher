@@ -35,7 +35,7 @@ def user_dashboard(request):
     ).select_related('product').order_by('-created_at')
 
     context = {
-        'recent_alerts': alerts_qs[:8],
+        'recent_alerts': alerts_qs[:3],
         'total_alerts_count': alerts_qs.count(),
     }
     return render(request, 'users/general/user_dashboard.html', context)
@@ -252,7 +252,7 @@ def reviewer_dashboard(request):
         Q(user=user) | Q(user__isnull=True, product_id__in=relevant_ids)
     ).select_related('product', 'user').order_by('-created_at')
 
-    recent_alerts = alerts_qs[:8]
+    recent_alerts = alerts_qs[:3]
     total_alerts_count = alerts_qs.count()
 
     context = {

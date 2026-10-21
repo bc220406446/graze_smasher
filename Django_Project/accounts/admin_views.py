@@ -42,7 +42,7 @@ from ML_Model.config import (
 @admin_required
 def admin_control_panel(request):
     """Admin Dashboard overview displaying quick actions and recent alerts."""
-    recent_alerts = Alert.objects.select_related('product', 'user').order_by('-created_at')[:25]
+    recent_alerts = Alert.objects.select_related('product', 'user').order_by('-created_at')[:3]
     total_alerts_count = Alert.objects.count()
 
     context = {
