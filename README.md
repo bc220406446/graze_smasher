@@ -1,6 +1,5 @@
 # Graze Smasher Product Hunting Tool
 ## Hybrid Machine Learning Fake Review Detection & Integrity System
-### CS619 Final-Year Project (BS Computer Science)
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Django 5.0+](https://img.shields.io/badge/Django-5.0%2B-092E20.svg)](https://www.djangoproject.com/)
@@ -471,53 +470,7 @@ curl -X POST http://127.0.0.1:8000/api/reviews/ \
 
 ---
 
-## Third-Party Integration Simulation
-
-An automated simulation script is provided in `scripts/simulate_external_platform.py`. It simulates how an external storefront interacts with the Graze Smasher REST API:
-
-```bash
-# Ensure Django server is running on http://127.0.0.1:8000
-python scripts/simulate_external_platform.py
-```
-**Simulation Workflow:**
-1. Ingests an external product (e.g., Anker Bluetooth Speaker) with a batch of 10 customer reviews.
-2. Submits an individual real-time review.
-3. Queries verified statistics via `GET /api/products/<id>/`.
-
-A Postman collection is also provided at `scripts/Graze_Smasher_API.postman_collection.json`.
-
----
-
-## Automated Test Suite
-
-Graze Smasher features a 67-test automated verification suite covering:
-* **ML Service & Heuristics**: Feature extraction validity, TextBlob sentiment polarity analysis, composite scoring math, and thread-safe model caching.
-* **Alert Engine**: Fake ratio triggers ($\ge 50\%$), 24-hour cooldown enforcement per user/product, reviewer classification feedback alerts, and notification lifecycle.
-* **Role-Based Access Control**: Strict access boundaries across General User (`/user/*`), Reviewer (`/reviewer/*`), and Administrator (`/administrator/*`).
-* **Product Catalog & Views**: Computed property metrics, search queries, watchlist monitoring, creator-exclusive edit/delete permissions, and moderation workflows.
-* **REST API Endpoints**: Batch ingestion, single review evaluation, 400 validation handling, throttling, and 404 responses.
-
-To execute the test suite:
-```bash
-cd Django_Project
-python manage.py test
-```
-**Expected Output:**
-```text
-Creating test database for alias 'default'...
-...................................................................
-----------------------------------------------------------------------
-Ran 67 tests in 39.561s
-
-OK
-Destroying test database for alias 'default'...
-```
-
----
-
 ## Known Limitations & Real-World Constraints
-
-In accordance with academic standards, the following known limitations apply to this prototype:
 
 1. **Synthetic Nature of Dataset Fake Reviews**:
    * The training dataset (Salminen et al., 2022) utilizes **computer-generated (CG)** fake reviews synthesized by text generation algorithms rather than human-written incentivized fake reviews.
@@ -538,8 +491,3 @@ In accordance with academic standards, the following known limitations apply to 
 
 ---
 
-## Author & Academic Information
-* **Project**: Graze Smasher Product Hunting Tool
-* **Course**: CS619 Final-Year Project
-* **Degree**: Bachelor of Science in Computer Science
-* **Year**: 2026

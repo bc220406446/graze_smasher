@@ -20,7 +20,7 @@ def build_notebook():
         # Title
         nbf.v4.new_markdown_cell(
             "# Graze Smasher Product Hunting Tool\n"
-            "## CS619 Final-Year Project: Hybrid Machine Learning Fake Review Detection System\n\n"
+            "## Hybrid Machine Learning Fake Review Detection System\n\n"
             "This notebook presents the end-to-end Machine Learning and NLP architecture for detecting computer-generated "
             "and deceptive product reviews. The system integrates:\n"
             "1. **Calibrated Support Vector Machine (LinearSVC)** analyzing lexical n-gram TF-IDF representations.\n"

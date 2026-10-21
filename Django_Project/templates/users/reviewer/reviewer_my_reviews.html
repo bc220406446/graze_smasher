@@ -104,7 +104,7 @@
                                 <div class="d-flex align-items-center gap-2 w-100" style="min-width: 0; overflow: hidden;">
                                     <img src="{{ r.product.display_image }}" alt="{{ r.product.name }}"
                                          class="rounded-3 border flex-shrink-0"
-                                         style="width: 38px; height: 38px; object-fit: cover;">
+                                         style="width: 38px; height: 38px; object-fit: fill;">
                                     <div class="flex-grow-1" style="min-width: 0; overflow: hidden;">
                                         <a href="{% url 'product_detail' r.product.pk %}"
                                            class="text-decoration-none text-dark fw-bold text-truncate d-block"
@@ -191,7 +191,7 @@
                         <div class="d-flex align-items-center gap-2 min-w-0 flex-grow-1" style="min-width: 0; overflow: hidden;">
                             <img src="{{ r.product.display_image }}" alt="{{ r.product.name }}"
                                  class="rounded-2 border flex-shrink-0"
-                                 style="width: 36px; height: 36px; object-fit: cover;">
+                                 style="width: 36px; height: 36px; object-fit: fill;">
                             <div class="min-w-0 flex-grow-1" style="overflow: hidden;">
                                 <a href="{% url 'product_detail' r.product.pk %}"
                                    class="text-decoration-none text-dark fw-bold text-truncate d-block small"

@@ -96,12 +96,6 @@
 
                 <!-- Platform & Category Badges -->
                 <div class="position-absolute top-0 start-0 m-3 d-flex gap-1" style="z-index: 2;">
-                    <span class="badge bg-dark bg-opacity-75 text-white" style="font-size: 0.72rem;">
-                        {{ product.get_platform_display }}
-                    </span>
-                    <span class="badge bg-light text-secondary border" style="font-size: 0.72rem;">
-                        {{ product.get_category_display }}
-                    </span>
                     {% if product.is_hidden and is_admin %}
                     <span class="badge bg-danger text-white" style="font-size: 0.72rem;">
                         <i class="fa-solid fa-eye-slash me-1"></i>Hidden
@@ -112,7 +106,7 @@
                 <!-- Product Image -->
                 <a href="{% url 'product_detail' product.pk %}" class="text-decoration-none">
                     <div style="height: 190px; overflow: hidden; background-color: #f1f5f9;" class="rounded-top position-relative">
-                        <img src="{{ product.display_image }}" class="w-100 h-100" style="object-fit: cover;"
+                        <img src="{{ product.display_image }}" class="w-100 h-100" style="object-fit: fill;"
                             alt="{{ product.name }}">
                     </div>
                 </a>

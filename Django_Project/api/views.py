@@ -24,30 +24,30 @@ from .serializers import (
 
 SAMPLE_PRODUCT_PAYLOAD = {
     "platform": "Amazon",
-    "name": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
-    "url": "https://www.amazon.com/dp/B09XS7JWHH",
-    "category": "Electronics",
-    "description": "Industry leading wireless noise cancellation with two processors and 8 microphones. Up to 30 hours of battery life with quick charging.",
-    "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+    "name": "Anti-Dandruff Shampoo and Conditioner Set with Pyrithione Zinc - Moisturizing Hair Care",
+    "url": "https://www.amazon.com/Shampoo-Conditioner-Dandruff-Moisturize-Pyrithione/dp/B0FL46VFKH/",
+    "category": "Beauty & Personal Care",
+    "description": "Professional-grade anti-dandruff shampoo and conditioner formula infused with pyrithione zinc to deeply cleanse the scalp, eliminate flakes, relieve itchy dryness, and restore moisture balance to all hair types.",
+    "image_url": "https://m.media-amazon.com/images/I/71f4SH5bpYL._SL1500_.jpg",
     "reviews": [
         {
-            "text": "The active noise cancellation is remarkable, completely blocks out aircraft cabin noise during long flights.",
+            "text": "Cleared up my dry scalp flakes completely within just a week of consistent washing. Very soothing formula.",
             "rating": 5
         },
         {
-            "text": "Extremely lightweight and comfortable headband even after wearing for 6-8 hours straight during daily work.",
+            "text": "Leaves hair soft and manageable unlike other harsh medicated anti-dandruff shampoos that strip moisture.",
             "rating": 5
         },
         {
-            "text": "Soundstage is wide with clean treble, but the default bass tuning felt a bit heavy until adjusted in EQ.",
+            "text": "Good cleansing power and pleasant scent, though the conditioner bottle is slightly smaller than the shampoo.",
             "rating": 4
         },
         {
-            "text": "BEST HEADPHONES EVER BUY NOW CLICK LINK FOR 90% DISCOUNT FREE GIVEAWAY LIMITED OFFER!!!",
+            "text": "BEST DANDRUFF TREATMENT EVER BUY NOW CLICK LINK FOR 90% DISCOUNT FREE GIVEAWAY LIMITED OFFER!!!",
             "rating": 5
         },
         {
-            "text": "Microphone clarity on zoom calls is noticeably improved over the XM4 model. Multipoint bluetooth connects seamlessly.",
+            "text": "Remarkable relief from scalp itching and irritation. The dual pack is a great value for daily maintenance.",
             "rating": 5
         },
         {
@@ -55,8 +55,12 @@ SAMPLE_PRODUCT_PAYLOAD = {
             "rating": 5
         },
         {
-            "text": "Earcups get slightly warm during gym workouts, but perfectly suited for office and travel use.",
+            "text": "Works well for controlling oil and dandruff, though it requires thorough rinsing to avoid any residue.",
             "rating": 4
+        },
+        {
+            "text": "Zippers on the tent flysheet feel a bit flimsy, but the aluminum poles held up well against strong winds overnight.",
+            "rating": 2
         }
     ]
 }
