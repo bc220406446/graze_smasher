@@ -68,7 +68,12 @@ class Product(models.Model):
 
     def authenticity_label(self) -> str:
         score = self.overall_authenticity_score()
-        if score >= 50.0:
+        try:
+            from analytics.models import SystemConfiguration
+            threshold = SystemConfiguration.get_solo().genuine_threshold
+        except Exception:
+            threshold = 50.0
+        if score >= threshold:
             return "Genuine"
         else:
             return "Fake"

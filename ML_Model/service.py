@@ -102,40 +102,71 @@ def get_fake_probability(model, X) -> float:
         return 1.0 if pred in ["Fake", 1] else 0.0
 
 
+def get_runtime_config() -> dict:
+    """
+    Retrieves runtime detection parameters from SystemConfiguration if Django is ready,
+    otherwise falls back to static config.py defaults.
+    """
+    try:
+        from django.apps import apps
+        if apps.ready:
+            from analytics.models import SystemConfiguration
+            config = SystemConfiguration.get_solo()
+            return {
+                'weight_svm': float(config.weight_svm),
+                'weight_j48': float(config.weight_j48),
+                'weight_sentiment': float(config.weight_risk),
+                'genuine_threshold': float(config.genuine_threshold),
+            }
+    except Exception:
+        pass
+
+    return {
+        'weight_svm': float(WEIGHT_SVM),
+        'weight_j48': float(WEIGHT_J48),
+        'weight_sentiment': float(WEIGHT_SENTIMENT),
+        'genuine_threshold': float(AUTHENTICITY_GENUINE_THRESHOLD),
+    }
+
+
 def compute_authenticity(
     svm_fake_prob: float,
     j48_fake_prob: float,
     mismatch_score: float = 0.0,
+    weight_svm: float = None,
+    weight_j48: float = None,
+    weight_sentiment: float = None,
+    genuine_threshold: float = None,
     *args,
     **kwargs
 ) -> tuple[float, str]:
     """
     Computes the composite authenticity score (0 - 100, higher = more genuine)
-    and categorical label (Genuine / Fake) strictly based on 100% text-based ML algorithms:
-    1. LinearSVC (SVM) fake probability (50%)
-    2. Decision Tree J-48 fake probability (30%)
-    3. Sentiment Classification / Polarity mismatch risk (20%)
-    
-    Composite fake risk formula:
-        fake_risk = (WEIGHT_SVM * svm_fake) + (WEIGHT_J48 * j48_fake) + (WEIGHT_SENTIMENT * sentiment_mismatch_risk)
-        authenticity_score = (1.0 - fake_risk) * 100
+    and categorical label (Genuine / Fake) strictly based on 100% text-based ML algorithms.
+    Dynamically loads runtime weights and genuine threshold from SystemConfiguration.
     """
+    cfg = get_runtime_config()
+    w_svm = cfg['weight_svm'] if weight_svm is None else weight_svm
+    w_j48 = cfg['weight_j48'] if weight_j48 is None else weight_j48
+    w_sent = cfg['weight_sentiment'] if weight_sentiment is None else weight_sentiment
+    g_thresh = cfg['genuine_threshold'] if genuine_threshold is None else genuine_threshold
+
     # Normalize rating-sentiment mismatch score (typically 0.0 to 2.0) into [0.0, 1.0]
     sentiment_mismatch_risk = min(1.0, max(0.0, mismatch_score / 2.0))
     
     # 100% Text-Based ML Fake Risk [0.0, 1.0]
     fake_risk = (
-        (WEIGHT_SVM * svm_fake_prob) +
-        (WEIGHT_J48 * j48_fake_prob) +
-        (WEIGHT_SENTIMENT * sentiment_mismatch_risk)
+        (w_svm * svm_fake_prob) +
+        (w_j48 * j48_fake_prob) +
+        (w_sent * sentiment_mismatch_risk)
     )
     fake_risk = max(0.0, min(1.0, fake_risk))
     
     # Authenticity score (higher = genuine)
     authenticity_score = round((1.0 - fake_risk) * 100.0, 2)
     
-    # Strict Binary Threshold labeling (Score >= 50.0 is Genuine, < 50.0 is Fake)
-    if authenticity_score >= AUTHENTICITY_GENUINE_THRESHOLD:
+    # Strict Binary Threshold labeling
+    if authenticity_score >= g_thresh:
         label = "Genuine"
     else:
         label = "Fake"

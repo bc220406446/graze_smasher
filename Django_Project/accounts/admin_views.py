@@ -368,7 +368,9 @@ def admin_settings_view(request):
     if request.method == 'POST':
         form = SystemConfigurationForm(request.POST, instance=config_obj)
         if form.is_valid():
-            form.save()
+            config = form.save(commit=False)
+            config.updated_by = request.user
+            config.save()
             messages.success(request, "System detection settings updated successfully!")
             return redirect('admin_settings')
     else:

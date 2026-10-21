@@ -109,6 +109,9 @@ def run_simulation(base_url):
     product_info = response_data["product"]
     product_id = product_info["id"]
     print(f" -> Product Ingested: ID={product_id} | '{product_info['name']}'")
+    if "weights_applied" in response_data:
+        w = response_data["weights_applied"]
+        print(f" -> Active Model Weights:       SVM={w.get('weight_svm', 0.5)*100:.0f}% | J48={w.get('weight_j48', 0.3)*100:.0f}% | Sentiment={w.get('weight_sentiment', 0.2)*100:.0f}% (Cutoff: {w.get('genuine_threshold', 50)}%)")
     print(f" -> Overall Authenticity Score: {product_info['overall_authenticity_score']}% ({product_info['authenticity_label']})")
     print(f" -> Community Trust Rating:     {product_info['community_trust_rating']} stars (Genuine Reviews Only)")
     print(f" -> Fake Reviews Detected:      {product_info['fake_reviews_count']} out of {product_info['review_count']}")
@@ -133,6 +136,9 @@ def run_simulation(base_url):
     if status_code == 201:
         rev = review_res["review"]
         print(f" -> Real-time Analysis Result:")
+        if "weights_applied" in review_res:
+            w = review_res["weights_applied"]
+            print(f"    - Active Weights Applied:  SVM={w.get('weight_svm', 0.5)*100:.0f}% | J48={w.get('weight_j48', 0.3)*100:.0f}% | Sentiment={w.get('weight_sentiment', 0.2)*100:.0f}%")
         print(f"    - Assigned Label:          {rev['label']}")
         print(f"    - Review Authenticity:     {rev['final_score']}%")
         print(f"    - SVM Fake Probability:    {rev['svm_score']}")

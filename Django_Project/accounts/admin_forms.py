@@ -122,22 +122,22 @@ class SystemConfigurationForm(forms.ModelForm):
             'weight_svm',
             'weight_j48',
             'weight_risk',
+            'genuine_threshold',
             'ip_max_reviews',
-            'alert_fake_ratio_threshold',
         ]
         widgets = {
             'weight_svm': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.05', 'min': '0', 'max': '1'}),
             'weight_j48': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.05', 'min': '0', 'max': '1'}),
             'weight_risk': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.05', 'min': '0', 'max': '1'}),
+            'genuine_threshold': forms.NumberInput(attrs={'class': 'form-control', 'step': '1.0', 'min': '10', 'max': '90'}),
             'ip_max_reviews': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '3'}),
-            'alert_fake_ratio_threshold': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.05', 'min': '0', 'max': '1'}),
         }
         labels = {
             'weight_svm': 'LinearSVC Weight (Textual TF-IDF)',
             'weight_j48': 'J-48 Weight (Behavioral / Structural)',
             'weight_risk': 'Sentiment Mismatch Weight',
+            'genuine_threshold': 'Genuine Classification Cutoff (%)',
             'ip_max_reviews': 'Max Reviews Per IP Per Minute (Rate Limit)',
-            'alert_fake_ratio_threshold': 'Product Fake Review Ratio Threshold',
         }
 
     def clean(self):

@@ -43,9 +43,14 @@ class SystemConfiguration(models.Model):
     ip_max_reviews = models.IntegerField(default=3, help_text="Maximum allowed reviews per IP within velocity window (default: 3)")
     ip_window_minutes = models.IntegerField(default=1, help_text="Sliding time window for IP velocity in minutes (default: 1)")
 
-    alert_fake_ratio_threshold = models.FloatField(default=0.50, help_text="Ratio of fake reviews triggering an alert (default: 0.50)")
-    alert_fake_spike_threshold = models.FloatField(default=0.25, help_text="Surge in fake ratio triggering a spike alert (default: 0.25)")
-    
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='updated_configurations',
+        help_text="Administrator who last updated the configuration"
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

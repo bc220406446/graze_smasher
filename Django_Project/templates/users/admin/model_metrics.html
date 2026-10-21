@@ -178,6 +178,17 @@
                 </h6>
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
+                        <label class="form-label small fw-semibold" for="{{ config_form.genuine_threshold.id_for_label }}">
+                            Genuine Classification Cutoff (%)
+                        </label>
+                        {{ config_form.genuine_threshold }}
+                        <div class="form-text small" style="font-size: 0.70rem;">Scores &ge; this cutoff are Genuine, &lt; are Fake. Also triggers fake spike alerts when fake ratio &ge; this cutoff (Default: 50.0%)</div>
+                        {% if config_form.genuine_threshold.errors %}
+                        <div class="text-danger small">{{ config_form.genuine_threshold.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
                         <label class="form-label small fw-semibold" for="{{ config_form.ip_max_reviews.id_for_label }}">
                             Max Allowed Reviews Per IP (Rate Limiting)
                         </label>
@@ -187,20 +198,16 @@
                         <div class="text-danger small">{{ config_form.ip_max_reviews.errors.0 }}</div>
                         {% endif %}
                     </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold" for="{{ config_form.alert_fake_ratio_threshold.id_for_label }}">
-                            Product Fake Review Ratio Threshold
-                        </label>
-                        {{ config_form.alert_fake_ratio_threshold }}
-                        <div class="form-text small" style="font-size: 0.70rem;">Ratio of fake reviews on a product that triggers an automated security alert (Default: 0.50 / 50%)</div>
-                        {% if config_form.alert_fake_ratio_threshold.errors %}
-                        <div class="text-danger small">{{ config_form.alert_fake_ratio_threshold.errors.0 }}</div>
-                        {% endif %}
-                    </div>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 pt-3 border-top">
+                    <small class="text-muted">
+                        <i class="fa-solid fa-clock-rotate-left me-1"></i>
+                        Last modified: <strong class="text-dark">{{ config_obj.updated_at|date:"M d, Y H:i" }}</strong>
+                        {% if config_obj.updated_by %}
+                        by <span class="badge bg-light text-dark border">{{ config_obj.updated_by.get_full_name|default:config_obj.updated_by.username }}</span>
+                        {% endif %}
+                    </small>
                     <button type="submit" class="btn btn-success px-4 py-2 fw-semibold shadow-xs">
                         <i class="fa-solid fa-floppy-disk me-1"></i> Save Configuration Changes
                     </button>

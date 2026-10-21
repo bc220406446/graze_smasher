@@ -63,7 +63,6 @@ J48_FEATURE_NAMES = [
     "rating_vs_sentiment_mismatch",
 ]
 
-# Automated Alert Thresholds & Analytics Settings
-ALERT_FAKE_RATIO_THRESHOLD = 0.50  # Alert triggered when product fake review ratio >= 50%
+# Automated Alert Settings
 ALERT_COOLDOWN_HOURS = 24          # Suppression cooldown for product ratio alerts (hours); reviewer alerts have no cooldown
 

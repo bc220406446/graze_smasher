@@ -41,8 +41,13 @@ def evaluate_product_alerts(product, trigger_review=None):
     fake_reviews = product.reviews.filter(label='Fake').count()
     fake_ratio = (fake_reviews / total_reviews * 100.0) if total_reviews > 0 else 0.0
 
-    threshold_pct = getattr(settings, 'ALERT_FAKE_RATIO_THRESHOLD', 0.50) * 100.0
-    if total_reviews > 0 and fake_ratio >= threshold_pct:
+    try:
+        from .models import SystemConfiguration
+        genuine_cutoff = float(SystemConfiguration.get_solo().genuine_threshold)
+    except Exception:
+        genuine_cutoff = float(getattr(settings, 'AUTHENTICITY_GENUINE_THRESHOLD', 50.0))
+
+    if total_reviews > 0 and fake_ratio >= genuine_cutoff:
         pct_val = int(fake_ratio) if fake_ratio.is_integer() else round(fake_ratio, 1)
         ratio_msg = f"Fake reviews for subject product is increase to {pct_val}%"
         cooldown_hours = getattr(settings, 'ALERT_COOLDOWN_HOURS', 24)
