@@ -54,8 +54,8 @@
             </a>
         </li>
         <li>
-            <a href="{% url 'user_alerts' %}"
-                class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
+            <a href="{% url 'admin_alerts' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'admin_alerts' %}active{% endif %}">
                 <i class="fa-solid fa-bell text-warning"></i> Anomaly Alerts
             </a>
         </li>
@@ -122,8 +122,8 @@
             </a>
         </li>
         <li>
-            <a href="{% url 'user_alerts' %}"
-                class="gs-sidebar-link {% if request.resolver_match.url_name == 'user_alerts' %}active{% endif %}">
+            <a href="{% url 'reviewer_alerts' %}"
+                class="gs-sidebar-link {% if request.resolver_match.url_name == 'reviewer_alerts' %}active{% endif %}">
                 <i class="fa-solid fa-bell text-warning"></i> Alerts
             </a>
         </li>
