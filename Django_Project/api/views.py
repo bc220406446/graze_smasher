@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import JSONParser
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from products.models import Product
@@ -21,6 +22,52 @@ from .serializers import (
 )
 
 
+SAMPLE_PRODUCT_PAYLOAD = {
+    "platform": "Amazon",
+    "name": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
+    "url": "https://www.amazon.com/dp/B09XS7JWHH",
+    "category": "Electronics",
+    "description": "Industry leading wireless noise cancellation with two processors and 8 microphones. Up to 30 hours of battery life with quick charging.",
+    "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+    "reviews": [
+        {
+            "text": "The active noise cancellation is remarkable, completely blocks out aircraft cabin noise during long flights.",
+            "rating": 5
+        },
+        {
+            "text": "Extremely lightweight and comfortable headband even after wearing for 6-8 hours straight during daily work.",
+            "rating": 5
+        },
+        {
+            "text": "Soundstage is wide with clean treble, but the default bass tuning felt a bit heavy until adjusted in EQ.",
+            "rating": 4
+        },
+        {
+            "text": "BEST HEADPHONES EVER BUY NOW CLICK LINK FOR 90% DISCOUNT FREE GIVEAWAY LIMITED OFFER!!!",
+            "rating": 5
+        },
+        {
+            "text": "Microphone clarity on zoom calls is noticeably improved over the XM4 model. Multipoint bluetooth connects seamlessly.",
+            "rating": 5
+        },
+        {
+            "text": "AMAZING MIRACLE PRODUCT changed my life completely overnight incredible results flawless perfection must buy!",
+            "rating": 5
+        },
+        {
+            "text": "Earcups get slightly warm during gym workouts, but perfectly suited for office and travel use.",
+            "rating": 4
+        }
+    ]
+}
+
+SAMPLE_SINGLE_REVIEW_PAYLOAD = {
+    "product_id": 1,
+    "text": "AMAZING MIRACLE PRODUCT changed my life completely overnight incredible results flawless perfection must buy!",
+    "rating": 5
+}
+
+
 class StandardResultsPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -33,6 +80,14 @@ class ProductListCreateAPIView(APIView):
     POST /api/products/ : External platform sends product with list of reviews.
     """
     pagination_class = StandardResultsPagination
+    parser_classes = [JSONParser]
+    serializer_class = ProductIngestSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        if not args and not kwargs:
+            # Pre-populate sample payload with 7 reviews in Browsable API Content box
+            return ProductIngestSerializer(SAMPLE_PRODUCT_PAYLOAD)
+        return ProductIngestSerializer(*args, **kwargs)
 
     def get(self, request):
         queryset = Product.objects.all().order_by('-created_at')
@@ -161,6 +216,15 @@ class SingleReviewCreateAPIView(APIView):
     """
     POST /api/reviews/ : Add a single review to an existing product and obtain ML score.
     """
+    parser_classes = [JSONParser]
+    serializer_class = SingleReviewCreateSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        if not args and not kwargs:
+            # Pre-populate sample single review in Browsable API Content box
+            return SingleReviewCreateSerializer(SAMPLE_SINGLE_REVIEW_PAYLOAD)
+        return SingleReviewCreateSerializer(*args, **kwargs)
+
     def post(self, request):
         serializer = SingleReviewCreateSerializer(data=request.data)
         if not serializer.is_valid():
