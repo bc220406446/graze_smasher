@@ -136,8 +136,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Authentication Configuration & Backends
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'product_list'
-LOGOUT_REDIRECT_URL = 'product_list'
+LOGOUT_REDIRECT_URL = 'home'
 
 AUTHENTICATION_BACKENDS = [
     'accounts.backends.EmailOrUsernameModelBackend',

@@ -1,12 +1,41 @@
 {% load static %}
-<!-- Public Navigation Header (Clean, Centred Menu & Action Button) -->
+<!-- Public Navigation Header (Clean, Centred Menu & Responsive Action Buttons) -->
 <header class="gs-navbar sticky-top bg-white border-bottom shadow-xs position-relative">
-    <div class="container-fluid px-lg-4 d-flex justify-content-between align-items-center">
+    <div class="container-fluid px-2 px-sm-3 px-lg-4 d-flex justify-content-between align-items-center">
         
-        <!-- Left: Logo Brand -->
-        <div class="d-flex align-items-center">
-            <a class="gs-brand d-inline-flex align-items-center text-decoration-none py-1" href="{% url 'home' %}">
-                <img src="{% static 'img/logo.png' %}" alt="Graze Smasher" style="height: 38px; width: auto; object-fit: contain;">
+        <!-- Left: Sidebar / Menu Toggle (Mobile) + Brand Logo -->
+        <div class="d-flex align-items-center gap-1 gap-sm-2 gap-md-3 min-w-0">
+            <!-- Mobile Navigation Menu Toggle (Dropdown on Public Pages) -->
+            <div class="dropdown d-lg-none">
+                <button class="btn btn-outline-secondary btn-sm gs-btn-icon flex-shrink-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle Navigation Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-start shadow-sm mt-2">
+                    <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 0.7rem; font-weight: 700;">Navigation</h6></li>
+                    <li><a class="dropdown-item py-2" href="{% url 'home' %}"><i class="fa-solid fa-house me-2 text-muted"></i> Home</a></li>
+                    <li><a class="dropdown-item py-2" href="{% url 'product_list' %}"><i class="fa-solid fa-compass me-2 text-muted"></i> Explore Products</a></li>
+                    <li><a class="dropdown-item py-2" href="{% url 'privacy_policy' %}"><i class="fa-solid fa-scale-balanced me-2 text-muted"></i> Privacy Policy</a></li>
+                    {% if user.is_authenticated %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 0.7rem; font-weight: 700;">Account</h6></li>
+                        <li>
+                            <a class="dropdown-item py-2" href="{% if user.profile.role == 'admin' or user.is_superuser %}{% url 'admin_control_panel' %}{% elif user.profile.role == 'reviewer' %}{% url 'reviewer_dashboard' %}{% else %}{% url 'user_dashboard' %}{% endif %}">
+                                <i class="fa-solid fa-gauge-high me-2 text-primary"></i> Dashboard
+                            </a>
+                        </li>
+                        <li><a class="dropdown-item py-2 text-danger" href="{% url 'logout' %}"><i class="fa-solid fa-arrow-right-from-bracket me-2 text-danger"></i> Logout</a></li>
+                    {% else %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size: 0.7rem; font-weight: 700;">Account</h6></li>
+                        <li><a class="dropdown-item py-2" href="{% url 'login' %}"><i class="fa-solid fa-right-to-bracket me-2 text-muted"></i> Log In</a></li>
+                        <li><a class="dropdown-item py-2" href="{% url 'register' %}"><i class="fa-solid fa-user-plus me-2 text-muted"></i> Sign Up</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Brand: Logo -->
+            <a class="gs-brand d-inline-flex align-items-center text-decoration-none py-1 flex-shrink-0" href="{% url 'home' %}">
+                <img src="{% static 'img/logo.png' %}" alt="Graze Smasher" class="gs-header-logo">
             </a>
         </div>
 
@@ -23,34 +52,40 @@
             </a>
         </nav>
 
-        <!-- Right: Action Button (Get Started when guest, View Dashboard when authenticated) -->
-        <div class="d-flex align-items-center gap-2">
-            <!-- Mobile Dropdown Navigation Menu for small screens -->
-            <div class="dropdown d-lg-none">
-                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa-solid fa-bars me-1"></i> Menu
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                    <li><a class="dropdown-item" href="{% url 'home' %}"><i class="fa-solid fa-house me-2 text-muted"></i> Home</a></li>
-                    <li><a class="dropdown-item" href="{% url 'product_list' %}"><i class="fa-solid fa-compass me-2 text-muted"></i> Explore</a></li>
-                    <li><a class="dropdown-item" href="{% url 'privacy_policy' %}"><i class="fa-solid fa-scale-balanced me-2 text-muted"></i> Privacy Policy</a></li>
-                    {% if not user.is_authenticated %}
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{% url 'login' %}"><i class="fa-solid fa-right-to-bracket me-2 text-muted"></i> Log In</a></li>
-                        <li><a class="dropdown-item" href="{% url 'register' %}"><i class="fa-solid fa-user-plus me-2 text-muted"></i> Sign Up</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-
+        <!-- Right: Action Buttons (Mobile Icons & Desktop Full Buttons) -->
+        <div class="d-flex align-items-center gap-1 gap-sm-2 flex-shrink-0">
             {% if user.is_authenticated %}
-                <a href="{% if user.profile.role == 'admin' or user.is_superuser %}{% url 'admin_control_panel' %}{% elif user.profile.role == 'reviewer' %}{% url 'reviewer_dashboard' %}{% else %}{% url 'user_dashboard' %}{% endif %}" class="btn btn-primary btn-sm px-3 fw-semibold shadow-sm">
-                    View Dashboard
+                <!-- Mobile Logged User: Dashboard Icon + Logout Icon -->
+                <a href="{% if user.profile.role == 'admin' or user.is_superuser %}{% url 'admin_control_panel' %}{% elif user.profile.role == 'reviewer' %}{% url 'reviewer_dashboard' %}{% else %}{% url 'user_dashboard' %}{% endif %}" class="btn btn-outline-secondary btn-sm gs-btn-icon d-inline-flex d-lg-none" title="Dashboard" aria-label="Dashboard">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm gs-btn-icon d-inline-flex d-lg-none" title="Logout" aria-label="Logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+
+                <!-- Desktop Logged User: Full Buttons -->
+                <a href="{% if user.profile.role == 'admin' or user.is_superuser %}{% url 'admin_control_panel' %}{% elif user.profile.role == 'reviewer' %}{% url 'reviewer_dashboard' %}{% else %}{% url 'user_dashboard' %}{% endif %}" class="btn btn-primary btn-sm px-3 fw-semibold shadow-sm d-none d-lg-inline-flex align-items-center gap-1 text-nowrap">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>View Dashboard</span>
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm px-3 fw-medium d-none d-lg-inline-flex align-items-center gap-1 text-nowrap ms-1">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Logout</span>
                 </a>
             {% else %}
-                <a class="btn btn-outline-secondary btn-sm px-3 fw-semibold" href="{% url 'login' %}">
+                <!-- Mobile Guest User: Login Icon + Register Icon -->
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-sm gs-btn-icon d-inline-flex d-lg-none" title="Log In" aria-label="Log In">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                </a>
+                <a href="{% url 'register' %}" class="btn btn-outline-primary btn-sm gs-btn-icon d-inline-flex d-lg-none" title="Register / Sign Up" aria-label="Sign Up">
+                    <i class="fa-solid fa-user-plus"></i>
+                </a>
+
+                <!-- Desktop Guest User: Full Buttons -->
+                <a class="btn btn-outline-secondary btn-sm px-3 fw-semibold d-none d-lg-inline-block text-nowrap" href="{% url 'login' %}">
                     Log In
                 </a>
-                <a class="btn btn-primary btn-sm px-3 fw-semibold shadow-sm" href="{% url 'register' %}">
+                <a class="btn btn-primary btn-sm px-3 fw-semibold shadow-sm d-none d-lg-inline-block text-nowrap ms-1" href="{% url 'register' %}">
                     Sign Up
                 </a>
             {% endif %}

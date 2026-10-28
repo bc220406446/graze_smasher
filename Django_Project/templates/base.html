@@ -81,6 +81,11 @@
             --gs-danger-border: var(--color-danger-border);
         }
 
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
         body {
             font-family: var(--font-body);
             background-color: var(--color-background);
@@ -96,6 +101,26 @@
             background-color: #ffffff;
             border-bottom: 1px solid var(--gs-border);
             padding: 0.75rem 1rem;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .gs-header-logo {
+            height: 36px;
+            width: auto;
+            max-width: 140px;
+            object-fit: contain;
+        }
+        .gs-btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            flex-shrink: 0;
+            font-size: 0.95rem;
         }
         .gs-brand {
             font-weight: 800;
@@ -290,6 +315,22 @@
             background-color: #ffffff;
             border-top: 1px solid var(--gs-border);
             padding: 0.75rem 1rem;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 575.98px) {
+            .gs-navbar {
+                padding: 0.5rem 0.25rem;
+            }
+            footer, .gs-footer {
+                padding: 0.5rem 0.25rem;
+            }
+            .gs-header-logo {
+                height: 28px;
+                max-width: 110px;
+            }
         }
     </style>
     {% block extra_css %}{% endblock %}

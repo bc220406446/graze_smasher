@@ -98,6 +98,11 @@
     box-sizing: border-box;
 }
 
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     font-family: var(--font-body);
     font-size: 15px;
@@ -226,6 +231,29 @@ pre {
     padding: 0.75rem 1rem;
     z-index: 1030;
     backdrop-filter: blur(8px);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.gs-header-logo {
+    height: 36px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+    transition: height var(--transition-fast);
+}
+
+.gs-btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md, 8px);
+    flex-shrink: 0;
+    font-size: 0.95rem;
 }
 
 .gs-brand {
@@ -738,6 +766,9 @@ footer,
     padding: 0.75rem 1rem;
     font-size: 0.8125rem;
     color: var(--color-text-muted);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 footer a {
@@ -748,6 +779,20 @@ footer a {
 
 footer a:hover {
     color: var(--color-primary);
+}
+
+@media (max-width: 575.98px) {
+    .gs-navbar {
+        padding: 0.5rem 0.25rem;
+    }
+    footer,
+    .gs-footer {
+        padding: 0.5rem 0.25rem;
+    }
+    .gs-header-logo {
+        height: 28px;
+        max-width: 110px;
+    }
 }
 
 /* ==========================================================================

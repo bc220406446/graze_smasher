@@ -1,29 +1,38 @@
 {% load static %}
 <!-- Dashboard Navigation Header (Icon Name Left side return to home page logout) -->
 <header class="gs-navbar sticky-top bg-white border-bottom shadow-xs">
-    <div class="container-fluid px-lg-4 d-flex justify-content-between align-items-center">
-        <!-- Left Side: Mobile Sidebar Toggle + Brand (Logo) + Return to Home Page -->
-        <div class="d-flex align-items-center gap-2 gap-sm-3">
+    <div class="container-fluid px-2 px-sm-3 px-lg-4 d-flex justify-content-between align-items-center">
+        <!-- Left Side: Mobile Sidebar Toggle + Brand (Logo) -->
+        <div class="d-flex align-items-center gap-1 gap-sm-2 gap-md-3 min-w-0">
             <!-- Mobile Sidebar Toggle -->
-            <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-label="Toggle Dashboard Menu">
+            <button class="btn btn-outline-secondary btn-sm gs-btn-icon d-lg-none flex-shrink-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-label="Toggle Dashboard Menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
 
             <!-- Brand: Logo -->
-            <a class="gs-brand d-inline-flex align-items-center text-decoration-none py-1" href="{% url 'home' %}">
-                <img src="{% static 'img/logo.png' %}" alt="Graze Smasher" style="height: 36px; width: auto; object-fit: contain;">
+            <a class="gs-brand d-inline-flex align-items-center text-decoration-none py-1 flex-shrink-0" href="{% url 'home' %}">
+                <img src="{% static 'img/logo.png' %}" alt="Graze Smasher" class="gs-header-logo">
             </a>
         </div>
 
-        <!-- Right Side: User Role, User Name, Logout -->
-        <div class="d-flex align-items-center gap-2 gap-sm-3">
-                        <!-- Return to Home Page (Left Side) -->
-            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1 ms-1 ms-sm-2" title="Return to Home Page">
-                <span class="d-none d-sm-inline">Return to Home Page</span>
-                <span class="d-inline d-sm-none">Home</span>
+        <!-- Right Side: Return to Home Page + Logout -->
+        <div class="d-flex align-items-center gap-1 gap-sm-2 flex-shrink-0">
+            <!-- Mobile: Home Icon -->
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm gs-btn-icon d-inline-flex d-md-none" title="Return to Home Page" aria-label="Home">
+                <i class="fa-solid fa-house"></i>
             </a>
-            <!-- Logout Button -->
-            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1 fw-medium">
+            <!-- Desktop / Tablet: Full Return to Home Button -->
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm d-none d-md-inline-flex align-items-center gap-1 px-3 text-nowrap" title="Return to Home Page">
+                <i class="fa-solid fa-house"></i>
+                <span>Return to Home Page</span>
+            </a>
+
+            <!-- Mobile: Logout Icon -->
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm gs-btn-icon d-inline-flex d-sm-none" title="Logout" aria-label="Logout">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+            <!-- Desktop / Tablet: Full Logout Button -->
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm d-none d-sm-inline-flex align-items-center gap-1 px-3 fw-medium text-nowrap">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
                 <span>Logout</span>
             </a>
