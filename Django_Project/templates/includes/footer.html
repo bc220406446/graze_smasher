@@ -1,20 +1,20 @@
 {% load static %}
-<!-- Standardized Brand Footer Include (Mirrors Public Header Layout & Spacing) -->
+<!-- Standardized Brand Footer Include (Responsive, Zero Horizontal Overflow) -->
 <footer class="gs-footer border-top bg-white">
-    <div class="container-fluid px-lg-4 d-flex justify-content-between align-items-center">
+    <div class="container-fluid px-2 px-sm-3 px-lg-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
         <!-- Left: Logo & Copyright -->
-        <div class="d-flex align-items-center">
-            <a class="gs-brand d-inline-flex align-items-center text-decoration-none py-1" href="{% url 'home' %}">
-                <img src="{% static 'img/logo.png' %}" alt="Graze Smasher" style="height: 28px; width: auto; object-fit: contain;">
+        <div class="d-flex align-items-center flex-wrap gap-2 min-w-0">
+            <a class="gs-brand d-inline-flex align-items-center text-decoration-none py-1 flex-shrink-0" href="{% url 'home' %}">
+                <img src="{% static 'img/logo.png' %}" alt="Graze Smasher" style="height: 24px; max-width: 120px; width: auto; object-fit: contain;">
             </a>
-            <span class="text-muted small ms-3 ps-3 border-start d-none d-sm-inline">
-                AI Powered Fake Review Detection & Product Hunting &copy; 2026
+            <span class="text-muted small ps-2 border-start d-none d-sm-inline text-truncate">
+                AI Powered Fake Review Detection &copy; 2026
             </span>
         </div>
 
         <!-- Right: Privacy Policy Link -->
-        <div class="d-flex align-items-center">
-            <a href="{% url 'privacy_policy' %}" class="text-decoration-none text-muted small">
+        <div class="d-flex align-items-center flex-shrink-0">
+            <a href="{% url 'privacy_policy' %}" class="text-decoration-none text-muted small text-nowrap">
                 Privacy & Data Policy
             </a>
         </div>
